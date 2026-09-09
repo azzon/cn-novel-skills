@@ -198,6 +198,65 @@ def check(fp: pathlib.Path):
         if w in tail:
             warns.append(f"章末300字出现总结腔词「{w}」(章末只许钩子或余韵)")
 
+    # 16) 对话字数占比(用户标准:真人白金作家对话≥40-50%)
+    dialog_str = "".join(re.findall(r'["\u201c]([^"\u201d]*)["\u201d]', body))
+    dialog_chars = cjk_len(dialog_str)
+    if n > 500:
+        dpct = dialog_chars / n * 100
+        if dpct < 25:
+            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:真人白金作家≥45%;信息交付须场景化勿叙述概述)")
+        elif dpct < 35:
+            warns.append(f"对话字数占比{dpct:.0f}%(<35%,偏低:目标≥45%)")
+
+    # 17) 心理活动密度(用户标准:每千字≥2处心理beat)
+    psych_pats = r"(他想|他觉得|他心想|他暗想|他忽然想|他想到|心里一|心中|心里|暗想|心知|他明白|他知道|他意识到|他发觉|他感到|他琢磨|他盘算|他记起|他想起|他回忆|他忽然明白|他忽然发现|他忽然察觉)"
+    psych_count = len(re.findall(psych_pats, body))
+    if n > 800:
+        psych_per_k = psych_count / n * 1000
+        if psych_per_k < 1.0:
+            issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重不足:白金作家≥2/千字;角色必须有内心独白/心理反应/情感挣扎)")
+        elif psych_per_k < 2.0:
+            warns.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<2.0/千字,偏少)")
+
+    # 18) 对话场景数(≥2个独立对话场景)
+    paras_all = [p.strip() for p in body.split("\n") if p.strip()]
+    dialog_scenes = 0
+    in_dialog = False
+    for p in paras_all:
+        has_q = '"' in p or '\u201c' in p or '\u300c' in p
+        if has_q and not in_dialog:
+            dialog_scenes += 1
+            in_dialog = True
+        elif not has_q and in_dialog:
+            in_dialog = False
+    if dialog_scenes < 2 and n > 800:
+        issues.append(f"对话场景仅{dialog_scenes}个(<2,章内须至少2个独立对话场景)")
+
+    # 19) 英文残留(连续≥3个拉丁字母,时代错位)
+    en_hits = re.findall(r"[a-zA-Z]{3,}", re.sub(r"CSI|now|BEAT|beat", "", body))
+    if en_hits:
+        issues.append(f"英文残留:{','.join(en_hits[:5])}(正文不得出现拉丁字母词)")
+
+    # 20) 流水账叙述检测(段落开头=人名+叙述动词,连续≥3段)
+    flow_starts = 0
+    max_flow = 0
+    flow_names = "陈更|他|文渊|墨鸦|闻人霜|樊大|白老爷|崔一笔|严堂丞|杜推官|齐有德|文先生|她"
+    flow_verbs = "去|到|查|发现|找|来|回|带|递|收|写|看|听|等|送|拿|走|说|问|翻|拆|试|开"
+    for p in paras_all:
+        if re.match(rf"^({flow_names})({flow_verbs})", p):
+            flow_starts += 1
+            max_flow = max(max_flow, flow_starts)
+        else:
+            flow_starts = 0
+    if max_flow >= 5:
+        warns.append(f"流水账风险:连续{max_flow}段以'人名+动词'开头(注意用对话/白描/心理打断叙述)")
+
+    # 21) 时代错位词(现代/外文混入正文)
+    MODERN_WORDS = ["照片", "电话", "手机", "电脑", "电视", "咖啡", "沙发", "卡车", "地铁", "公园", "超市", "公交", "电梯"]
+    for w in MODERN_WORDS:
+        if w in body:
+            issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
+
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     return fp, n, status, issues, warns
 
