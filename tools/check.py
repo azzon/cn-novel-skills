@@ -257,6 +257,68 @@ def check(fp: pathlib.Path):
         if w in body:
             issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
 
+    # 22) 角色语音同质化检测(不同角色的对话句长是否趋同)
+    # 提取各角色的对话行,比较平均句长
+    speaker_sents = {}
+    current_speaker = None
+    speaker_pats = {
+        "樊大": r"樊大(?:说|道|问|喊|嚷|吼|叫|回)",
+        "闻人霜": r"闻人霜|闻姑娘",
+        "墨鸦": r"墨鸦",
+        "文渊": r"文渊|文先生|文总管",
+        "白老爷": r"白老爷|白圭",
+        "崔一笔": r"崔一笔|崔老|老崔",
+        "钱通宝": r"钱通宝|钱掌柜",
+        "严堂丞": r"严堂丞|堂丞",
+    }
+    for p in paras_all:
+        for sp, pat in speaker_pats.items():
+            if re.search(pat, p):
+                current_speaker = sp
+                break
+        if current_speaker and ('"' in p or '\u201c' in p):
+            quotes = re.findall(r'["\u201c]([^"\u201d]+)["\u201d]', p)
+            for q in quotes:
+                speaker_sents.setdefault(current_speaker, []).append(q)
+    
+    # 比较至少两个有足够数据的角色的平均句长
+    if len(speaker_sents) >= 2:
+        lengths = {}
+        for sp, qs in speaker_sents.items():
+            all_q = "".join(qs)
+            sents = [s for s in re.split(r"[。!?\n]", all_q) if len(s.strip()) > 1]
+            if len(sents) >= 3:
+                lengths[sp] = sum(len(s) for s in sents) / len(sents)
+        if len(lengths) >= 2:
+            vals = list(lengths.values())
+            spread = max(vals) - min(vals)
+            if spread < 3:
+                sp_names = ", ".join(f"{s}({v:.0f})" for s, v in sorted(lengths.items(), key=lambda x: x[1]))
+                warns.append(f"语音同质化:各角色平均句长差距仅{spread:.1f}字({sp_names})——角色对话须有声纹差异")
+
+    # 23) 声纹禁词检测(角色说了不该说的话)
+    VOICE_BANS = {
+        "樊大": ["可谓", "然也", "诚如", "章程", "条陈"],
+        "闻人霜": ["可能", "也许", "大概", "感觉", "好像"],
+        "陈更": ["大概", "差不多", "算了", "无所谓"],
+        "墨鸦": ["高兴", "难过", "害怕", "咱们", "啥", "咋"],
+        "文渊": ["他娘的", "混账", "放屁"],
+    }
+    for sp, bans in VOICE_BANS.items():
+        # 检查该角色的对话行
+        in_sp = False
+        for p in paras_all:
+            if re.search(speaker_pats.get(sp, sp), p):
+                in_sp = True
+            if in_sp:
+                for ban in bans:
+                    if ban in p:
+                        issues.append(f"声纹违例:「{sp}」说了禁词「{ban}」(违反声纹卡)")
+                        in_sp = False
+                        break
+            elif in_sp and not p.strip():
+                in_sp = False
+
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     return fp, n, status, issues, warns
 
