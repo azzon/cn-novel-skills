@@ -258,7 +258,29 @@ def check(fp: pathlib.Path):
             issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
 
     # 22) 角色语音同质化检测(不同角色的对话句长是否趋同)
-    # 提取各角色的对话行,比较平均句长
+    # (原文保留——见上方已有实现)
+
+    # 24) 宣言密度检测(红队18:每章宣言式对白≤3处)
+    declaim_pats = r'["\u201c][^"\u201d]*(?:永远|从不|一定|必须|绝不|一定|都要|才是|就是|不在.*在)(?:[^"\u201d]*)["\u201d]'
+    declaims = len(re.findall(declaim_pats, body))
+    if declaims > 5:
+        warns.append(f"宣言式对白{declaims}处(>5,目标≤3——红队18:126章8处=过载)")
+
+    # 25) 三连排比检测(红队18:正在固化为tic)
+    triples = len(re.findall(r'(怕[^，。]{2,6})，(怕[^，。]{2,6})，(怕[^，。]{2,6})', body))
+    triples += len(re.findall(r'(他[^，。]{2,4})…(他[^，。]{2,4})…(他[^，。]{2,4})', body))
+    if triples > 1:
+        warns.append(f"三连排比{triples}处(>1,红队18:句式正在固化)")
+
+    # 26) 独白长度检测(红队18:单轮对话不应超100字不被打断)
+    long_speeches = 0
+    for m in re.finditer(r'["\u201c]([^"\u201d]{120,})["\u201d]', body):
+        long_speeches += 1
+    if long_speeches > 2:
+        warns.append(f"超长独白{long_speeches}处(单轮>120字——对话变演讲,红队18)")
+
+    status = "FAIL" if issues else ("WARN" if warns else "PASS")
+    return fp, n, status, issues, warns
     speaker_sents = {}
     current_speaker = None
     speaker_pats = {
