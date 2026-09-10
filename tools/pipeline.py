@@ -38,7 +38,7 @@ PHASES = {
               "artifacts": ["story/00z-试写/"],
               "checks": ["≥3章", "冷读记录"]},
     "style": {"name": "风格包", "skill": "style-compiler",
-              "artifacts": ["story/50-风格包-v1.md"],
+              "artifacts": ["story/50-风格包-v6-白金DNA+红队全量版.md"],
               "checks": ["范例段", "盲评"]},
 }
 
