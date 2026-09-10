@@ -1,9 +1,10 @@
 {
-  "phase": "characters",
+  "phase": "plot",
   "completed": [
     "incubate",
     "premise",
-    "world"
+    "world",
+    "characters"
   ],
   "violations": [],
   "chapters": {},
