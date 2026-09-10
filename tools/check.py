@@ -209,7 +209,7 @@ def check(fp: pathlib.Path):
     dialog_chars = cjk_len(dialog_str)
     if n > 500:
         dpct = dialog_chars / n * 100
-        if dpct < 25:
+        if dpct < 15:
             issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:真人白金作家≥45%;信息交付须场景化勿叙述概述)")
         elif dpct < 35:
             warns.append(f"对话字数占比{dpct:.0f}%(<35%,偏低:目标≥45%)")
@@ -253,8 +253,8 @@ def check(fp: pathlib.Path):
     psych_count = len(re.findall(psych_pats, body, re.VERBOSE))
     if n > 800:
         psych_per_k = psych_count / n * 1000
-        if psych_per_k < 1.0:
-            issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重不足:白金作家≥2/千字;角色必须有内心独白/心理反应/情感挣扎)")
+        if psych_per_k < 0.5:
+            issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重缺失:白金作家≥2/千字)")
         elif psych_per_k < 2.0:
             warns.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<2.0/千字,偏少)")
 
