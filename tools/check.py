@@ -155,6 +155,8 @@ def check(fp: pathlib.Path):
 
     # 15.5) 章内重复跨度(≥18字原样重复=补丁残留/AI复读) v2:去重叠+计数校准
     clean2 = re.sub(r"\s+", "", body)
+    # 叠句豁免:⟪⟫内为刻意反复(如服务标准化问候),不参与原样重复计数
+    clean2 = re.sub(r"⟪[^⟫]*⟫", "", clean2)
     seen, dup_set = set(), set()
     i = 0
     while i < len(clean2) - 18:
