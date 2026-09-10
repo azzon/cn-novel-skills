@@ -1,12 +1,13 @@
 {
-  "phase": "style",
+  "phase": "writing",
   "completed": [
     "incubate",
     "premise",
     "world",
     "characters",
     "plot",
-    "trial"
+    "trial",
+    "style"
   ],
   "violations": [],
   "chapters": {},
