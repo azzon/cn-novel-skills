@@ -35,6 +35,7 @@ SIMILE_LIMIT = 3        # 明喻
 SYSTEM_LINE_LIMIT = 4   # 【系统台词行
 NAME = ""
 SCENE_MODE = [False]               # 主角名(新案角色定稿后填入;留空则跳过人名密度检查)
+MODERN_SETTING = [False]           # 现代都市背景(--modern 开关,关闭时代错位检查)
 
 def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
@@ -291,11 +292,13 @@ def check(fp: pathlib.Path):
     if max_flow >= 5:
         warns.append(f"流水账风险:连续{max_flow}段以'人名+动词'开头(注意用对话/白描/心理打断叙述)")
 
-    # 21) 时代错位词(现代/外文混入正文)
-    MODERN_WORDS = ["照片", "电话", "手机", "电脑", "电视", "咖啡", "沙发", "卡车", "地铁", "公园", "超市", "公交", "电梯"]
-    for w in MODERN_WORDS:
-        if w in body:
-            issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
+    # 21) 时代错位词(现代/外文混入正文;--modern 跳过——现代背景专用)
+    if not MODERN_SETTING[0]:
+        MODERN_WORDS = ["照片", "电话", "手机", "电脑", "电视", "咖啡", "沙发", "卡车", "地铁", "公园", "超市", "公交", "电梯"]
+        for w in MODERN_WORDS:
+            if w in body:
+                issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
+                break
 
     # 22) 角色语音同质化检测 + 23) 声纹禁词(从死代码中恢复)
     speaker_sents = {}
@@ -344,6 +347,7 @@ def check(fp: pathlib.Path):
     }
     for sp, bans in VOICE_BANS.items():
         in_sp = False
+        narrative_run = 0
         for p in paras_all:
             # 检测到其他角色标签时重置
             for other_sp, other_pat in speaker_pats.items():
@@ -355,9 +359,11 @@ def check(fp: pathlib.Path):
                     in_sp = True
                 # 连续2段无引号也重置(说话人已离场)
                 if in_sp and ('"' not in p and '\u201c' not in p):
-                    consecutive_narrative = getattr(cmd_audit, '_narrative_count', 0)
-                    if consecutive_narrative >= 2:
+                    narrative_run += 1
+                    if narrative_run >= 2:
                         in_sp = False
+                elif '"' in p or '\u201c' in p:
+                    narrative_run = 0
             if in_sp and ('"' in p or '\u201c' in p):
                 for ban in bans:
                     if ban in p:
@@ -384,6 +390,53 @@ def check(fp: pathlib.Path):
         long_speeches += 1
     if long_speeches > 2:
         warns.append(f"超长独白{long_speeches}处(单轮>100字——对话变演讲,红队18)")
+
+    # 27) "如你所知"式设定伪装(红队G:信息倾倒的对话化伪装,FAIL)
+    info_dumps = re.findall(r'如你所知|众所周知[，,]|想必你已|你应该知道|说来话长[，,]|简单来说', body)
+    if info_dumps:
+        issues.append(f"设定伪装对话{len(info_dumps)}处(「如你所知」式——设定必须挂在当前麻烦上进场,禁百科式转述,红队G)")
+
+    # 28) 心动场景死喻(红队I禁喻清单:只许动作/物证/沉默三载体)
+    dead_metaphors = re.findall(r'月光如水|星辰满天|心跳加速|心跳如鼓|脸颊绯红|手心出汗|心里某处.{0,2}柔软|漏跳了一拍', body)
+    if dead_metaphors:
+        warns.append(f"心动死喻{len(dead_metaphors)}处({','.join(set(dead_metaphors[:3]))})——换动作/物证/沉默三载体,红队I")
+
+    # 29) 首句长度(红队E转换规则1:第一句≤10字,扔事件碎片不递画面)
+    if body_lines:
+        first_sent = re.split(r'[。!?\n]', body_lines[0])[0]
+        fl = cjk_len(first_sent)
+        if fl > 25:
+            warns.append(f"首句{fl}字(>25,白金开篇首句≤10字碎片式:『头七,第三夜。』式,不递画面扔事件)")
+
+    # 30) 感叹号温差(红队E:冷叙述+热对白;叙述段感叹号占比过高=失去温差)
+    dia_ex = sum(p.count('！') + p.count('!') for p in paras_all if ('"' in p or '\u201c' in p))
+    nar_ex = sum(p.count('！') + p.count('!') for p in paras_all if ('"' not in p and '\u201c' not in p))
+    if nar_ex > dia_ex and nar_ex > 3:
+        warns.append(f"感叹号温差倒挂:叙述段{nar_ex}个 vs 对话段{dia_ex}个——感叹号应集中对话与情绪峰值,叙述保持句号(冷面)")
+
+    # 31) 章末钩子存在性(红队D:末三行决定追读,情绪最高点切断)
+    tail_lines = [l for l in body_lines[-3:] if l.strip()]
+    tail_joined = "".join(tail_lines)
+    hook_signals = re.findall(r'[？?！!]|——|…|突然|忽然|就在这时|却见|赫然|竟是|竟然|一声|来了|开门|转身', tail_joined)
+    if tail_joined and not hook_signals:
+        warns.append("章末钩子信号缺失(末三行无悬念/中断/情绪峰值信号——最后三行决定读者去留,红队D)")
+
+    # 32) 圆满收束检测(红队D弃书首因:主角安全脱险读者心满意足就不会点下一章)
+    tail200 = body[-200:]
+    tidy_endings = re.findall(r'从此|尘埃落定|落下帷幕|安心地|放下心来|一切归于|终于平静|沉沉睡去', tail200)
+    if tidy_endings:
+        warns.append(f"章末圆满收束信号{len(tidy_endings)}处(「{tidy_endings[0]}」)——爽完必须留新悬念,禁心满意足式结尾,红队D")
+
+    # 33) 对话节奏违例(红队C:每3-5句台词+1段动作/心理,连续>6轮纯对话=喘不过气)
+    pure_dia_run = 0; max_dia_run = 0
+    for p in paras_all:
+        if ('"' in p or '\u201c' in p) and cjk_len(p) < 60:
+            pure_dia_run += 1
+            max_dia_run = max(max_dia_run, pure_dia_run)
+        else:
+            pure_dia_run = 0
+    if max_dia_run > 6:
+        warns.append(f"连续{max_dia_run}轮纯对话(>6,每3-5句台词应插入动作/心理描写——织毛衣法,红队C)")
 
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     return fp, n, status, issues, warns
@@ -437,6 +490,11 @@ def main():
     if scene_mode:
         args = [a for a in args if a != "--scene"]
         SCENE_MODE[0] = True
+    if "--modern" in args:
+        # 现代都市背景:关闭时代错位词检查(该检查仅用于古风背景)
+        args = [a for a in args if a != "--modern"]
+        global MODERN_SETTING
+        MODERN_SETTING[0] = True
     if not args or args[0] in ("-h","--help"):
         print(__doc__); return 2
     for a in args:
