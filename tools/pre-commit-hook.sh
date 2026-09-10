@@ -31,7 +31,10 @@ for CHAPTER in $STAGED; do
     echo "── $CHAPTER ──"
 
     # ── A. 质量门: check.py ──
-    CHECK_EXIT=$(python3 tools/check.py "$CHAPTER" > /tmp/check_out.txt 2>&1; echo $?)
+    # 现代背景旗标(text/.modern存在→--modern,关时代错位检查)
+MODERN_FLAG=""
+[ -f "text/.modern" ] && MODERN_FLAG="--modern"
+CHECK_EXIT=$(python3 tools/check.py $MODERN_FLAG "$CHAPTER" > /tmp/check_out.txt 2>&1; echo $?)
     if [ "$CHECK_EXIT" != "0" ]; then
         if grep -q "waiver:" "$CHAPTER" 2>/dev/null; then
             echo -e "${YELLOW}  [WAIVER] check.py有FAIL但已豁免${NC}"
