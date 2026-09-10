@@ -418,6 +418,9 @@ def check(fp: pathlib.Path):
     tail_lines = [l for l in body_lines[-3:] if l.strip()]
     tail_joined = "".join(tail_lines)
     hook_signals = re.findall(r'[？?！!]|——|…|突然|忽然|就在这时|却见|赫然|竟是|竟然|一声|来了|开门|转身', tail_joined)
+    # 屏面语:末三行含≤10字重音段(单句成段=重音)也算钩信号
+    if not hook_signals and any(cjk_len(l) <= 10 for l in tail_lines):
+        hook_signals = ['<短句重音>']
     if tail_joined and not hook_signals:
         warns.append("章末钩子信号缺失(末三行无悬念/中断/情绪峰值信号——最后三行决定读者去留,红队D)")
 
