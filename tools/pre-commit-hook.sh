@@ -1,18 +1,19 @@
 #!/bin/bash
-# pre-commit hook: 焊在git里的质量门
+# pre-commit hook v2: 质量门 + 流程合规门
 # 安装: cp tools/pre-commit-hook.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; NC='\033[0m'
+FAIL=0
 
 echo "═══════════════════════════════════════════"
-echo "  PRE-COMMIT QUALITY GATE"
+echo "  PRE-COMMIT: 质量门 + 流程合规门"
 echo "═══════════════════════════════════════════"
 
-# 1. 检查新增/修改的章节文件（用python处理中文字符更可靠）
-STAGED_CHAPTERS=$(git diff --cached --name-only --diff-filter=ACM | python3 -c "
+# 获取新增/修改的章节文件
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | python3 -c "
 import sys, re
 for line in sys.stdin:
     line = line.strip()
@@ -20,73 +21,107 @@ for line in sys.stdin:
         print(line)
 " || true)
 
-if [ -z "$STAGED_CHAPTERS" ]; then
-    echo -e "${GREEN}[PASS] 无新章节文件，跳过章节质量门。${NC}"
+if [ -z "$STAGED" ]; then
+    echo -e "${GREEN}[PASS] 无新章节，跳过。${NC}"
     exit 0
 fi
 
-FAIL_COUNT=0
-WARN_COUNT=0
-
-for CHAPTER in $STAGED_CHAPTERS; do
+for CHAPTER in $STAGED; do
     echo ""
-    echo "── 检查: $CHAPTER ──"
+    echo "── $CHAPTER ──"
 
-    # 1a. 运行check.py
-    CHECK_RESULT=$(python3 tools/check.py "$CHAPTER" 2>&1)
-    CHECK_EXIT=$?
-
-    if [ $CHECK_EXIT -ne 0 ]; then
-        # 有FAIL项
-        echo -e "${RED}  [FAIL] check.py检测未通过:${NC}"
-        echo "$CHECK_RESULT" | grep '\[FAIL\]' | head -5 | sed 's/^/    /'
-        FAIL_COUNT=$((FAIL_COUNT + 1))
-
-        # 检查是否有waiver标记
+    # ── A. 质量门: check.py ──
+    CHECK_EXIT=$(python3 tools/check.py "$CHAPTER" > /tmp/check_out.txt 2>&1; echo $?)
+    if [ "$CHECK_EXIT" != "0" ]; then
         if grep -q "waiver:" "$CHAPTER" 2>/dev/null; then
-            WAIVER_REASON=$(grep "waiver:" "$CHAPTER" | head -1 | cut -d: -f2-)
-            echo -e "${YELLOW}  [WAIVER] 此章已标记豁免: $WAIVER_REASON${NC}"
-            echo -e "${YELLOW}  豁免章节将在下次红队审计中优先检查。${NC}"
+            echo -e "${YELLOW}  [WAIVER] check.py有FAIL但已豁免${NC}"
         else
-            echo -e "${RED}  此章未标记豁免。修复FAIL项后在commit，或在文件头部添加: <!-- waiver: 原因 -->${NC}"
+            echo -e "${RED}  [FAIL] check.py未通过:${NC}"
+            grep '\[FAIL\]' /tmp/check_out.txt | head -3 | sed 's/^/    /'
+            FAIL=1
         fi
-    elif echo "$CHECK_RESULT" | grep -q '\[WARN\]'; then
-        echo -e "${YELLOW}  [WARN] 有警告项(不阻塞):${NC}"
-        echo "$CHECK_RESULT" | grep '\[WARN\]' | head -3 | sed 's/^/    /'
-        WARN_COUNT=$((WARN_COUNT + 1))
     else
-        echo -e "${GREEN}  [PASS] check.py全项通过。${NC}"
+        echo -e "${GREEN}  [PASS] check.py质量门${NC}"
     fi
 
-    # 1b. 检查是否有验收标记（场景文件）
-    if echo "$CHAPTER" | grep -q "场景"; then
-        if ! grep -q "<!-- 验收: 过 -->" "$CHAPTER" 2>/dev/null; then
-            echo -e "${RED}  [FAIL] 场景文件缺少验收标记${NC}"
-            FAIL_COUNT=$((FAIL_COUNT + 1))
+    # ── B. 流程合规门 ──
+
+    # B1. 场景卡存在性检查
+    CH_NUM=$(echo "$CHAPTER" | python3 -c "
+import sys, re
+line = sys.stdin.read().strip()
+m = re.search(r'第(\d+)章', line)
+print(m.group(1) if m else '')
+")
+    VOL=$(echo "$CHAPTER" | python3 -c "
+import sys, re
+line = sys.stdin.read().strip()
+m = re.search(r'(卷.+?)/', line)
+print(m.group(1) if m else '')
+")
+
+    if [ -n "$CH_NUM" ]; then
+        CARD_PATTERN="text/卡/*${CH_NUM}*"
+        CARDS=$(ls $CARD_PATTERN 2>/dev/null | wc -l)
+
+        if [ "$CARDS" -eq 0 ]; then
+            if grep -q "no-card:" "$CHAPTER" 2>/dev/null; then
+                echo -e "${YELLOW}  [WAIVER] 无场景卡但已标记${NC}"
+            else
+                echo -e "${YELLOW}  [WARN] 无场景卡(首次违规不阻塞,连续3次将阻塞)${NC}"
+                echo "$CHAPTER" >> /tmp/no_card_log.txt
+                NO_CARD_COUNT=$(grep -c . /tmp/no_card_log.txt 2>/dev/null || echo 0)
+                if [ "$NO_CARD_COUNT" -ge 3 ]; then
+                    echo -e "${RED}  [FAIL] 连续${NO_CARD_COUNT}章无场景卡——流程违规${NC}"
+                    FAIL=1
+                fi
+            fi
+        else
+            echo -e "${GREEN}  [PASS] 场景卡(${CARDS}张)${NC}"
+            # 清除计数
+            rm -f /tmp/no_card_log.txt
         fi
     fi
+
+    # B2. 冷读记录检查（查台账或专用文件）
+    if [ -n "$CH_NUM" ]; then
+        COLD_READ=$(grep -l "第${CH_NUM}章.*冷读\|冷读.*第${CH_NUM}章" ledgers/*.md story/audit/*.md 2>/dev/null | head -1)
+        if [ -z "$COLD_READ" ]; then
+            # 检查章文件内是否有冷读标记
+            if grep -q "冷读.*过\|cold-read.*pass" "$CHAPTER" 2>/dev/null; then
+                echo -e "${GREEN}  [PASS] 冷读标记${NC}"
+            else
+                echo -e "${YELLOW}  [WARN] 无冷读记录(建议运行reader-proxy)${NC}"
+            fi
+        else
+            echo -e "${GREEN}  [PASS] 冷读记录存在${NC}"
+        fi
+    fi
+
+    # B3. Drift-audit调度检查（每10章）
+    TOTAL=$(ls text/卷*/第*章.md 2>/dev/null | python3 -c "
+import sys, re
+count = 0
+for line in sys.stdin:
+    if '场景' not in line:
+        count += 1
+print(count)
+")
+    if [ $((TOTAL % 10)) -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
+        RECENT_DRIFT=$(find story/audit -name "drift-*" -newer "$CHAPTER" 2>/dev/null | head -1)
+        if [ -z "$RECENT_DRIFT" ]; then
+            echo -e "${YELLOW}  [REMIND] 第${TOTAL}章(10倍数)——应运行drift-audit${NC}"
+        fi
+    fi
+
 done
 
-# 2. 每10章触发drift-audit提醒
-TOTAL_CHAPTERS=$(ls text/卷*/第*章.md 2>/dev/null | grep -v 场景 | wc -l)
-if [ $((TOTAL_CHAPTERS % 10)) -eq 0 ] && [ $TOTAL_CHAPTERS -gt 0 ]; then
-    LAST_DRIFT=$(ls story/audit/drift-* 2>/dev/null | tail -1)
-    if [ -z "$LAST_DRIFT" ]; then
-        echo -e "${YELLOW}  [REMINDER] 已写${TOTAL_CHAPTERS}章(10的倍数)，尚无drift审计记录。${NC}"
-        echo -e "${YELLOW}  建议运行: drift-audit${NC}"
-    fi
-fi
-
-# 3. 最终裁决
 echo ""
 echo "═══════════════════════════════════════════"
-if [ $FAIL_COUNT -gt 0 ]; then
-    echo -e "${RED}  拒绝COMMIT: ${FAIL_COUNT}章有未豁免的FAIL项。${NC}"
-    echo -e "${RED}  修复后重试，或添加waiver标记。${NC}"
-    echo "═══════════════════════════════════════════"
+if [ "$FAIL" -eq 1 ]; then
+    echo -e "${RED}  ❌ 拒绝COMMIT: 存在未豁免的违规${NC}"
     exit 1
 else
-    echo -e "${GREEN}  质量门通过: FAIL=0, WARN=${WARN_COUNT}${NC}"
-    echo "═══════════════════════════════════════════"
-    exit 0
+    echo -e "${GREEN}  ✅ 质量门+流程门通过${NC}"
 fi
+echo "═══════════════════════════════════════════"

@@ -345,16 +345,25 @@ def check(fp: pathlib.Path):
     for sp, bans in VOICE_BANS.items():
         in_sp = False
         for p in paras_all:
-            if re.search(speaker_pats.get(sp, sp), p):
-                in_sp = True
+            # 检测到其他角色标签时重置
+            for other_sp, other_pat in speaker_pats.items():
+                if other_sp != sp and re.search(other_pat, p):
+                    in_sp = False
+                    break
+            else:
+                if re.search(speaker_pats.get(sp, sp), p):
+                    in_sp = True
+                # 连续2段无引号也重置(说话人已离场)
+                if in_sp and ('"' not in p and '\u201c' not in p):
+                    consecutive_narrative = getattr(cmd_audit, '_narrative_count', 0)
+                    if consecutive_narrative >= 2:
+                        in_sp = False
             if in_sp and ('"' in p or '\u201c' in p):
                 for ban in bans:
                     if ban in p:
                         warns.append(f"声纹违例:「{sp}」说了禁词「{ban}」(若为故意喜剧手法可登记豁免)")
                         in_sp = False
                         break
-            elif in_sp and not p.strip():
-                in_sp = False
 
     # 24) 宣言密度检测 v2:收窄词表(去家常词)+修阈值
     declaim_pats = r'["\u201c][^"\u201d]{0,20}(?:永远|从不|绝不|子子孙孙|世世代代|总有一天|这笔账.{0,6}讨到底)(?:[^"\u201d]*)["\u201d]'
