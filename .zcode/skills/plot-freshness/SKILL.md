@@ -1,3 +1,7 @@
+---
+description: 情节新鲜度管理——反重复5纪律+异象一器一用+胜利引擎轮换+代价实付+金手指追踪。Use when 排卷纲/写高潮/防套路重复。
+---
+
 # Skill: plot-freshness
 # plot-freshness:情节新鲜度管理（反重复/反套路/反泄底）
 

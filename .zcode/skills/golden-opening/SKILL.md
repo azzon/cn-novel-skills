@@ -1,3 +1,7 @@
+---
+description: 黄金开篇——前500字硬性指标（悬念≤30字/金手指≤500字/爽点≤1500字）。Use when 写前三章/开篇/用户说"开头不行"。
+---
+
 # Skill: golden-opening
 # golden-opening:黄金开篇（前500字=生死线）
 

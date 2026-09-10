@@ -1,3 +1,7 @@
+---
+description: 写作灵魂层（最高优先级）——灵魂三问+注入五法+冲突裁决。Use when 写重点章/情感重场/感觉"没灵魂"。
+---
+
 # Skill: writing-heart
 # writing-heart:写作的灵魂层（超越所有技术规则的最高层）
 
