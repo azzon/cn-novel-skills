@@ -145,7 +145,7 @@ def check(fp: pathlib.Path):
             warns.append(f"段落长度方差过小({psd:.0f}),段落匀速感(注意长短段错落)")
 
     # 14) 对话占比(场景化率代理,布防总表B4)
-    dl = [l for l in body_lines if ('"' in l or '"' in l or '「' in l or '"' in l or l.strip().startswith('"'))]
+    dl = [l for l in body_lines if ('"' in l or '\u201c' in l or '「' in l or '\u201d' in l or l.strip().startswith('"'))]
     if body_lines:
         ratio = len(dl) / len(body_lines)
         if ratio < 0.10:
