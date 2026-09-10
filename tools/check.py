@@ -489,8 +489,35 @@ def threads_mode(folder: pathlib.Path):
         print("  无")
     return 0
 
+def baseline_mode(fp: pathlib.Path):
+    """中文AI味四指标(B2建议自建基线):四字词密度/逻辑胶水密度/句长变异系数/对话语气词密度。"""
+    body = "\n".join(l for l in fp.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and not l.startswith("#"))
+    n = cjk_len(body)
+    if n < 200:
+        print("文本太短(<200字),基线无意义"); return 0
+    fourgrams = len(re.findall(r"[\u4e00-\u9fff]{4}", body))
+    glue = sum(body.count(w) for w in ["然而","因此","因为","所以","于是","但是","虽然","尽管","总之","综上","与此同时","不得不说","值得一提的是"])
+    sents = [cjk_len(s) for s in re.split(r"[。!?\n]", body) if cjk_len(s) > 0]
+    cv = (statistics.pstdev(sents) / statistics.mean(sents) * 100) if len(sents) >= 10 and statistics.mean(sents) else 0
+    dia = "".join(re.findall(r"[\u201c]([^\u201d]*)[\u201d]", body))
+    mood = sum(dia.count(w) for w in ["啊","呗","嘛","呗","得了","行吧","得了吧","嚯","啧","嗯","哦","诶","嘿"])
+    dn = cjk_len(dia) or 1
+    print(f"=== AI味四指标 [{fp.name}] {n}字 ===")
+    print(f"四字词密度: {fourgrams/n*1000:.1f}/千字")
+    print(f"逻辑胶水: {glue/n*1000:.2f}/千字 (>2.0=翻译腔超标)")
+    print(f"句长变异系数: {cv:.0f}% (<30%=节奏过匀)")
+    print(f"对话语气词: {mood/dn*100:.1f}% (<3%=对话无人味)")
+    return 0
+
+
 def main():
     args = sys.argv[1:]
+    if "--baseline" in args:
+        args = [a for a in args if a != "--baseline"]
+        if not args or not pathlib.Path(args[0]).exists():
+            print("需要文件参数"); return 2
+        return baseline_mode(pathlib.Path(args[0]))
     scene_mode = "--scene" in args
     if scene_mode:
         args = [a for a in args if a != "--scene"]
