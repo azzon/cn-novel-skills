@@ -209,10 +209,10 @@ def check(fp: pathlib.Path):
     dialog_chars = cjk_len(dialog_str)
     if n > 500:
         dpct = dialog_chars / n * 100
-        if dpct < 15:
-            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:真人白金作家≥45%;信息交付须场景化勿叙述概述)")
-        elif dpct < 35:
-            warns.append(f"对话字数占比{dpct:.0f}%(<35%,偏低:目标≥45%)")
+        if dpct < 25:
+            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:起点白金对话40-60%;角色必须开口说话!)")
+        elif dpct < 40:
+            warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标45-60%;角色要多说话说废话说长话)")
 
     # 17) 心理活动密度(用户标准:每千字≥2处心理beat)
     # v2: 大幅扩充词表——覆盖身体反应/情绪动词/内心独白/记忆闪回/决策犹豫
