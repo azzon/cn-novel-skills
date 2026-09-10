@@ -152,24 +152,30 @@ def check(fp: pathlib.Path):
         elif ratio > 0.75:
             warns.append(f"对话行占比{ratio:.0%}(>75%),叙述过少(像剧本不像小说)")
 
-    # 15.5) 章内重复跨度(≥18字原样重复=补丁残留/AI复读,读者代理实测踩坑)
+    # 15.5) 章内重复跨度(≥18字原样重复=补丁残留/AI复读) v2:去重叠+计数校准
     clean2 = re.sub(r"\s+", "", body)
-    seen, dups = set(), []
-    for i in range(0, len(clean2) - 18):
+    seen, dup_set = set(), set()
+    i = 0
+    while i < len(clean2) - 18:
         span = clean2[i:i+18]
-        if span in seen and span not in [d for d in dups]:
-            dups.append(span)
-        seen.add(span)
-    if dups:
-        issues.append(f"章内原样重复段落{len(dups)}处(首处:「{dups[0][:18]}…」)——补丁残留或复读,必须整体重写")
+        if span in seen:
+            dup_set.add(span)
+            i += 18  # 跳过一个窗口长度去重叠
+        else:
+            seen.add(span)
+            i += 1
+    if len(dup_set) >= 2:
+        issues.append(f"章内原样重复{len(dup_set)}处(首处:「{list(dup_set)[0][:18]}…»)——补丁残留或复读,必须整体重写")
+    elif len(dup_set) == 1:
+        warns.append(f"章内原样重复1处(「{list(dup_set)[0][:18]}…」)——检查是否补丁残留")
 
-    # 14.4) 装饰性修辞总密度(明喻+拟人+猜测腔,上限同SIMILE_LIMIT)
-    sim_total = sim
-    for pat in [r"似的", r"仿佛[^。!?,\n]{1,10}", r"像是[^。!?,\n]{1,8}"]:
-        sim_total += len(re.findall(pat, body))
+    # 14.4) 装饰性修辞总密度 v2:去除与#5重复计算的模式,只加新出现的
+    sim_extra = 0
+    for pat in [r"宛如", r"恍若"]:  # 只加#5未覆盖的
+        sim_extra += len(re.findall(pat, body))
     personif = len(re.findall(r"[推拉扛拽]着一?(?:一整个|整个)", body))
-    if sim_total + personif > SIMILE_LIMIT:
-        issues.append(f"装饰性修辞{sim_total+personif}处(明喻{sim_total}+拟人{personif},上限{SIMILE_LIMIT})——AI标志:每个描写点挂比喻;真实作者白描为主")
+    if sim + sim_extra + personif > SIMILE_LIMIT:
+        issues.append(f"装饰性修辞{sim+sim_extra+personif}处(明喻{sim+sim_extra}+拟人{personif},上限{SIMILE_LIMIT})——AI标志:每个描写点挂比喻;真实作者白描为主")
 
     # 14.5) 工程词泄漏(正文出现元层词汇=脱稿事故)
     META_WORDS = ["细纲", "情节点", "场景卡", "伏笔编号", "beat", "BEAT", "本章hook", "爽点数", "主角光环", "金手指设定"]
@@ -350,89 +356,29 @@ def check(fp: pathlib.Path):
             elif in_sp and not p.strip():
                 in_sp = False
 
-    # 24) 宣言密度检测(红队18:每章宣言式对白≤3处)
-    declaim_pats = r'["\u201c][^"\u201d]*(?:永远|从不|一定|必须|绝不|一定|都要|才是|就是|不在.*在)(?:[^"\u201d]*)["\u201d]'
+    # 24) 宣言密度检测 v2:收窄词表(去家常词)+修阈值
+    declaim_pats = r'["\u201c][^"\u201d]{0,20}(?:永远|从不|绝不|子子孙孙|世世代代|总有一天|这笔账.{0,6}讨到底)(?:[^"\u201d]*)["\u201d]'
     declaims = len(re.findall(declaim_pats, body))
-    if declaims > 5:
-        warns.append(f"宣言式对白{declaims}处(>5,目标≤3——红队18:126章8处=过载)")
+    if declaims > 3:
+        warns.append(f"宣言式对白{declaims}处(>3,红队18:126章过载)")
 
-    # 25) 三连排比检测(红队18:正在固化为tic)
-    triples = len(re.findall(r'(怕[^，。]{2,6})，(怕[^，。]{2,6})，(怕[^，。]{2,6})', body))
-    triples += len(re.findall(r'(他[^，。]{2,4})…(他[^，。]{2,4})…(他[^，。]{2,4})', body))
+    # 25) 三连排比检测 v3:只检测"重复词头"式排比(A，A，A式)而非任意三逗号
+    triples = len(re.findall(r'(怕[^，。]{1,6})，(怕[^，。]{1,6})，(怕[^，。]{1,6})', body))
+    triples += len(re.findall(r'(他[^，。的]{1,4})，(他[^，。的]{1,4})，(他[^，。的]{1,4})[^，。]', body))
+    triples += len(re.findall(r'(她[^，。的]{1,4})，(她[^，。的]{1,4})，(她[^，。的]{1,4})[^，。]', body))
     if triples > 1:
-        warns.append(f"三连排比{triples}处(>1,红队18:句式正在固化)")
+        warns.append(f"重复词头三连排比{triples}处(>1,句式固化:怕X怕Y怕Z/他A他B他C)")
 
-    # 26) 独白长度检测(红队18:单轮对话不应超100字不被打断)
+    # 26) 独白长度检测 v2:统一口径为100字
     long_speeches = 0
-    for m in re.finditer(r'["\u201c]([^"\u201d]{120,})["\u201d]', body):
+    for m in re.finditer(r'["\u201c]([^"\u201d]{100,})["\u201d]', body):
         long_speeches += 1
     if long_speeches > 2:
-        warns.append(f"超长独白{long_speeches}处(单轮>120字——对话变演讲,红队18)")
+        warns.append(f"超长独白{long_speeches}处(单轮>100字——对话变演讲,红队18)")
 
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     return fp, n, status, issues, warns
-    speaker_sents = {}
-    current_speaker = None
-    speaker_pats = {
-        "樊大": r"樊大(?:说|道|问|喊|嚷|吼|叫|回)",
-        "闻人霜": r"闻人霜|闻姑娘",
-        "墨鸦": r"墨鸦",
-        "文渊": r"文渊|文先生|文总管",
-        "白老爷": r"白老爷|白圭",
-        "崔一笔": r"崔一笔|崔老|老崔",
-        "钱通宝": r"钱通宝|钱掌柜",
-        "严堂丞": r"严堂丞|堂丞",
-    }
-    for p in paras_all:
-        for sp, pat in speaker_pats.items():
-            if re.search(pat, p):
-                current_speaker = sp
-                break
-        if current_speaker and ('"' in p or '\u201c' in p):
-            quotes = re.findall(r'["\u201c]([^"\u201d]+)["\u201d]', p)
-            for q in quotes:
-                speaker_sents.setdefault(current_speaker, []).append(q)
-    
-    # 比较至少两个有足够数据的角色的平均句长
-    if len(speaker_sents) >= 2:
-        lengths = {}
-        for sp, qs in speaker_sents.items():
-            all_q = "".join(qs)
-            sents = [s for s in re.split(r"[。!?\n]", all_q) if len(s.strip()) > 1]
-            if len(sents) >= 3:
-                lengths[sp] = sum(len(s) for s in sents) / len(sents)
-        if len(lengths) >= 2:
-            vals = list(lengths.values())
-            spread = max(vals) - min(vals)
-            if spread < 3:
-                sp_names = ", ".join(f"{s}({v:.0f})" for s, v in sorted(lengths.items(), key=lambda x: x[1]))
-                warns.append(f"语音同质化:各角色平均句长差距仅{spread:.1f}字({sp_names})——角色对话须有声纹差异")
 
-    # 23) 声纹禁词检测(角色说了不该说的话)
-    VOICE_BANS = {
-        "樊大": ["可谓", "然也", "诚如", "章程", "条陈"],
-        "闻人霜": ["可能", "也许", "大概", "感觉", "好像"],
-        "陈更": ["大概", "差不多", "算了", "无所谓"],
-        "墨鸦": ["高兴", "难过", "害怕", "咱们", "啥", "咋"],
-        "文渊": ["他娘的", "混账", "放屁"],
-    }
-    for sp, bans in VOICE_BANS.items():
-        # 检查该角色的对话行
-        in_sp = False
-        for p in paras_all:
-            if re.search(speaker_pats.get(sp, sp), p):
-                in_sp = True
-            if in_sp:
-                for ban in bans:
-                    if ban in p:
-                        issues.append(f"声纹违例:「{sp}」说了禁词「{ban}」(违反声纹卡)")
-                        in_sp = False
-                        break
-            elif in_sp and not p.strip():
-                in_sp = False
-
-    status = "FAIL" if issues else ("WARN" if warns else "PASS")
-    return fp, n, status, issues, warns
 
 def threads_mode(folder: pathlib.Path):
     """草蛇灰线追踪(docs/15):读取 threads.txt,输出逐章命中矩阵与断线预警。"""
