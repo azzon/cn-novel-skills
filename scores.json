@@ -1,11 +1,11 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-12T01:04:54",
-  "head_commit": "907227c",
+  "generated_at": "2026-09-12T01:14:01",
+  "head_commit": "ad9ba76",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
-      "committed": false,
+      "committed": true,
       "cjk": 2135,
       "dia_char_pct": 28.7,
       "psych_per_k": 0.94,
@@ -24,7 +24,7 @@
     },
     "2": {
       "path": "text/卷1/第002章.md",
-      "committed": false,
+      "committed": true,
       "cjk": 1859,
       "dia_char_pct": 27.3,
       "psych_per_k": 2.69,
@@ -43,7 +43,7 @@
     },
     "3": {
       "path": "text/卷1/第003章.md",
-      "committed": false,
+      "committed": true,
       "cjk": 1824,
       "dia_char_pct": 28.0,
       "psych_per_k": 1.1,
@@ -62,10 +62,10 @@
     },
     "4": {
       "path": "text/卷1/第004章.md",
-      "committed": false,
-      "cjk": 1914,
-      "dia_char_pct": 46.2,
-      "psych_per_k": 1.57,
+      "committed": true,
+      "cjk": 1950,
+      "dia_char_pct": 45.4,
+      "psych_per_k": 1.54,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -75,16 +75,16 @@
         2600,
         3000
       ],
-      "budget_delta_pct": -31.6,
-      "cold_read": null,
+      "budget_delta_pct": -30.4,
+      "cold_read": "冷读-第004章.md",
       "drift_flags": []
     },
     "5": {
       "path": "text/卷1/第005章.md",
-      "committed": false,
-      "cjk": 2028,
-      "dia_char_pct": 26.0,
-      "psych_per_k": 1.48,
+      "committed": true,
+      "cjk": 2067,
+      "dia_char_pct": 25.5,
+      "psych_per_k": 1.45,
       "hook_signals": 1,
       "dup18": 1,
       "check_status": "WARN",
@@ -94,17 +94,17 @@
         2800,
         3200
       ],
-      "budget_delta_pct": -32.4,
+      "budget_delta_pct": -31.1,
       "cold_read": "冷读-第005章.md",
       "drift_flags": []
     },
     "6": {
       "path": "text/卷1/第006章.md",
       "committed": false,
-      "cjk": 1842,
-      "dia_char_pct": 27.9,
-      "psych_per_k": 2.71,
-      "hook_signals": 0,
+      "cjk": 1983,
+      "dia_char_pct": 27.4,
+      "psych_per_k": 2.52,
+      "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
@@ -113,7 +113,7 @@
         2500,
         2900
       ],
-      "budget_delta_pct": -31.8,
+      "budget_delta_pct": -26.6,
       "cold_read": null,
       "drift_flags": []
     }

@@ -561,6 +561,8 @@ def scores_update(n, p, met, committed):
 
 def cmd_scores(args):
     import check as CHK  # noqa: E402
+    if (ROOT / "text" / ".modern").exists():
+        CHK.MODERN_SETTING[0] = True
     cm = chapter_map()
     data = {"_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
             "generated_at": "", "head_commit": "", "chapters": {}}

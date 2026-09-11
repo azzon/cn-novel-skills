@@ -226,7 +226,7 @@ def check(fp: pathlib.Path):
 
     # 14.6) 末尾截断(章节以未完结标点收束)
     tail_char = body.rstrip()[-1] if body.rstrip() else ""
-    if tail_char in ",,、:“(“":
+    if tail_char in "，，、：（(":
         issues.append(f"疑似末尾截断(结尾字符「{tail_char}」)")
 
     # 14.7) 碎片化(连续6段≤8字,语料校准:短句是重拍工具不是默认)
@@ -549,7 +549,7 @@ def check(fp: pathlib.Path):
 
     # 42) 时代语言穿帮(年代文专用: text/.era2005存在时激活; audits/20-E)
     #     2005后网络语混入正文=事实级出戏; 1发WARN,≥2发FAIL
-    if (pathlib.Path("text/.era2005")).exists():
+    if (pathlib.Path(__file__).resolve().parent.parent / "text" / ".era2005").exists():
         ANACHRONISM = ["微信","朋友圈","扫码","二维码","内卷","躺平","佛系","破防",
                        "社死","绝绝子","yyds","YYDS","拿捏","凡尔赛","干饭","打工人",
                        "给力","点赞","带货","热搜","刷屏","吐槽"]

@@ -118,8 +118,11 @@ def main():
         if n is not None:
             existing[n] = p
 
-    # G4去自洽(audits/13攻击2): 卷区间只从【非staged存量】实扫——staged文件不得参与区间定义
-    volumes = scan_volumes([p for p in files if str(p.resolve()) not in staged_paths])
+    # G4去自洽(audits/13): 卷区间只从非staged存量实扫;但modified模式用全量(改写已入库章不缩区间)
+    if mode == "new":
+        volumes = scan_volumes([p for p in files if str(p.resolve()) not in staged_paths])
+    else:
+        volumes = scan_volumes(files)
     fail_total = 0
     # 跳章阈值: 新章号最大允许 = 存量max + 本批新章数(批提交080+081合法;单独085=跳章)
     existing_nums = set(existing)
