@@ -547,6 +547,25 @@ def check(fp: pathlib.Path):
     if n >= 1500 and not has_idle:
         warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
+    # 43) 段落形态刻度(漂移审计2期: 17-20章段均>30红/长段超配)——只进METRICS+WARN,不FAIL
+    para_lens = [cjk_len(x) for x in paras]
+    if para_lens:
+        avg_pl = sum(para_lens) / len(para_lens)
+        long_n = sum(1 for L in para_lens if L >= 110)
+        metrics["avg_para_len"] = round(avg_pl, 1)
+        metrics["long_paras"] = long_n
+        if avg_pl > 34:
+            warns.append(f"段均字数{avg_pl:.0f}(规格≤30,漂移审计2期)——长段拆分/多留短句段")
+        if long_n > 6:
+            warns.append(f"长段{long_n}个(≥110字,规格≤3)——整章匀速感超标,拆段")
+
+    # 44) 旁白判词刻度(冷读3期: 收束腔逐章加重)——启发式:段尾抽象总结句式,只计数进METRICS
+    aphor_pat = re.compile(r"(不是[^。」』]{1,12}[,，]?(是|而是)[^。」』]{1,20}。$)|(这(就是|才是)|(才)是(这家人|这条街|生意|日子)[^。」』]{0,12}。$)")
+    aphor_n = sum(1 for x in paras if not ("\u201c" in x) and aphor_pat.search(x.strip()))
+    metrics["aphor_endings"] = aphor_n
+    if aphor_n >= 3:
+        warns.append(f"旁白判词句{aphor_n}处(冷读3期:收束腔恶化)——场景已把话说完,删旁白总结")
+
     # 42) 时代语言穿帮(年代文专用: text/.era2005存在时激活; audits/20-E)
     #     2005后网络语混入正文=事实级出戏; 1发WARN,≥2发FAIL
     if (pathlib.Path(__file__).resolve().parent.parent / "text" / ".era2005").exists():
