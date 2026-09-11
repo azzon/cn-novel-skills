@@ -31,9 +31,16 @@ LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "�
 PREFIX = (
     "【生成纪律】生成单位=一个场景。目标2200-3200字。对话40-60%(角色必须开口说话),"
     "心理活动≥2处/千字,禁工程词(细纲/beat/场景卡/伏笔编号等),禁情绪告知(他很震惊→写行为),"
-    "明喻≤3处,破折号≤3处,禁「如你所知」式设定转述,首句≤25字扔事件。"
-    "章末必钩:动作切/对话切/悬置物切轮用,警句式收尾每卷≤1/3。"
+    "明喻≤3处,破折号≤3处,禁「如你所知」式设定转述,首句≤15字扔事件。"
+    "警句(金句式收束)至多1处/场景,禁排比+抽象名词的社论腔,叙述者永远不替读者总结主题。"
+    "【生活气硬指标(与剧情同级,不满足=没写完)】①具体金额或物价≥2处,至少1处参与情绪运算(算账/心疼/划算),"
+    "优先消耗素材库条目,禁编通用细节;②感官≥3通道(触/声/味/嗅/温,视觉不计),温度实感≥2处;"
+    "③闲笔≥1处(≥60字,与主线无关,由人物腔说出,要么好笑要么顺手漏一条世界规则);"
+    "④等待和凝视必须给可感刻度(秒/圈/一支烟),禁「很久很久」;⑤每章1轮与任务无关的家常对话。"
+    "【情绪纪律】情绪禁直接命名(恐惧/心疼→写动作与位移);高情感拍减速到秒级三连微拍,单拍≤15字。"
+    "【章末】必钩:形态与上两章轮换(动作切/对话切/悬置物切/余韵),警句式收尾每卷≤1/3。"
     "只写本卡,不写卡外剧情;卡上Forbid绝对不写;价值换极必须发生;对白遮名可辨。"
+    "摘要句压缩禁用于章末场景、禁连续两场使用、单处≤30字。"
 )
 
 def git(*args):
@@ -117,14 +124,21 @@ def progress_data():
     return {}
 
 def card_fields(card):
-    """从卡提取: 钩级别/字数预算range/场景型"""
+    """从卡提取: 钩级别/字数预算range/场景型。预算缺失时回退beats总和×1.4(audits/19病灶②)。"""
     t = card.read_text(encoding="utf-8")
     hm = re.search(r"钩\*?\*?[:：]\s*([轻重中]{1,2}(?:重|轻)?)", t)
     bm = re.search(r"(\d{4})\s*[-—~至]\s*(\d{4})", t)
+    if not bm:
+        beats = [int(x) for x in re.findall(r"\((\d{3,4})\)", t)]
+        if beats:
+            lo = int(sum(beats) * 1.3)
+            bm_val = [lo, int(sum(beats) * 1.6)]
+        else:
+            bm_val = None
+    else:
+        bm_val = [int(bm.group(1)), int(bm.group(2))]
     sm = re.search(r"场景型\*?\*?[:：]\s*(\S{1,12})", t)
-    return (hm.group(1) if hm else None,
-            [int(bm.group(1)), int(bm.group(2))] if bm else None,
-            sm.group(1) if sm else None)
+    return (hm.group(1) if hm else None, bm_val, sm.group(1) if sm else None)
 
 # ---------------- status ----------------
 def cmd_status():
@@ -248,8 +262,15 @@ def cmd_bundle(args):
     present = [l for l in voice_lines
                if row_name(l) and (row_name(l) in card_text or row_name(l) in cast)]
     add("3声纹行(出场者)", 400, "\n".join(present))
-    # 4 风格包摘录(v2做场景型范例匹配,现取头部)
-    add("4风格包摘录", 1000, read_text(sp, 1000))
+    # 4 风格包: 风格卡+范例段(按节标记定位——修复断供P0: 旧实现取头部1000字,
+    #    风格卡在offset≈3679/范例段在≈3943,79章从未注入正样本,audits/19病灶④)
+    sp_text = read_text(sp)
+    def section(text, header):
+        m = re.search(rf"^## {re.escape(header)}.*?(?=^## |\Z)", text, re.M | re.S)
+        return m.group(0) if m else ""
+    style_card = section(sp_text, "风格卡")
+    sample = section(sp_text, "范例段")
+    add("4风格卡+范例段(正样本)", 1800, (style_card + "\n" + sample).strip() or read_text(sp, 800))
     # 5 上一章末尾(原文,禁摘要)
     prev = cm.get(n - 1)
     add("5上一章末尾(原文)", 900, read_text(prev, -900) if prev else "(本章为开篇,无上一章)")
@@ -268,6 +289,23 @@ def cmd_bundle(args):
     hooks = read_text(LEDGERS / "钩分布.md", -250)
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
     add("9钩/类型近窗", 550, hooks + "\n" + rotate)
+
+    # 10 生活素材(audits/19病灶③④的断供修复): 按卡的地点/出场人筛素材库
+    #    未消耗条目优先;已用条目降权;卡面点名的人物私货优先级最高
+    mat_path = ROOT / "story" / "素材库.md"
+    mat_lines = [l for l in read_text(mat_path).splitlines()
+                 if l.strip().startswith("- ") and "已用:" not in l]
+    def mat_score(l):
+        s = 0
+        for who in re.findall(r"陈默|温言|老许|阿灿|老闸叔|王大妈|罐子|老六|绳哥|桂工", card_text):
+            if who in l:
+                s -= 2
+        for place in re.findall(r"收容所|长风号|秋千公园|圣澜|回廊巷|管理所|恒温", card_text):
+            if place in l:
+                s -= 1
+        return s
+    picked = sorted(mat_lines, key=mat_score)[:12]
+    add("10生活素材(优先消耗)", 1200, "\n".join(picked))
 
     total = sum(x[1] for x in items)
     print("=== 注入预算报告(第{}章) ===".format(n))

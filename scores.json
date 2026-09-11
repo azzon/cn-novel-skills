@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-11T10:18:08",
-  "head_commit": "ede602d",
+  "generated_at": "2026-09-11T19:38:06",
+  "head_commit": "54e3b02",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -1482,20 +1482,24 @@
     "79": {
       "path": "text/卷4/第079章.md",
       "volume": "卷4",
-      "cjk": 692,
-      "dia_char_pct": 51.4,
-      "psych_per_k": 0.0,
+      "cjk": 1825,
+      "dia_char_pct": 44.7,
+      "psych_per_k": 3.29,
       "hook_signals": 1,
       "dup18": 0,
-      "check_status": "FAIL",
-      "check_fails": 1,
+      "check_status": "WARN",
+      "check_fails": 0,
       "hook_level_from_card": "中重",
-      "card_budget": null,
-      "budget_delta_pct": null,
-      "cold_read": null,
+      "card_budget": [
+        2800,
+        3400
+      ],
+      "budget_delta_pct": -41.1,
+      "cold_read": "冷读-第079章.md",
       "drift_flags": [
-        "below_target"
-      ]
+        "budget_delta_below_-40pct"
+      ],
+      "committed": false
     }
   }
 }

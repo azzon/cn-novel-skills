@@ -136,7 +136,7 @@ def main():
         cn = cjk_len(body)
         if cn < 1500:
             if mode == "new":
-                problems.append(f"G1字数硬底线: 新章仅{cn}字(<1500)——禁止入库,beat-expand扩写到≥1500字再提交")
+                problems.append(f"G1字数硬底线: 新章仅{cn}字(<1800硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写")
             else:
                 warns.append(f"G1存量短章{cn}字(<1500)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
         elif cn < 2000:

@@ -50,9 +50,11 @@ def check(fp: pathlib.Path):
     metrics = {"file": str(fp), "cjk": n, "dia_line_pct": 0.0, "dia_char_pct": 0.0,
                "psych_per_k": 0.0, "hook_signals": 0, "dup18": 0}
 
-    # 1) 字数
+    # 1) 字数(二十二条章长硬线: <1800禁止入库;1800-2300 WARN)
     if n == 0:
         issues.append("空文件")
+    elif n < 1800 and not SCENE_MODE[0]:
+        issues.append(f"章级字数{n}(<1800硬线)——骨架未回填,禁以成稿身份入库;走beat-expand血肉遍")
     elif n < 2300 and not SCENE_MODE[0]:
         warns.append(f"章级字数偏少:{n}(章带2500-3200;场景文件请用 --scene 免此项)")
     elif n > 3600 and not SCENE_MODE[0]:
@@ -457,6 +459,78 @@ def check(fp: pathlib.Path):
     straight_q = body.count('"') + body.count("\uFF02")
     if straight_q > 0:
         issues.append(f"直引号{straight_q}处(含全角变体＂;对白必须用中文引号“”;先跑 python3 tools/fix_quotes.py)")
+
+    # ── 生活气正向刻度(audits/16 R1-R8, audits/17十六~二十条, audits/19病灶②③④⑥) ──
+    # 35) 物价在场律: 具体金额≥2处且场景够长(短于800字的场景豁免,由章长硬线兜底)
+    #     口径: 中文/阿拉伯数字+货币单位(块元毛千万),覆盖"九千/两万八/两块五"式;排除时间量词
+    if n >= 800:
+        _mhits = re.findall(
+            r"[一两二三四五六七八九十百千]{1,10}(?:千|万|块|元|毛)[一两二三四五六七八九十百零点五]{0,8}"
+            r"|\d+(?:\.\d+)?(?:块|元|毛)", body)
+        _mhits = [h for h in _mhits
+                  if "千万" not in h and not re.search(r"年|月|日|次|遍|岁|分钟|度|号|名|个|位|回", h)]
+        money = len(_mhits)
+        metrics["money_sample"] = ",".join(_mhits[:6])
+        metrics["money_count"] = money
+        if money == 0:
+            issues.append("金额/物价0处(须≥2,至少1处参与情绪运算)——穷人的钱不经过手=生活气缺失第一现场(audits/16 R3)")
+        elif money < 2:
+            warns.append(f"金额/物价仅{money}处(目标≥2)——优先消耗story/素材库.md条目")
+
+    # 36) 模糊时长(时间刻度律): "很久很久"类禁超1处
+    fuzzy_dur = len(re.findall(r"很久很久|不知过了多久|过了很久|许久", body))
+    metrics["fuzzy_duration"] = fuzzy_dur
+    if fuzzy_dur > 1:
+        issues.append(f"模糊时长词{fuzzy_dur}处(>1)——等待必须被度过:换算成秒/圈数/一支烟(audits/16 R4)")
+
+    # 37) "不是X。是Y。"句号变体(旧检测只匹配"而是",卷3起全部句号变体逃逸,audits/19病灶⑥)
+    period_var = len(re.findall(r"不是[^。!?\n]{1,14}[。\n]\s{0,2}[^。!?\n]{0,6}是", body))
+    metrics["bushi_shi"] = period_var
+    if period_var > 2:
+        issues.append(f"「不是X。是Y。」句式{period_var}处(>2)——句式指纹,改写或删")
+
+    # 38) 身体贴纸与情绪命名(情绪位移律)
+    stickers = len(re.findall(r"喉结动|指节(发白|攥白)|腿一(下)?软|眼眶(一)?(下)?就?热|眼泪哗|浑身僵", body))
+    metrics["body_stickers"] = stickers
+    if stickers > 2:
+        issues.append(f"身体贴纸式反应{stickers}处(>2)——身体要长在事件上(包子渣掉一裤子式),不是贴此处应有反应")
+    emo_name = len(re.findall(r"(?<![要会能])是(恐惧|心疼|愤怒|悲伤|绝望|委屈)(?![的了])", body))
+    if emo_name > 1:
+        issues.append(f"情绪直接命名{emo_name}处(>1)——写位移(掐大腿/算账),不写结论")
+
+    # 39) 感叹号温差(零感叹号=全冷,076-079实测全零,audits/17温差律盲区)
+    ex_total = body.count("！") + body.count("!")
+    metrics["exclamations"] = ex_total
+    dia_ratio = metrics.get("dia_line_pct", 0)
+    if ex_total == 0 and dia_ratio >= 30 and n >= 1500:
+        warns.append("全章零感叹号(温差全冷)——热峰值应集中在对话与情绪拍,至少1处(口语密度律)")
+
+    # 40) 章末形态指纹(末3行≥2个≤12字独立段=「短句重音型」,audits/19病灶①:check曾奖励此指纹)
+    tail3 = [l for l in body_lines[-3:] if l.strip()]
+    short_tail = sum(1 for l in tail3 if cjk_len(l) <= 12)
+    shape = None
+    if len(tail3) >= 2 and short_tail >= 2:
+        shape = "短句重音"
+    elif tail3 and ("\u201c" in tail3[-1] or '"' in tail3[-1]):
+        shape = "对话切"
+    elif tail3 and ("——" in tail3[-1] or "…" in tail3[-1] or "？" in tail3[-1] or "?" in tail3[-1]):
+        shape = "悬置"
+    else:
+        shape = "叙述收"
+    metrics["ending_shape"] = shape
+    metrics["ending_tail"] = "|".join(t.strip()[:20] for t in tail3[-2:])
+
+    # 41) 闲笔存在性(每章≥1处与主线无关但含具体名词的长段——启发式:含具体名词且含数字/物价的非任务段)
+    has_idle = False
+    idiom_pat = re.compile(r"\d|块|元|毛")
+    task_pat = re.compile(r"计划|部署|收网|调查|证物|恒温|回响|迁移")
+    for p in paras:
+        if 50 <= cjk_len(p) and idiom_pat.search(p) and not task_pat.search(p):
+            has_idle = True
+            break
+    metrics["idle_beat"] = 1 if has_idle else 0
+    if n >= 1500 and not has_idle:
+        warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     metrics["status"] = status
