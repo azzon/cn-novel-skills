@@ -37,11 +37,42 @@ NAME = ""
 SCENE_MODE = [False]               # 主角名(新案角色定稿后填入;留空则跳过人名密度检查)
 MODERN_SETTING = [False]           # 现代都市背景(--modern 开关,关闭时代错位检查)
 
+
+# ── 声纹表派生(禁硬编码人名,audits/21) ──
+def _load_voice():
+    vp = pathlib.Path(__file__).resolve().parent.parent / "story" / "20-人物" / "声纹表.md"
+    names, bans = [], {}
+    if vp.exists():
+        for line in vp.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if not s.startswith("|") or re.match(r"^\|[-\s|:]+\|?$", s):
+                continue
+            cells = [c.strip() for c in s.strip("|").split("|")]
+            if len(cells) >= 6 and cells[0] not in ("人", "", "—") and len(cells[0]) <= 4:
+                nm = cells[0].strip("*# ")
+                names.append(nm)
+                forbid = [w.strip() for w in re.split(r"[/、,，]", cells[5]) if w.strip() and w.strip() not in ("—", "无")]
+                if forbid:
+                    bans[nm] = forbid
+    return names, bans
+VOICE_NAMES, VOICE_BANS = _load_voice()
+
 def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
 def check(fp: pathlib.Path):
     raw = fp.read_text(encoding="utf-8")
+    # 卡派生字数带与峰章(audits/21-Fix6): 卡带=唯一权威
+    _m = re.search(r"第(\d+)章", fp.name)
+    _card_txt = ""
+    if _m:
+        for _c in pathlib.Path(fp.parent.parent / "卡").glob(f"*第{_m.group(1)}章*.md"):
+            _card_txt = _c.read_text(encoding="utf-8")
+            break
+    _peak = "峰章" in _card_txt
+    _band = re.search(r"(\d{4})\s*[-—~至]\s*(\d{4})", _card_txt)
+    _lo = int(_band.group(1)) if _band else 2400
+    _hi = (5200 if _peak else (int(_band.group(2)) if _band else 2800))
     lines = raw.splitlines()
     body_lines = [l for l in lines if l.strip() and not l.startswith("#")]
     body = "\n".join(body_lines)
@@ -55,10 +86,10 @@ def check(fp: pathlib.Path):
         issues.append("空文件")
     elif n < 1800 and not SCENE_MODE[0]:
         issues.append(f"章级字数{n}(<1800硬线)——骨架未回填,禁以成稿身份入库;走beat-expand血肉遍")
-    elif n < 2300 and not SCENE_MODE[0]:
-        warns.append(f"章级字数偏少:{n}(章带2500-3200;场景文件请用 --scene 免此项)")
-    elif n > 3600 and not SCENE_MODE[0]:
-        warns.append(f"字数超限:{n}(目标2500-3200,黄金三章上限3500)")
+    elif n < _lo and not SCENE_MODE[0]:
+        warns.append(f"章级字数偏少:{n}(卡带{_lo}-{_hi}{',峰章' if _peak else ''};场景文件用 --scene 免此项)")
+    elif n > _hi and not SCENE_MODE[0]:
+        warns.append(f"字数超限:{n}(卡带{_lo}-{_hi}{',峰章上限5200' if _peak else ''})")
     if SCENE_MODE[0] and n < 2200:
         warns.append(f"场景字数偏少:{n}(场景带2200-3200)")
 
@@ -294,7 +325,7 @@ def check(fp: pathlib.Path):
     # 20) 流水账叙述检测(段落开头=人名+叙述动词,连续≥3段)
     flow_starts = 0
     max_flow = 0
-    flow_names = "陈更|他|文渊|墨鸦|闻人霜|樊大|白老爷|崔一笔|严堂丞|杜推官|齐有德|文先生|她"
+    flow_names = "|".join(VOICE_NAMES + ["他", "她"]) if VOICE_NAMES else "他|她"
     flow_verbs = "去|到|查|发现|找|来|回|带|递|收|写|看|听|等|送|拿|走|说|问|翻|拆|试|开"
     for p in paras_all:
         if re.match(rf"^({flow_names})({flow_verbs})", p):
@@ -316,16 +347,7 @@ def check(fp: pathlib.Path):
     # 22) 角色语音同质化检测 + 23) 声纹禁词(从死代码中恢复)
     speaker_sents = {}
     current_speaker = None
-    speaker_pats = {
-        "樊大": r"樊大(?:说|道|问|喊|嚷|吼|叫|回)",
-        "闻人霜": r"闻人霜|闻姑娘",
-        "墨鸦": r"墨鸦",
-        "文渊": r"文渊|文先生|文总管",
-        "白老爷": r"白老爷|白圭",
-        "崔一笔": r"崔一笔|崔老|老崔",
-        "钱通宝": r"钱通宝|钱掌柜",
-        "严堂丞": r"严堂丞|堂丞",
-    }
+    speaker_pats = {nm: nm for nm in VOICE_NAMES}
     for p in paras_all:
         for sp, pat in speaker_pats.items():
             if re.search(pat, p):
@@ -351,13 +373,6 @@ def check(fp: pathlib.Path):
                 warns.append(f"语音同质化:各角色平均句长差距仅{spread:.1f}字({sp_names})——角色对话须有声纹差异")
 
     # 23) 声纹禁词检测(角色说了不该说的话——降为WARN,允许"故意违例"的喜剧手法)
-    VOICE_BANS = {
-        "樊大": ["可谓", "然也", "诚如"],
-        "闻人霜": ["可能", "也许", "大概", "好像"],
-        "陈更": ["差不多", "无所谓"],
-        "墨鸦": ["高兴", "难过", "害怕", "咱们"],
-        "文渊": ["他娘的", "混账", "放屁"],
-    }
     for sp, bans in VOICE_BANS.items():
         in_sp = False
         narrative_run = 0

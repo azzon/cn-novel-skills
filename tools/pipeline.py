@@ -29,18 +29,17 @@ SCORES = ROOT / "scores.json"
 LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "线弦", "时间线"]
 
 PREFIX = (
-    "【生成纪律】生成单位=一个场景。目标2200-3200字。对话40-60%(角色必须开口说话),"
-    "心理活动≥2处/千字,禁工程词(细纲/beat/场景卡/伏笔编号等),禁情绪告知(他很震惊→写行为),"
-    "明喻≤3处,破折号≤3处,禁「如你所知」式设定转述,首句≤15字扔事件。"
-    "警句(金句式收束)至多1处/场景,禁排比+抽象名词的社论腔,叙述者永远不替读者总结主题。"
-    "【生活气硬指标(与剧情同级,不满足=没写完)】①具体金额或物价≥2处,至少1处参与情绪运算(算账/心疼/划算),"
-    "优先消耗素材库条目,禁编通用细节;②感官≥3通道(触/声/味/嗅/温,视觉不计),温度实感≥2处;"
-    "③闲笔≥1处(≥60字,与主线无关,由人物腔说出,要么好笑要么顺手漏一条世界规则);"
-    "④等待和凝视必须给可感刻度(秒/圈/一支烟),禁「很久很久」;⑤每章1轮与任务无关的家常对话。"
-    "【情绪纪律】情绪禁直接命名(恐惧/心疼→写动作与位移);高情感拍减速到秒级三连微拍,单拍≤15字。"
-    "【章末】必钩:形态与上两章轮换(动作切/对话切/悬置物切/余韵),警句式收尾每卷≤1/3。"
-    "只写本卡,不写卡外剧情;卡上Forbid绝对不写;价值换极必须发生;对白遮名可辨。"
-    "摘要句压缩禁用于章末场景、禁连续两场使用、单处≤30字。"
+    "【生成纪律】生成单位=一个场景。字数以场景卡字数带为准(卡标峰章上限5200),无卡带则2400-2800。"
+    "对话40-60%(角色必须开口说话),心理裸写≥2处/千字,禁工程词,禁情绪命名(恐惧/心疼→写动作与位移),"
+    "明喻≤3,破折号≤3,禁「如你所知」式设定转述,首句≤15字扔事件,警句≤1/场景,禁排比+抽象名词社论腔,叙述者永不替读者总结主题。"
+    "【焦点优先】若注入包含「本章焦点」,该2-3项是本章最高优先级,与其余规则冲突时焦点获胜。"
+    "【生活气】金额物价≥2处且至少1处参与情绪运算(算账/心疼/划算);感官≥3通道(视觉不计);"
+    "闲笔≥1处(≥60字,与主线无关,由人物腔说出,须含对白);等待给可感刻度(秒/圈/一支烟),禁「很久很久」;每章1轮家常对话。"
+    "素材库条目须变形后入文:数字与事实可留用,表述必须重造,原句照抄=泄漏门FAIL。"
+    "【爽点】按场景卡爽点行执行;小兑现只用震惊前两层(当事者失态细节+内行反应),大兑现才用四层;"
+    "慢拍三微拍每2-3章≤1次(查钩分布账尾结构轮换);章末必钩且形态与上两章不同。"
+    "只写本卡,不写卡外剧情;Forbid绝对不写;价值换极必须发生;对白遮名可辨;"
+    "摘要句压缩仅限过渡,禁章末场景,单处≤30字。"
 )
 
 def git(*args):
@@ -141,6 +140,35 @@ def card_fields(card):
     return (hm.group(1) if hm else None, bm_val, sm.group(1) if sm else None)
 
 # ---------------- status ----------------
+def leak_check(fp):
+    """注入物泄漏门(audits/21-Fix2): 正文与范例段/场景卡成句重叠>=10字=FAIL。"""
+    body = re.sub(r"\s+", "", read_text(fp))
+    sources = []
+    sp = ROOT / "story" / "50-风格包.md"
+    if sp.exists():
+        m = re.search(r"^## 范例段.*?(?=^## |\Z)", read_text(sp), re.M | re.S)
+        if m:
+            sources.append(("风格包范例段", m.group(0)))
+    n = G.parse_num(pathlib.Path(fp))
+    if n:
+        card = card_for(n)
+        if card:
+            sources.append(("场景卡", read_text(card)))
+    hits = []
+    for name, src in sources:
+        for para in re.split(r"\n+", src):
+            pc = re.sub(r"[\s#*>`\-]", "", para)
+            if len(pc) < 12:
+                continue
+            for i in range(0, len(pc) - 10, 6):
+                frag = pc[i:i+12]
+                if frag and frag in body:
+                    hits.append(f"{name}:{frag}")
+                    break
+            if len(hits) >= 3:
+                break
+    return hits
+
 def cmd_status():
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
@@ -180,6 +208,13 @@ def cmd_status():
         missing = [x for x in LEDGER_NAMES if x not in stamped]
         if missing:
             print(f"第{maxn:03d}章盖章缺: {missing} → ledger-update")
+    mat_left = len([l for l in read_text(ROOT / "story" / "素材库.md").splitlines()
+                    if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if (ROOT / "story" / "素材库.md").exists() else 0
+    est = mat_left // 3 if mat_left else 0
+    if mat_left < 30:
+        print(f"[红灯] 素材库仅剩{mat_left}条(约{est}章耗尽)——立即扩容(world-economy/行业经营库)")
+    else:
+        print(f"素材库余量: {mat_left}条(约{est}章)")
     print(f"下一动作: pipeline.py next {nxt}")
     return 0
 
@@ -290,22 +325,57 @@ def cmd_bundle(args):
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
     add("9钩/类型近窗", 550, hooks + "\n" + rotate)
 
-    # 10 生活素材(audits/19病灶③④的断供修复): 按卡的地点/出场人筛素材库
-    #    未消耗条目优先;已用条目降权;卡面点名的人物私货优先级最高
+    # 10 生活素材(audits/21-Fix1): cast从声纹表派生(禁硬编码),按卡面提及打分,
+    #    按地点分区加权,J区语言恒带2条;素材须变形入文(数字保留,表述重造)
     mat_path = ROOT / "story" / "素材库.md"
-    mat_lines = [l for l in read_text(mat_path).splitlines()
-                 if l.strip().startswith("- ") and "已用:" not in l]
-    def mat_score(l):
+    mat_raw = read_text(mat_path)
+    # 当前section标记
+    sec = ""
+    mat_items = []  # (section, line)
+    for l in mat_raw.splitlines():
+        if l.startswith("## "):
+            sec = l[3:].strip()[:8]
+        elif l.strip().startswith(("- ", "  - ")) and "已用:" not in l and not l.strip().startswith("- 202"):
+            mat_items.append((sec, l.strip()))
+    # cast从声纹表表格首列派生
+    cast = []
+    for l in read_text(voice).splitlines():
+        if l.strip().startswith("|") and not re.search(r"^\|[-\s|:]+\|?$", l.strip()):
+            cell = l.strip().strip("|").split("|")[0].strip("*# 【】[]")
+            if cell and cell not in ("人", "—") and len(cell) <= 4:
+                cast.append(cell)
+    # 地点→素材分区加权表
+    place_sec = {"夜市": ["吃食", "B."], "早市": ["吃食", "街巷", "B.", "C."], "家": ["吃食", "器物", "B.", "E."],
+                 "家属院": ["街巷", "C."], "电子城": ["电子城", "手艺", "行话", "C.", "D.", "F."],
+                 "打印社": ["场所", "I."], "网吧": ["等待", "G.", "B."], "考点": ["吃食", "B."], "柜台": ["电子城", "C.", "D."]}
+    card_places = re.findall("夜市|早市|家属院|电子城|打印社|网吧|考点|柜台|家", card_text)
+    want_secs = set()
+    for pl in set(card_places):
+        for key in place_sec.get(pl, []):
+            want_secs.add(key)
+    def mat_score(item):
+        sec_, l = item
         s = 0
-        for who in re.findall(r"陈默|温言|老许|阿灿|老闸叔|王大妈|罐子|老六|绳哥|桂工", card_text):
+        if any(re.search(rf"^{w}|{w}", sec_) for w in want_secs):
+            s -= 3
+        for who in cast:
             if who in l:
-                s -= 2
-        for place in re.findall(r"收容所|长风号|秋千公园|圣澜|回廊巷|管理所|恒温", card_text):
-            if place in l:
-                s -= 1
+                s -= 4
+        if sec_ and ("语言" in sec_ or "J." in sec_):
+            s -= 2  # 年代语言恒优先
         return s
-    picked = sorted(mat_lines, key=mat_score)[:12]
-    add("10生活素材(优先消耗)", 1200, "\n".join(picked))
+    scored = sorted(mat_items, key=mat_score)
+    # 保底:每区最多5条,防止单区霸屏;总12条
+    picked, sec_count = [], {}
+    for sec_, l in scored:
+        c = sec_count.get(sec_, 0)
+        if c >= 5:
+            continue
+        picked.append(f"[{sec_}] {l}" if not l.startswith("[") else l)
+        sec_count[sec_] = c + 1
+        if len(picked) >= 12:
+            break
+    add("10生活素材(变形后入文,禁原句照抄)", 1200, "\n".join(picked) + "\n[用法] 数字与事实可留用,表述必须重造;成句照抄=泄漏门FAIL")
 
     # 11 爽点管道(docs/爽点引擎): 在充能各条+型+距兑现章数——期待链的生成现场
     pipe_path = LEDGERS / "爽点管道.md"
@@ -316,6 +386,10 @@ def cmd_bundle(args):
 
     total = sum(x[1] for x in items)
     print("=== 注入预算报告(第{}章) ===".format(n))
+    fm = re.search(r"焦点\*?\*?[:：]\s*([^\n]+)", card_text)
+    gm = re.search(r"章级\*?\*?[:：]\s*(\S+)", card_text)
+    if fm:
+        print("\n【本章焦点】{}{}".format(fm.group(1).strip()[:80], "（峰章:5200上限+alt-takes必走+done--strict）" if (gm and "峰" in gm.group(1)) else ""))
     for name, used, cap, _ in items:
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
@@ -339,6 +413,11 @@ def cmd_check(args):
     grc, gout = run_gate("modified", args)
     print(gout)
     worst = max(worst, grc)
+    for fp in args:
+        leaks = leak_check(pathlib.Path(fp))
+        if leaks:
+            print(f"[FAIL] 注入物泄漏({fp}): {'; '.join(leaks[:3])} — 素材须变形,表述重造")
+            worst = 1
     return worst
 
 # ---------------- done ----------------
