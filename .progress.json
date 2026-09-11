@@ -1,26 +1,14 @@
 {
-  "max_chapter": 79,
-  "count": 79,
-  "next_chapter": 80,
+  "max_chapter": 1,
+  "count": 1,
+  "next_chapter": 2,
   "volumes": {
     "卷1": [
       1,
-      30
-    ],
-    "卷2": [
-      31,
-      50
-    ],
-    "卷3": [
-      51,
-      73
-    ],
-    "卷4": [
-      74,
-      79
+      1
     ]
   },
-  "story_time": "- 第079章|共视事故后第三日,下午四时至晚|秋千公园|陈默,温言,绳哥(电话)|温言坦白初次见面即认出他(数呼吸);猎犬共振;团圆料是人(一车活人,名单在桂",
-  "next_action": "pipeline-chapter 第080章(卷4)",
+  "story_time": "- 第001章|2005年6月,高考最后一天下午至次日中午|考点/夜市/家属院|马小丁,摊主夫妻,马建军,崔兰,马小满|重生确认;夜市第一单五十块;记下电子城",
+  "next_action": "pipeline-chapter 第002章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }

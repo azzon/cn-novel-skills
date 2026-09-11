@@ -53,7 +53,9 @@ def scan_volumes(files):
     return {v: list(vols[v]) for v in order}
 
 def expected_volume(n, volumes):
-    """章号→期望卷: 落入区间用该卷; 大于所有max→末卷(max+1顺写); 落入间隙/小于所有min→None(异常)"""
+    """章号→期望卷: 落入区间用该卷; 大于所有max→末卷(max+1顺写); 落入间隙/小于所有min→None(异常); 空库→None(新书任意)"""
+    if not volumes:
+        return None
     for v, (lo, hi) in volumes.items():
         if lo <= n <= hi:
             return v
@@ -158,7 +160,10 @@ def main():
             problems.append(f"G2b跳章: 第{n}章超前(next应≤{jump_cap})——禁挖洞,按序写或走arc-restructure")
 
         # G4 卷归属门(区间=存量实扫;吞并/影子卷/间隙全拦,audits/13)
-        if n is not None:
+        # 空库(新书)放行: 无存量区间可依,任意卷号合法,由卷纲层管
+        if n is not None and not volumes:
+            warns.append(f"G4空库放行: 第{n}章为新书早期章(卷={parse_vol(p)}),存量区间为空")
+        elif n is not None:
             exp = expected_volume(n, volumes)
             act = parse_vol(p)
             if act is None:
@@ -210,7 +215,7 @@ def main():
                 if m:
                     tl_max = max(tl_max, int(m.group(1)))
             head = "\n".join(raw.splitlines()[:5])
-            if tl_max and mode == "new" and n <= tl_max:
+            if tl_max and mode == "new" and n < tl_max:
                 if "插叙:" not in head and "插叙：" not in head:
                     problems.append(f"G6时序门: 新章{n}不晚于时间线末记录(第{tl_max}章)且文件头无'插叙:'标记——时序回退禁止,走arc-restructure")
                 else:

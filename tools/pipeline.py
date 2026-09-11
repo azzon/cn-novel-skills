@@ -225,7 +225,7 @@ def cmd_bundle(args):
     n = int(args[0])
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
-    exp = G.expected_volume(n, vols)
+    exp = G.expected_volume(n, vols) or "卷1"
     card = card_for(n)
     missing = []
     if card is None:
@@ -367,10 +367,10 @@ def cmd_done(args):
         if cv != exp:
             (warns if revise else problems).append(f"卡卷错配: 卡标{cv} 章应属{exp}——mv卡文件并对齐卡头")
 
-    # 2 跳章
-    nxt = (max(cm) + 1) if cm else 1
-    if n != nxt and not revise:
-        problems.append(f"章号非next: 目标next={nxt},提交的是{n}——跳章禁止(插章走arc-restructure)")
+    # 2 跳章: 新章落盘后n==max为合法;仅当n落后于库内最大章(且非--revise)才拦
+    cur_max = max(cm) if cm else 0
+    if n < cur_max and not revise:
+        problems.append(f"章号落后: 库内最大第{cur_max}章,验收的是{n}——旧章改写用--revise,插章走arc-restructure")
 
     # 3 check.py
     rc, out, met = run_check_metrics(p)

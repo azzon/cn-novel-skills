@@ -18,7 +18,7 @@ description: 构思域入口与编排器——从一句话想法到可开写的�
 | 用户说什么 | 走哪里 |
 |---|---|
 | 有个想法/构思新故事 | **story-incubate(孵化器,第0步)** |
-| 想新故事/定方向 | story-incubate → premise →(建议先跑market-scan) |
+| 想新故事/定方向 | story-incubate → **premise-fit(立项适配闸,必过)** → premise →(建议先跑market-scan) |
 | 扫榜/查市场/拆一本 | market-scan |
 | 前三章/开头/黄金三章 | opening-arc |
 | 名场面/大场面/这本书记住什么 | set-piece |
@@ -38,11 +38,11 @@ description: 构思域入口与编排器——从一句话想法到可开写的�
 
 **2 标准序列(新立项全流程,序即依赖)**
 
-**story-incubate(孵化)** → premise → theme-dossier → world-rules → world-power → world-map → world-economy → world-history → world-culture → iceberg-budget → char-bible → char-web → char-voice → plot-spine → romance-line → volume-outline → set-piece → opening-arc → unit-designer → foreshadow-plan → reward-economy → pacing-score → thread-weaver → positioning → ideate-audit → **trial-write(试写验证)** (naming按需插队)
+**story-incubate(孵化)** → **premise-fit(适配闸:AI擅长×语料富度×概念维持成本×受众主流×长跑空间,≥20/25)** → premise → theme-dossier → world-rules → world-power → world-map → world-economy → world-history → world-culture → iceberg-budget → char-bible → char-web → char-voice → plot-spine → romance-line → volume-outline → set-piece → opening-arc → unit-designer → foreshadow-plan → reward-economy → pacing-score → thread-weaver → positioning → ideate-audit → **trial-write(试写验证)** (naming按需插队)
 
 > **80/20原则**：孵化(story-incubate)和试写(trial-write)两步应占总构思时间的50%以上。
 > 中间的23叶是"结构化文档"，孵化是"找到非写不可的故事"，试写是"确认故事活了"。
-> 跳过孵化直接进premise = 违规。跳过试写直接开写 = 违规。
+> 跳过孵化直接进premise = 违规。跳过premise-fit直接进premise = 违规(旧书赛道事故的制度化教训)。跳过试写直接开写 = 违规。
 
 **3 闸门与推进纪律**
 
