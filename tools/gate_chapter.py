@@ -75,7 +75,7 @@ def recompute():
     vols = scan_volumes(files)
     story_time = None
     if TIMELINE.exists():
-        lines = [l for l in TIMELINE.read_text(encoding="utf-8").splitlines() if l.strip()]
+        lines = [l for l in TIMELINE.read_text(encoding="utf-8-sig").splitlines() if l.strip()]
         if lines:
             story_time = lines[-1].strip()[:80]
     maxn = max(nums) if nums else 0
@@ -133,7 +133,7 @@ def main():
     for p in staged:
         problems, warns = [], []
         n = parse_num(p)
-        raw = p.read_text(encoding="utf-8") if p.exists() else ""
+        raw = p.read_text(encoding="utf-8-sig") if p.exists() else ""
         body = "\n".join(l for l in raw.splitlines() if l.strip() and not l.startswith("#"))
         title = raw.splitlines()[0].strip() if raw.splitlines() else ""
 
@@ -154,7 +154,7 @@ def main():
         # G3 标题重复门
         if title:
             for num2, p2 in existing.items():
-                t2 = p2.read_text(encoding="utf-8").splitlines()[0].strip() if p2.exists() else ""
+                t2 = p2.read_text(encoding="utf-8-sig").splitlines()[0].strip() if p2.exists() else ""
                 if t2 and t2 == title:
                     problems.append(f"G3标题重复: 「{title}」与{p2.relative_to(ROOT)}相同")
 
@@ -194,7 +194,7 @@ def main():
             worst, worst_p = 0.0, None
             for num2, p2 in existing.items():
                 try:
-                    old = "\n".join(l for l in p2.read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#"))
+                    old = "\n".join(l for l in p2.read_text(encoding="utf-8-sig").splitlines() if l.strip() and not l.startswith("#"))
                 except Exception:
                     continue
                 if not old:
@@ -213,7 +213,7 @@ def main():
         # G6 时序门(硬化,audits/13攻击7): 解析时间线账,新章号≤账面末章且无插叙标记=FAIL
         if TIMELINE.exists() and n is not None:
             tl_max = 0
-            for l in TIMELINE.read_text(encoding="utf-8").splitlines():
+            for l in TIMELINE.read_text(encoding="utf-8-sig").splitlines():
                 m = re.match(r"-\s*第(\d+)章\|", l.strip())
                 if m:
                     mm = int(m.group(1))

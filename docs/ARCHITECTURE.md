@@ -45,7 +45,7 @@
 | 卷归属(存量实扫,吞并/影子卷/间隙全拦) | 硬 | gate_chapter G4(v4去自洽) |
 | 时序回退(新章≤账面末章须插叙标记) | 硬 | gate_chapter G6(v4解析时间线) |
 | 新章字数≥1500 | 硬 | gate_chapter G1(new) |
-| check.py 35项(含全角引号＂) | 硬 | pre-commit(豁免仅限waivers.md check门) |
+| check.py 48项(含全角引号＂) | 硬 | pre-commit(豁免仅限waivers.md check门) |
 | 章节删除 | 硬 | pre-commit v4删除门(del门授权) |
 | 提交信息含章号 | 硬 | commit-msg hook |
 | 三树技能一致(全量含域入口) | 硬 | skills_check v3 |
@@ -69,7 +69,7 @@ pipeline.py next 080      # 工作契约:卡字段/将跑的门/交付物
 (按scene-card填卡)
 pipeline.py bundle 080    # 上下文装配:固定+按需+摘要三档注入物+预算报告
 (按scene-draft生成正文)
-pipeline.py check text/卷4/第080章.md
+pipeline.py check text/卷1/第001章.md
 (冷读:reader-proxy,cadence到期时)
 pipeline.py done 080      # 提交前验收(commit后可再跑一次作后验刷新scores)
 git commit                # hook最后防线
@@ -84,8 +84,26 @@ pipeline.py done 080      # 提交后刷新committed状态与scores
 
 ## 已知债务登记
 
-- 29章<1500字回炉（beat-expand批次）——audits/11 P0-1
-- 章末"三连短句+警句"指纹77/79——audits/07 P0-2，回炉时强制轮换
+- ch4-5回炉扩写至卡带下限（beat-expand批次）
 - 9个新技能缺约定件（闸门/NextStep/evals/溯源）——skills_check WARN在册
-- docs/规格层为占位（19个NN-stub）——正式规格重建排期
-- 伏笔悬空：B线长风号战果/假老七/罐子截胡/灰夹克C-19——ledgers/伏笔.md，新080章必须开工
+- docs/规格层为占位——正式规格重建排期
+- 工具代码中低危12项（audits/13 v4清单P1-P2）
+- 素材库余量<30条时须扩库（当前88条≈29章）
+
+## NN→主题对照表
+
+| NN | 主题 | 主要引用技能 |
+|---|---|---|
+| 08 | 冷读六项量规 | reader-proxy |
+| 09 | 去AI味九类特征 | de-ai |
+| 15 | 草蛇灰线追踪 | check.py --threads |
+| 19 | 调性排期 | tone-shift/revise域 |
+| 20 | 引用最频(待补定义) | 多技能 |
+| 21 | 结构(单元×主线咬合) | volume-outline/plot-spine |
+| 22 | 评估体系/漂移防御 | drift-audit/audit域 |
+| 23 | 喜剧密度规格 | humor-audit |
+| 24 | 场景工艺 | scene-card/scene-draft |
+| 25 | 钩/获得 | cool-point/钩分布 |
+| 26 | 硬线清单 | audit域 |
+| 27 | 场景卡模板 | scene-card |
+| 30 | 基建层/文件即状态 | ops域全域 |

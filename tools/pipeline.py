@@ -538,7 +538,7 @@ def scores_update(n, p, met, committed):
     import datetime
     data["generated_at"] = datetime.datetime.now().isoformat(timespec="seconds")
     ch = data["chapters"].setdefault(str(n), {})
-    ch.update({"path": str(p.relative_to(ROOT)), "committed": committed,
+    ch.update({"path": str(p.relative_to(ROOT)), "committed": is_committed(p),
                "cjk": (met or {}).get("cjk"), "dia_char_pct": (met or {}).get("dia_char_pct"),
                "psych_per_k": (met or {}).get("psych_per_k"),
                "hook_signals": (met or {}).get("hook_signals"), "dup18": (met or {}).get("dup18"),

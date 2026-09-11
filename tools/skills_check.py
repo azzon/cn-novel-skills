@@ -30,7 +30,7 @@ def main():
 
     # 1 frontmatter(硬) + 约定件(软)
     for f in files:
-        s = f.read_text(encoding="utf-8")
+        s = f.read_text(encoding="utf-8-sig")
         m = re.match(r"^---\nname: ([a-z0-9-]+)\ndescription: (\S.*)\n", s)
         if not m:
             problems.append(f"结构: {f.relative_to(SRC)} frontmatter须为name:+description:且name小写连字符")
@@ -49,7 +49,7 @@ def main():
         if domain not in entry_files:
             problems.append(f"路由: {f.parent.name} 无域入口(域={domain})")
             continue
-        if f.parent.name not in entry_files[domain].read_text(encoding="utf-8"):
+        if f.parent.name not in entry_files[domain].read_text(encoding="utf-8-sig"):
             problems.append(f"路由: {domain}入口未提及叶 {f.parent.name}")
 
     # 3 重复(硬)
@@ -59,7 +59,7 @@ def main():
         problems.append(f"重复叶名: {dup}")
     descs = {}
     for f in files:
-        m = re.search(r"^description: (\S.{7})", f.read_text(encoding="utf-8"), re.M)
+        m = re.search(r"^description: (\S.{7})", f.read_text(encoding="utf-8-sig"), re.M)
         if m:
             descs.setdefault(m.group(1), []).append(f.parent.name)
     for head, ns in descs.items():
@@ -69,7 +69,7 @@ def main():
     # 4 NEXT-SKILL死引用(硬)
     allnames = set(names)
     for f in files:
-        s = f.read_text(encoding="utf-8")
+        s = f.read_text(encoding="utf-8-sig")
         for m in re.finditer(r"NEXT-SKILL[^\n]*?([a-z][a-z0-9-]+)\s*$", s, re.M):
             if m.group(1) not in allnames:
                 problems.append(f"死引用: {f.parent.name} -> {m.group(1)}")
@@ -77,7 +77,7 @@ def main():
     # 5 docs/NN引用文件存在性(软)
     docs_dir = ROOT / "docs"
     for f in files:
-        for dm in re.finditer(r"docs/(\d+)", f.read_text(encoding="utf-8")):
+        for dm in re.finditer(r"docs/(\d+)", f.read_text(encoding="utf-8-sig")):
             if docs_dir.exists() and not list(docs_dir.glob(f"{dm.group(1)}-*.md")):
                 warnings.append(f"docs引用: {f.parent.name} 引用docs/{dm.group(1)} 无对应文件")
                 break
@@ -108,7 +108,7 @@ def main():
             rtf = rt_files.get(rel)
             if rtf is None:
                 problems.append(f"漂移[{tag}]: {rel} 源库有、运行时缺——重跑install_skills.sh")
-            elif srcf.read_text(encoding="utf-8").strip() != rtf.read_text(encoding="utf-8").strip():
+            elif srcf.read_text(encoding="utf-8-sig").strip() != rtf.read_text(encoding="utf-8-sig").strip():
                 problems.append(f"漂移[{tag}]: {rel} 内容与源库不一致——重跑install_skills.sh")
         for rel in sorted(set(rt_files) - set(exp)):
             problems.append(f"漂移[{tag}]: {rel} 运行时孤儿(源库无此SKILL.md)——回灌skills/或删除")

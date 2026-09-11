@@ -61,7 +61,7 @@ def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
 def check(fp: pathlib.Path):
-    raw = fp.read_text(encoding="utf-8")
+    raw = fp.read_text(encoding="utf-8-sig")
     # 卡派生字数带与峰章(audits/21-Fix6): 卡带=唯一权威
     _m = re.search(r"第(\d+)章", fp.name)
     _card_txt = ""
@@ -318,7 +318,7 @@ def check(fp: pathlib.Path):
         issues.append(f"对话场景仅{dialog_scenes}个(<2,章内须至少2个独立对话场景)")
 
     # 19) 英文残留(连续≥3个拉丁字母,时代错位)
-    en_hits = re.findall(r"[a-zA-Z]{3,}", re.sub(r"CSI|now|BEAT|beat", "", body))
+    en_hits = re.findall(r"[a-zA-Z]{3,}", re.sub(r"\b(?:CSI|now|BEAT|beat)\b", "", body))
     if en_hits:
         issues.append(f"英文残留:{','.join(en_hits[:5])}(正文不得出现拉丁字母词)")
 
@@ -610,7 +610,7 @@ def threads_mode(folder: pathlib.Path):
 
 def baseline_mode(fp: pathlib.Path):
     """中文AI味四指标(B2建议自建基线):四字词密度/逻辑胶水密度/句长变异系数/对话语气词密度。"""
-    body = "\n".join(l for l in fp.read_text(encoding="utf-8").splitlines()
+    body = "\n".join(l for l in fp.read_text(encoding="utf-8-sig").splitlines()
                      if l.strip() and not l.startswith("#"))
     n = cjk_len(body)
     if n < 200:
@@ -656,6 +656,8 @@ def main():
         if not pathlib.Path(a).exists():
             print(f"文件不存在: {a}"); return 2
     if args[0] == "--threads":
+        if len(args) < 2:
+            print("用法: check.py --threads <目录>"); return 2
         if len(args) < 2:
             print("用法: check.py --threads <目录>"); return 2
         return threads_mode(pathlib.Path(args[1]))
