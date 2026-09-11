@@ -254,7 +254,7 @@ def check(fp: pathlib.Path):
         if dpct < 25:
             issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:起点白金对话40-60%;角色必须开口说话!)")
         elif dpct < 40:
-            warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标45-60%;角色要多说话说废话说长话)")
+            warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
 
     # 17) 心理活动密度(用户标准:每千字≥2处心理beat)
     # 已知局限:本检查基于标记词(心里/觉得/寻思…),而风格包v6提倡的'心理裸写'常无标记词
@@ -538,7 +538,7 @@ def check(fp: pathlib.Path):
     # 41) 闲笔存在性(每章≥1处与主线无关但含具体名词的长段——启发式:含具体名词且含数字/物价的非任务段)
     has_idle = False
     idiom_pat = re.compile(r"\d|块|元|毛")
-    task_pat = re.compile(r"计划|部署|收网|调查|证物|恒温|回响|迁移")
+    task_pat = re.compile(r"计划|部署|收网|调查|证物|维修|柜台|收货|翻新|进货|拆机")
     for p in paras:
         if 50 <= cjk_len(p) and idiom_pat.search(p) and not task_pat.search(p):
             has_idle = True
