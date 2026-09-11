@@ -1,14 +1,14 @@
 {
-  "max_chapter": 18,
-  "count": 18,
-  "next_chapter": 19,
+  "max_chapter": 19,
+  "count": 19,
+  "next_chapter": 20,
   "volumes": {
     "卷1": [
       1,
-      18
+      19
     ]
   },
-  "story_time": "- 第018章|2005-11-08周二|罗胖子柜台/县→市大巴/市里通讯市场/家中酒桌|马小丁,王大龙,罗胖子,黑柜台伙计,陈会计,马建军,崔兰,马小满|市里",
-  "next_action": "pipeline-chapter 第019章(卷1)",
+  "story_time": "- 第019章|2005-11-09至11-15|电子城柜台/市里/修表摊街对面|马小丁,王大龙,苏棠,乔经理,会计,麻老五,丁师傅,崔兰|茂源25台一周马拉松",
+  "next_action": "pipeline-chapter 第020章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
