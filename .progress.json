@@ -1,14 +1,14 @@
 {
-  "max_chapter": 8,
-  "count": 8,
-  "next_chapter": 9,
+  "max_chapter": 9,
+  "count": 9,
+  "next_chapter": 10,
   "volumes": {
     "卷1": [
       1,
-      8
+      9
     ]
   },
   "story_time": "- 第008章|2005-08-31晚|家中|马小丁,马建军,崔兰,马小满|学费4500从马小丁手里出;父亲\"明天我陪你去交\";两月契约完成",
-  "next_action": "pipeline-chapter 第009章(卷1)",
+  "next_action": "pipeline-chapter 第010章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
