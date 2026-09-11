@@ -75,15 +75,16 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 
 | 脚本 | 用途 |
 |---|---|
-| `tools/check.py` | 章节机检34项(禁词/装饰修辞/重复段/工程词泄漏/直引号/对话占比/心理密度) |
-| `tools/gate_chapter.py` | 章级韧性门(章号/标题查重/跨章18字shingle查重/卷归属/字数硬底线)+`.progress.json`重算 |
-| `tools/gates.py` | 硬门(无风格包禁写作/无场景卡禁生成/不记账禁新场) |
-| `tools/skills_check.py` | 技能库体检v2(结构/路由/死引用/三树漂移;硬门exit 1) |
+| `tools/pipeline.py` | **可执行流水线状态机(架构v2核心)**:status/next/bundle(上下文装配器)/check/done/scores |
+| `tools/check.py` | 章节机检35项(禁词/装饰修辞/重复段/工程词泄漏/引号族/对话占比/心理密度)+METRICS机器输出 |
+| `tools/gate_chapter.py` | 章级韧性门v4(章号/跳章/标题/跨章查重/卷归属去自洽/时序门/字数硬底线)+`.progress.json`重算 |
+| `archive/tools-deprecated/gates.py` | 旧硬门(已退役,由pipeline bundle/done收编) |
+| `tools/skills_check.py` | 技能库体检v3(结构/路由/死引用/三树全量比对;缺树=硬FAIL) |
 | `tools/install_skills.sh` | skills/(SSOT)→.claude/skills/+.zcode/skills/ 安装+孤儿清理 |
-| `tools/pre-commit-hook.sh` | 提交门v3:质量+流程+韧性(quotepath修复/fail-closed/waiver登记制) |
+| `tools/pre-commit-hook.sh` | 提交门v4:质量+流程+韧性(删除门/大小写逃逸/progress自愈/waiver门级化/卡内容门) |
 | `tools/commit-msg-hook.sh` | 提交信息必须含staged章号(git log可机器解析为二级信源) |
 | `tools/fix_quotes.py` | 直引号→中文弯引号 |
-| `.progress.json` | 进度指针(hook自动重算,禁手写;跨会话恢复/continuation的机器坐标) |
+| `.progress.json` / `scores.json` | 进度指针/质量仪表(hook与pipeline自动重算,禁手写) |
 
 ## 核心工艺
 

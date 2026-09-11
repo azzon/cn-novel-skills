@@ -33,7 +33,13 @@ def parse_num(p):
 
 def parse_vol(p):
     m = re.search(r"卷(\d+)", str(p))
-    return f"卷{m.group(1)}" if m else None
+    # 归一化: 卷04≡卷4(防影子卷,audits/13攻击2)
+    return f"卷{int(m.group(1))}" if m else None
+
+def vol_dir_canonical(p):
+    """目录名必须是规范的'卷N'(非零填充)——'卷04'这类命名视为违规"""
+    m = re.search(r"[\/\\]卷(\d+)[\/\\]", str(p) + "/")
+    return m is None or m.group(1) == str(int(m.group(1)))
 
 def scan_volumes(files):
     vols = {}
@@ -110,8 +116,15 @@ def main():
         if n is not None:
             existing[n] = p
 
-    volumes = scan_volumes(files + staged)
+    # G4去自洽(audits/13攻击2): 卷区间只从【非staged存量】实扫——staged文件不得参与区间定义
+    volumes = scan_volumes([p for p in files if str(p.resolve()) not in staged_paths])
     fail_total = 0
+    # 跳章阈值: 新章号最大允许 = 存量max + 本批新章数(批提交080+081合法;单独085=跳章)
+    existing_nums = set(existing)
+    max_existing = max(existing_nums) if existing_nums else 0
+    n_new_staged = len([p for p in staged
+                        if parse_num(p) is not None and parse_num(p) not in existing_nums])
+    jump_cap = max_existing + n_new_staged
     for p in staged:
         problems, warns = [], []
         n = parse_num(p)
@@ -140,12 +153,30 @@ def main():
                 if t2 and t2 == title:
                     problems.append(f"G3标题重复: 「{title}」与{p2.relative_to(ROOT)}相同")
 
-        # G4 卷归属门
+        # G2b 跳章门(new): 章号超前于max+本批新章数=挖洞
+        if mode == "new" and n is not None and n not in existing_nums and n > jump_cap:
+            problems.append(f"G2b跳章: 第{n}章超前(next应≤{jump_cap})——禁挖洞,按序写或走arc-restructure")
+
+        # G4 卷归属门(区间=存量实扫;吞并/影子卷/间隙全拦,audits/13)
         if n is not None:
             exp = expected_volume(n, volumes)
             act = parse_vol(p)
-            if exp is None:
-                problems.append(f"G4卷归属: 第{n}章落入卷间隙或早于所有卷起点(区间{volumes})——需arc-restructure")
+            if act is None:
+                problems.append(f"G4卷归属: 路径无卷号({p})")
+            elif not vol_dir_canonical(p):
+                problems.append(f"G4卷归属: 卷目录名非规范(卷04应写作卷4)——影子卷拒绝")
+            elif exp is None:
+                # 唯一放行: 合法新卷 n==存量max+1 且 卷号=末卷+1;或带"插叙:"标记的回填
+                ok = False
+                if volumes:
+                    last = max(volumes, key=lambda v: volumes[v][1])
+                    ok = (n == volumes[last][1] + 1
+                          and int(act.replace("卷", "")) == int(last.replace("卷", "")) + 1)
+                head5 = "\n".join(raw.splitlines()[:5])
+                if not ok and ("插叙:" in head5 or "插叙：" in head5):
+                    warns.append(f"G4插叙回填: 第{n}章落入存量间隙但已标'插叙:'——请确认arc-restructure已排期重编号")
+                elif not ok:
+                    problems.append(f"G4卷归属: 第{n}章落入卷间隙或非法新卷(存量区间{volumes})——需arc-restructure")
             elif act != exp:
                 problems.append(f"G4卷归属: 第{n}章应属{exp},实际在{act}——错放卷(事故B)")
 
@@ -171,9 +202,21 @@ def main():
             elif worst > 0.08:
                 warns.append(f"G5跨章查重: 与{worst_p.name if worst_p else '?'}相似度{worst:.0%}(>8%,检查是否自我复读)")
 
-        # G6 时序提醒
-        if TIMELINE.exists():
-            warns.append("G6时序自检: 确认本章故事时间不早于ledgers/时间线.md末次记录,回退须标'插叙:'并走arc-restructure")
+        # G6 时序门(硬化,audits/13攻击7): 解析时间线账,新章号≤账面末章且无插叙标记=FAIL
+        if TIMELINE.exists() and n is not None:
+            tl_max = 0
+            for l in TIMELINE.read_text(encoding="utf-8").splitlines():
+                m = re.match(r"-\s*第(\d+)章\|", l.strip())
+                if m:
+                    tl_max = max(tl_max, int(m.group(1)))
+            head = "\n".join(raw.splitlines()[:5])
+            if tl_max and mode == "new" and n <= tl_max:
+                if "插叙:" not in head and "插叙：" not in head:
+                    problems.append(f"G6时序门: 新章{n}不晚于时间线末记录(第{tl_max}章)且文件头无'插叙:'标记——时序回退禁止,走arc-restructure")
+                else:
+                    warns.append(f"G6插叙豁免: 第{n}章为回溯章(账面末章{tl_max}),请确认arc-restructure已排期重编号")
+            elif mode == "modified":
+                warns.append("G6时序提醒: 修改存量章后核对ledgers/时间线.md")
 
         print(f"\n=== gate_chapter [{p.name}] {'FAIL' if problems else 'PASS'} ===")
         for x in problems:

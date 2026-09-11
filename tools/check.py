@@ -9,7 +9,7 @@
 输出:逐项 PASS/WARN/FAIL 与汇总。FAIL 必须修复后归档(宪法要求)。
 仅用标准库。
 """
-import sys, re, pathlib, statistics
+import sys, re, pathlib, statistics, json
 
 # ---------- 规则表 ----------
 # (词, 单章上限)  上限-1 表示禁用(0)
@@ -47,6 +47,8 @@ def check(fp: pathlib.Path):
     body = "\n".join(body_lines)
     n = cjk_len(body)
     issues, warns = [], []
+    metrics = {"file": str(fp), "cjk": n, "dia_line_pct": 0.0, "dia_char_pct": 0.0,
+               "psych_per_k": 0.0, "hook_signals": 0, "dup18": 0}
 
     # 1) 字数
     if n == 0:
@@ -148,6 +150,7 @@ def check(fp: pathlib.Path):
     dl = [l for l in body_lines if ('"' in l or '\u201c' in l or '「' in l or '\u201d' in l or l.strip().startswith('"'))]
     if body_lines:
         ratio = len(dl) / len(body_lines)
+        metrics["dia_line_pct"] = round(ratio * 100, 1)
         if ratio < 0.10:
             warns.append(f"对话行占比{ratio:.0%}(<10%),场景化不足/平铺直叙风险")
         elif ratio > 0.75:
@@ -168,8 +171,10 @@ def check(fp: pathlib.Path):
             seen.add(span)
             i += 1
     if len(dup_set) >= 2:
+        metrics["dup18"] = len(dup_set)
         issues.append(f"章内原样重复{len(dup_set)}处(首处:「{list(dup_set)[0][:18]}…»)——补丁残留或复读,必须整体重写")
     elif len(dup_set) == 1:
+        metrics["dup18"] = 1
         warns.append(f"章内原样重复1处(「{list(dup_set)[0][:18]}…」)——检查是否补丁残留")
 
     # 14.4) 装饰性修辞总密度 v2:去除与#5重复计算的模式,只加新出现的
@@ -212,6 +217,7 @@ def check(fp: pathlib.Path):
     dialog_chars = cjk_len(dialog_str)
     if n > 500:
         dpct = dialog_chars / n * 100
+        metrics["dia_char_pct"] = round(dpct, 1)
         if dpct < 25:
             issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:起点白金对话40-60%;角色必须开口说话!)")
         elif dpct < 40:
@@ -258,6 +264,7 @@ def check(fp: pathlib.Path):
     psych_count = len(re.findall(psych_pats, body, re.VERBOSE))
     if n > 800:
         psych_per_k = psych_count / n * 1000
+        metrics["psych_per_k"] = round(psych_per_k, 2)
         if psych_per_k < 0.5:
             issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重缺失:白金作家≥2/千字)")
         elif psych_per_k < 2.0:
@@ -425,6 +432,7 @@ def check(fp: pathlib.Path):
     # 屏面语:末三行含≤10字重音段(单句成段=重音)也算钩信号
     if not hook_signals and any(cjk_len(l) <= 10 for l in tail_lines):
         hook_signals = ['<短句重音>']
+    metrics["hook_signals"] = len(hook_signals)
     if tail_joined and not hook_signals:
         warns.append("章末钩子信号缺失(末三行无悬念/中断/情绪峰值信号——最后三行决定读者去留,红队D)")
 
@@ -445,13 +453,16 @@ def check(fp: pathlib.Path):
     if max_dia_run > 6:
         warns.append(f"连续{max_dia_run}轮纯对话(>6,每3-5句台词应插入动作/心理描写——织毛衣法,红队C)")
 
-    # 34) 直引号(正文对白必须用中文弯引号;直引号会污染对话占比等指标,audits/06)
-    straight_q = body.count('"')
+    # 34) 直引号(正文对白必须用中文弯引号;直引号会污染对话占比等指标,audits/06;U+FF02变体audits/13)
+    straight_q = body.count('"') + body.count("\uFF02")
     if straight_q > 0:
-        issues.append(f"直引号{straight_q}处(对白必须用中文引号“”;先跑 python3 tools/fix_quotes.py)")
+        issues.append(f"直引号{straight_q}处(含全角变体＂;对白必须用中文引号“”;先跑 python3 tools/fix_quotes.py)")
 
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
-    return fp, n, status, issues, warns
+    metrics["status"] = status
+    metrics["fails"] = len(issues)
+    metrics["warns"] = len(warns)
+    return fp, n, status, issues, warns, metrics
 
 
 def threads_mode(folder: pathlib.Path):
@@ -529,6 +540,9 @@ def main():
     if scene_mode:
         args = [a for a in args if a != "--scene"]
         SCENE_MODE[0] = True
+    metrics_mode = "--metrics" in args
+    if metrics_mode:
+        args = [a for a in args if a != "--metrics"]
     if "--modern" in args:
         # 现代都市背景:关闭时代错位词检查(该检查仅用于古风背景)
         args = [a for a in args if a != "--modern"]
@@ -551,11 +565,13 @@ def main():
             files.append(p)
     total_fail = 0
     for fp in files:
-        fp, n, status, issues, warns = check(fp)
+        fp, n, status, issues, warns, metrics = check(fp)
         print(f"\n=== {fp.name} [{n}字] {status} ===")
         for i in issues: print(f"  [FAIL] {i}")
         for w in warns:  print(f"  [WARN] {w}")
         if not issues and not warns: print("  全项通过")
+        if metrics_mode:
+            print("METRICS " + json.dumps(metrics, ensure_ascii=False))
         total_fail += 1 if issues else 0
     print(f"\n汇总:{len(files)}章,FAIL {total_fail}章")
     return 1 if total_fail else 0

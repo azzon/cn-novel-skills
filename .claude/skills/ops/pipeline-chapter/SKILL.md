@@ -23,13 +23,14 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 ## 流程
 
 **1 取位**
-1.1 从卷纲取下一场预标;从时刻卡取当前时间/在场人。
+1.1 运行 `python3 tools/pipeline.py next`(<章号>)取工作契约:章号/期望卷/卡要求/将跑的门/冷读轨道——**禁凭记忆取位**;
+1.2 从卷纲取下一场预标;从时刻卡取当前时间/在场人。
 
 **1.5 机器硬门(每步前跑)**
-- 生成前:`python3 tools/gates.py card-exists <卡路径>`(无卡即拦);
-- 拼章前:对每个场景文件跑 `audit-marked`;
-- 开新场前:`ledger-fresh`(台账落后即拦);
-- 写作首启:`style-ready`。硬门FAIL=当场停线,回到对应技能,**禁止绕过**。
+- 生成前:`python3 tools/pipeline.py bundle <章号>`(缺卡/缺风格包/缺声纹表即拦,兼产注入包);
+- 拼章前:对章文件跑 `python3 tools/pipeline.py check <文件>`;
+- 归档前:`python3 tools/pipeline.py done <章号>`(韧性门/冷读节奏/七账盖章在此核);
+- 硬门FAIL=当场停线,回到对应技能,**禁止绕过**(gates.py已退役,勿再调用)。
 
 **2 标准工序(串行,闸间不放行)**
 2.1 `write:scene-card`(填卡)→
@@ -39,7 +40,7 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 2.5 本章末场加跑:`write:chapter-assemble`(拼章+卫生)→`audit:reader-proxy`(冷读;硬线→revise回路)。
 
 **3 章完成检查点**
-- check.py全绿/冷读硬线过/六账齐/时刻卡新→本章归档;
+- `python3 tools/pipeline.py done <章号>`通过(=check.py 0FAIL/韧性门过/冷读节奏达标/盖章提示已处理)→本章归档;
 - 每10章自动触发 `audit:drift-audit`;卷末触发 `audit:consistency-audit`+`audit:foreshadow-audit`+`audit:character-audit`。
 
 **3.5 归档即commit**
@@ -47,7 +48,7 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 章完成检查点通过后执行 `git add -A && git commit -m "第X章"`——忘记commit=正文单份存在,损坏不可逆。此步骤人机同等执行。
 
 **4 中断恢复**
-任意步中断→重入本技能,从"已完成的最后一步"续跑(判断依据:产物文件存在性,不靠记忆)。
+任意步中断→先跑 `python3 tools/pipeline.py status`,按其输出续跑——状态一律机器派生,**禁凭记忆或会话残留重建**。
 
 ## 闸门
 
