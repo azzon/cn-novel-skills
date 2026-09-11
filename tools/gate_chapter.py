@@ -213,7 +213,10 @@ def main():
             for l in TIMELINE.read_text(encoding="utf-8").splitlines():
                 m = re.match(r"-\s*第(\d+)章\|", l.strip())
                 if m:
-                    tl_max = max(tl_max, int(m.group(1)))
+                    mm = int(m.group(1))
+                    # 只统计早于本章的记录——账本若先盖了本章/后续章的章,不应让新章误判(audits/22后实测缺陷)
+                    if mm < n:
+                        tl_max = max(tl_max, mm)
             head = "\n".join(raw.splitlines()[:5])
             if tl_max and mode == "new" and n < tl_max:
                 if "插叙:" not in head and "插叙：" not in head:

@@ -457,10 +457,11 @@ def cmd_done(args):
         if cv != exp:
             (warns if revise else problems).append(f"卡卷错配: 卡标{cv} 章应属{exp}——mv卡文件并对齐卡头")
 
-    # 2 跳章: 新章落盘后n==max为合法;仅当n落后于库内最大章(且非--revise)才拦
-    cur_max = max(cm) if cm else 0
-    if n < cur_max and not revise:
-        problems.append(f"章号落后: 库内最大第{cur_max}章,验收的是{n}——旧章改写用--revise,插章走arc-restructure")
+    # 2 跳章: 与【已提交】章比较(工作区含批量草稿不算);落后=存在已提交的更大章号且自己未提交
+    committed_nums = [k for k, v in cm.items() if is_committed(v)]
+    cur_max_c = max(committed_nums) if committed_nums else 0
+    if n < cur_max_c and not revise:
+        problems.append(f"章号落后: 已提交至第{cur_max_c}章,验收的是{n}——旧章改写用--revise,插章走arc-restructure")
 
     # 3 check.py
     rc, out, met = run_check_metrics(p)

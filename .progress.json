@@ -1,14 +1,14 @@
 {
-  "max_chapter": 3,
-  "count": 3,
-  "next_chapter": 4,
+  "max_chapter": 5,
+  "count": 5,
+  "next_chapter": 6,
   "volumes": {
     "卷1": [
       1,
-      3
+      5
     ]
   },
-  "story_time": "- 第003章|2005-06-11|电子城三楼|马小丁,罗胖子,曹三(声),丁师傅,农工大哥|初探三生态;识破翻新机;十块收故障机;丁师傅\"手别抖\"",
-  "next_action": "pipeline-chapter 第004章(卷1)",
+  "story_time": "- 第005章|2005-06-11深夜至6-12晚|家中阳台/电子城门口/打印社|马小丁,马小满,苏棠,买主数人|夜修十台全亮+添头短信(收件人妹,未发出);",
+  "next_action": "pipeline-chapter 第006章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
