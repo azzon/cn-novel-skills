@@ -76,8 +76,11 @@ def recompute():
     story_time = None
     if TIMELINE.exists():
         lines = [l for l in TIMELINE.read_text(encoding="utf-8-sig").splitlines() if l.strip()]
-        if lines:
-            story_time = lines[-1].strip()[:80]
+        for l in reversed(lines):
+            m = re.match(r"- 第(\d+)章\|([^|]+)\|", l.strip())
+            if m:
+                story_time = f"第{int(m.group(1)):03d}章·{m.group(2).strip()}"
+                break
     maxn = max(nums) if nums else 0
     last_vol = max(vols, key=lambda v: vols[v][1]) if vols else "卷1"
     data = {

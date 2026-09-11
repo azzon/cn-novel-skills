@@ -169,7 +169,27 @@ def leak_check(fp):
                 break
     return hits
 
+def sync_hooks():
+    """铁律一: 没有机器强制的流程等于不存在。.git/hooks里的拷贝必须与tools/源头一致,
+    否则修改工具后跑的还是旧门(已发生过:'0字'假FAIL事故)。status时自动同步并报告。"""
+    import hashlib, shutil as _sh
+    src = ROOT / "tools" / "pre-commit-hook.sh"
+    dst = ROOT / ".git" / "hooks" / "pre-commit"
+    if not src.exists() or not (ROOT / ".git").exists():
+        return None
+    def h(p):
+        return hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else ""
+    if h(src) != h(dst):
+        _sh.copyfile(src, dst)
+        import os, stat
+        os.chmod(dst, os.stat(dst).st_mode | stat.S_IEXEC)
+        return "已同步(源与.git/hooks不一致,已覆盖)"
+    return None
+
 def cmd_status():
+    hs = sync_hooks()
+    if hs:
+        print(f"hook同步: {hs}")
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
     maxn = max(cm) if cm else 0
