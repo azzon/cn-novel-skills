@@ -20,10 +20,9 @@ if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff
     exit 1
 fi
 
-CH_RE='^text/卷[^/]+/第[0-9]+章\.(md|MD)$'
-NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' -v re="^$CH_RE" 'tolower($2) ~ re && $1=="A" {print $2}')
-MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' -v re="^$CH_RE" 'tolower($2) ~ re && ($1=="M" || $1 ~ /^R/) {print $2}')
-DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' -v re="^$CH_RE" 'tolower($2) ~ re && $1=="D" {print $2}')
+NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1=="A" {print $2}')
+MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && ($1=="M" || $1 ~ /^R/) {print $2}')
+DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1=="D" {print $2}')
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
 PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc -l)
