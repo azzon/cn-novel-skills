@@ -133,7 +133,13 @@ def main():
     for p in staged:
         problems, warns = [], []
         n = parse_num(p)
-        raw = p.read_text(encoding="utf-8-sig") if p.exists() else ""
+        if not p.exists():
+            # 静默读空会把调用方的argv拼接错误伪装成"新章0字"——直接点名(铁律一:错误必须可归因)
+            print(f"=== gate_chapter [{p.name}] FAIL ===")
+            print(f"  [FAIL] 门输入错误: {p} 不存在(检查调用方是否把模式词当路径传入)")
+            fail_total += 1
+            continue
+        raw = p.read_text(encoding="utf-8-sig")
         body = "\n".join(l for l in raw.splitlines() if l.strip() and not l.startswith("#"))
         title = raw.splitlines()[0].strip() if raw.splitlines() else ""
 

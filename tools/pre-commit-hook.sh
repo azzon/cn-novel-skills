@@ -46,14 +46,19 @@ waiver_registered() {  # $1=章号 $2=门id
 }
 
 # ── A. 韧性门(整批一次: 章号重复/标题重复/卷归属/跨章查重/字数/时序) ──
-GATE_INPUT=""
-[ -n "$NEW_CH" ] && GATE_INPUT="$GATE_INPUT new $NEW_CH"
-[ -n "$MOD_CH" ] && GATE_INPUT="$GATE_INPUT modified $MOD_CH"
+# gate_chapter.py只认第一个模式词;新增/修改必须分两次调用,否则第二个模式词被当成路径(读空=0字假FAIL)
+GATE_FAIL_ALL=0
+: > /tmp/gate_ch_out.txt
+if [ -n "$NEW_CH" ]; then
+    python3 tools/gate_chapter.py new $NEW_CH >> /tmp/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
+fi
+if [ -n "$MOD_CH" ]; then
+    python3 tools/gate_chapter.py modified $MOD_CH >> /tmp/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
+fi
 if [ -n "$NEW_CH" ] || [ -n "$MOD_CH" ]; then
-    GATE_EXIT=$(python3 tools/gate_chapter.py $GATE_INPUT > /tmp/gate_ch_out.txt 2>&1; echo $?)
     echo ""
     echo "── 韧性门(章号/标题/卷归属/跨章查重/字数/时序) ──"
-    if [ "$GATE_EXIT" != "0" ]; then
+    if [ "$GATE_FAIL_ALL" != "0" ]; then
         echo -e "${RED}  [FAIL] 韧性门未过:${NC}"
         grep '\[FAIL\]' /tmp/gate_ch_out.txt | head -6 | sed 's/^/    /'
         FAIL=1
