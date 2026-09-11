@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-12T04:34:48",
-  "head_commit": "9a833a4",
+  "generated_at": "2026-09-12T04:57:17",
+  "head_commit": "0f71522",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -313,6 +313,44 @@
         3000
       ],
       "budget_delta_pct": -10.5,
+      "cold_read": null,
+      "drift_flags": []
+    },
+    "20": {
+      "path": "text/卷1/第020章.md",
+      "committed": false,
+      "cjk": 2234,
+      "dia_char_pct": 33.5,
+      "psych_per_k": 1.79,
+      "hook_signals": 0,
+      "dup18": 0,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2400,
+        3000
+      ],
+      "budget_delta_pct": -17.3,
+      "cold_read": "冷读-第020章.md",
+      "drift_flags": []
+    },
+    "21": {
+      "path": "text/卷1/第021章.md",
+      "committed": false,
+      "cjk": 1809,
+      "dia_char_pct": 40.6,
+      "psych_per_k": 1.66,
+      "hook_signals": 1,
+      "dup18": 1,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2200,
+        2800
+      ],
+      "budget_delta_pct": -27.6,
       "cold_read": null,
       "drift_flags": []
     }
