@@ -72,4 +72,4 @@ description: 对话专项修订——潜台词注入/声纹违例清查/群戏�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

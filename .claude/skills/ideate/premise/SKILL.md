@@ -45,7 +45,7 @@ description: 提炼小说的前提句、设计原则与主控思想(立项三件
 
 ## 工艺载药
 
-前提句工艺(三要素/三宗罪)见 `skills/assets/工艺载药包.md` 第四节。
+前提句工艺(三要素/三宗罪)见 `skills/ops/assets/工艺载药包.md` 第四节。
 
 ## evals
 
@@ -55,4 +55,4 @@ description: 提炼小说的前提句、设计原则与主控思想(立项三件
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

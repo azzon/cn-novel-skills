@@ -45,4 +45,4 @@ description: 卷级重排——章序调整/并章删章/支线下线的影响�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

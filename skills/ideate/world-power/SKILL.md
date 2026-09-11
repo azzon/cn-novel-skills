@@ -45,4 +45,4 @@ description: 设计力量体系的梯度、晋升逻辑、战力锚与防崩规�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

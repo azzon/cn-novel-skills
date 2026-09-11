@@ -47,4 +47,4 @@ description: 整场景重写——按修订指令(审计处方/冷读打回/卡�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

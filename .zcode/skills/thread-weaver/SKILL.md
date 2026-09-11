@@ -53,4 +53,4 @@ plot-spine(主线问题句)存在;卷纲在册。
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

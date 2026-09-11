@@ -45,4 +45,4 @@ description: 设计分层地理地图,让空间服务剧情(每地必有戏剧�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -5,7 +5,7 @@ description: 人设漂移审计——对照人物圣经查决策语法/压力反
 
 # character-audit:人设漂移审计
 
-> 溯源:docs/22(决策语法/压力反应模式/十问)·26。产物:`text/审/人设-卷N.md`。
+> 溯源:docs/22(决策语法/压力反应模式/十问)·26。产物:`story/audit/人设-卷N.md`。
 
 ## 前置条件
 
@@ -54,4 +54,4 @@ description: 人设漂移审计——对照人物圣经查决策语法/压力反
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

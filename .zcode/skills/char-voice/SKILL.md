@@ -49,4 +49,4 @@ char-bible 与 char-web 产物存在(声纹是性格与社会位置的语音外�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -37,7 +37,7 @@ NEXT-SKILL: premise(带着市场证据去立项)。
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。
 
 ## evals
 

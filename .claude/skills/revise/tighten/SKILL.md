@@ -46,4 +46,4 @@ description: 压缩收紧——把超密/超长的场景或段落收紧,删法�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

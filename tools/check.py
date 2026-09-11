@@ -445,6 +445,11 @@ def check(fp: pathlib.Path):
     if max_dia_run > 6:
         warns.append(f"连续{max_dia_run}轮纯对话(>6,每3-5句台词应插入动作/心理描写——织毛衣法,红队C)")
 
+    # 34) 直引号(正文对白必须用中文弯引号;直引号会污染对话占比等指标,audits/06)
+    straight_q = body.count('"')
+    if straight_q > 0:
+        issues.append(f"直引号{straight_q}处(对白必须用中文引号“”;先跑 python3 tools/fix_quotes.py)")
+
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     return fp, n, status, issues, warns
 

@@ -1,6 +1,6 @@
 # CN Novel Skills
 
-从构思到审计的全流程AI协作长篇小说创作技能系统。64个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
+从构思到审计的全流程AI协作长篇小说创作技能系统。73个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
 
 ## 这是什么
 
@@ -21,8 +21,8 @@
 git clone https://github.com/azzon/cn-novel-skills.git
 cd cn-novel-skills
 
-# 方法2：复制到已有项目
-cp -r skills/ tools/ .claude/ /path/to/your-project/
+# 方法2：复制到已有项目(复制后在项目内运行安装脚本同步三份副本)
+cp -r skills/ tools/ docs/ /path/to/your-project/ && cd /path/to/your-project && bash tools/install_skills.sh
 ```
 
 打开 Claude Code，技能自动生效。
@@ -47,18 +47,18 @@ cp -r skills/ tools/ .claude/ /path/to/your-project/
 ## 五域入口
 
 ```
-ideate(26叶) → write(7叶) → revise(9叶) → audit(10叶) → ops(12叶)
+ideate(30叶) → write(11叶) → revise(8叶) → audit(9叶) → ops(10叶)
    构思           写作         修订          审计         记账基建
 ```
 
 <details>
-<summary>全部64个技能清单</summary>
+<summary>全部73个技能清单</summary>
 
 **构思域 ideate**
-market-scan · premise · theme-dossier · world-rules · world-power · world-map · world-economy · world-history · world-culture · iceberg-budget · char-bible · char-web · char-voice · romance-line · plot-spine · volume-outline · set-piece · opening-arc · unit-designer · foreshadow-plan · reward-economy · pacing-score · thread-weaver · positioning · naming(按需) · ideate-audit
+story-incubate · trial-write · market-scan · premise · theme-dossier · world-rules · world-power · world-map · world-economy · world-history · world-culture · iceberg-budget · char-bible · char-web · char-voice · romance-line · plot-spine · volume-outline · set-piece · opening-arc · unit-designer · foreshadow-plan · reward-economy · pacing-score · thread-weaver · positioning · naming(按需) · ideate-audit · author-persona · plot-freshness
 
 **写作域 write**
-style-compiler · scene-card · scene-draft · chapter-assemble · continuation · alt-takes
+style-compiler · scene-card · scene-draft · chapter-assemble · continuation · alt-takes · writing-heart · scene-discipline · dialogue-engine · duanzhang(可选范式) · golden-opening
 
 **修订域 revise**
 line-polish · scene-rewrite · beat-expand · tighten · de-ai · tone-shift · dialogue-doctor · arc-restructure
@@ -75,10 +75,15 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 
 | 脚本 | 用途 |
 |---|---|
+| `tools/check.py` | 章节机检34项(禁词/装饰修辞/重复段/工程词泄漏/直引号/对话占比/心理密度) |
+| `tools/gate_chapter.py` | 章级韧性门(章号/标题查重/跨章18字shingle查重/卷归属/字数硬底线)+`.progress.json`重算 |
 | `tools/gates.py` | 硬门(无风格包禁写作/无场景卡禁生成/不记账禁新场) |
-| `tools/check.py` | 机检(禁词/装饰修辞/重复段/工程词泄漏/碎片化) |
-| `tools/skills_check.py` | 技能库体检(结构/路由/漂移检测) |
-| `tools/install_skills.sh` | 安装技能到 .claude/skills/ |
+| `tools/skills_check.py` | 技能库体检v2(结构/路由/死引用/三树漂移;硬门exit 1) |
+| `tools/install_skills.sh` | skills/(SSOT)→.claude/skills/+.zcode/skills/ 安装+孤儿清理 |
+| `tools/pre-commit-hook.sh` | 提交门v3:质量+流程+韧性(quotepath修复/fail-closed/waiver登记制) |
+| `tools/commit-msg-hook.sh` | 提交信息必须含staged章号(git log可机器解析为二级信源) |
+| `tools/fix_quotes.py` | 直引号→中文弯引号 |
+| `.progress.json` | 进度指针(hook自动重算,禁手写;跨会话恢复/continuation的机器坐标) |
 
 ## 核心工艺
 
@@ -86,19 +91,23 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 
 本系统最重要的发现：AI的默认写作模式是"每个描写点挂一个比喻"(码得像牌位/像品茶/推着一整个早晨)，这不是文笔，是用修辞密度掩盖观察空洞。真人白金作者用白描+动作+对话，比喻只在关键处偶尔出现。
 
-`skills/assets/工艺载药包.md` 包含"反比喻处方"(AI写法vs真人写法替换表)和展开四拍法。
+`skills/ops/assets/工艺载药包.md` 包含"反比喻处方"(AI写法vs真人写法替换表)和展开四拍法。
 
 ## 目录结构
 
 ```
 cn-novel-skills/
-├── skills/          # 64个SKILL.md(产品本体)
+├── skills/          # 73个SKILL.md域结构(唯一事实源SSOT)
 │   └── assets/      # 工艺载药包/术语微词典/产物模板
-├── tools/           # 4个运行脚本
-├── .claude/skills/  # Claude Code自动发现的技能副本
-├── story/           # 你的小说项目数据(设定/大纲/风格包)
-├── text/            # 正文
-└── ledgers/         # 台账(伏笔/梗/钩分布/类型/人物状态/线弦)
+├── docs/            # 规格占位层(docs/NN溯源,待正式规格重建)
+├── tools/           # 运行脚本+钩子
+├── .claude/skills/  # Claude Code自动发现的技能副本(装出物)
+├── .zcode/skills/   # ZCode运行时技能副本(装出物)
+├── story/           # 你的小说项目数据(设定/大纲/风格包/圣经/审计报告)
+├── text/            # 正文+场景卡(text/卡/)
+├── ledgers/         # 七账+时间线+当前时刻卡+waivers+发布检查单
+├── audits/          # 系统审计报告(红队产出)
+└── .progress.json   # 进度指针(hook自动重算)
 ```
 
 ## 已验证

@@ -19,9 +19,9 @@ ideate(构思26叶) → write(写作7叶) → revise(修订9叶) → audit(审�
 
 ## 核心资产
 
-- skills/assets/工艺载药包.md — 反比喻处方 + 正面处方 + 展开四拍法 + 白金10技法
-- skills/assets/术语微词典.md — 写作时唯一需要翻的翻译器
-- skills/assets/产物模板.md — 25类产物格式契约
+- skills/ops/assets/工艺载药包.md — 反比喻处方 + 正面处方 + 展开四拍法 + 白金10技法
+- skills/ops/assets/术语微词典.md — 写作时唯一需要翻的翻译器
+- skills/ops/assets/产物模板.md — 25类产物格式契约
 - tools/ — gates.py · check.py · skills_check.py · install_skills.sh
 
 ## 核心工艺发现

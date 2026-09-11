@@ -54,4 +54,4 @@ premise 与世界/情节主件已成型(查重查的是成品概念,不是空想
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

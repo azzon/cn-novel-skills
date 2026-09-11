@@ -47,7 +47,7 @@ description: 单元设计器——母题库扩充与单元卡设计(三层错位
 
 ## 工艺载药
 
-单元案工艺(三层真标准/对抗选型逻辑)见 `skills/assets/工艺载药包.md` 第六节。
+单元案工艺(三层真标准/对抗选型逻辑)见 `skills/ops/assets/工艺载药包.md` 第六节。
 
 ## evals
 
@@ -57,4 +57,4 @@ description: 单元设计器——母题库扩充与单元卡设计(三层错位
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -46,4 +46,4 @@ description: 建立钱粮体系、物价锚、主角生存账与日常质感清�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

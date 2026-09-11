@@ -5,7 +5,7 @@ description: 喜剧专项审计——实测笑点密度/类型轮换/callback间
 
 # humor-audit:喜剧专项审计
 
-> 溯源:docs/23(密度规格3-4/千字·类型轮换表·callback间隔≥5章·捧哏编制)·25(喜正交替)。产物:`text/审/喜剧审计-第N批章.md`。
+> 溯源:docs/23(密度规格3-4/千字·类型轮换表·callback间隔≥5章·捧哏编制)·25(喜正交替)。产物:`story/audit/喜剧审计-第N批章.md`。
 
 ## 前置条件
 
@@ -48,4 +48,4 @@ description: 喜剧专项审计——实测笑点密度/类型轮换/callback间
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

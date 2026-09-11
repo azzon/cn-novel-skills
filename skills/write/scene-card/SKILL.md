@@ -54,4 +54,4 @@ beats:拦(400)/判(900)/付(600)|Pre:师父旧案卷宗已到手|Post:旧案翻�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

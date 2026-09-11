@@ -48,4 +48,4 @@ description: 制定世界根本法则及其限制、代价与例外(Sanderson式
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -67,4 +67,4 @@ description: 发布与运营准备——存稿量/签约入库节奏/上架时�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

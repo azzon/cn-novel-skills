@@ -51,4 +51,4 @@ description: 六台账批量更新(伏笔/梗/钩分布/类型轮换/人物状�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

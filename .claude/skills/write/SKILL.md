@@ -18,6 +18,11 @@ description: 写作域入口与编排器——从风格包到成章的路由与�
 | 拼章/过卫生 | chapter-assemble |
 | 接着写(新会话/中断恢复) | continuation(重建状态后→scene-card);**同会话连写直接走pipeline** |
 | 一场到章全流程 | ops:pipeline-chapter(推荐默认) |
+| 对话专项修订/对话引擎 | dialogue-engine |
+| 可选范式,用户点名"断章法"时 | duanzhang(默认仍走pipeline-chapter逐场流水) |
+| 前三章成稿打磨 | golden-opening(与opening-arc分工见其卡) |
+| 写场景前的行为铁律 | scene-discipline |
+| 重点章/情感重场的灵魂层 | writing-heart(硬门冲突时硬门优先) |
 
 ## 域闸门
 

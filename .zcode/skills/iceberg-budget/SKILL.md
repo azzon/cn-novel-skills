@@ -60,4 +60,4 @@ description: 世界呈现预算——把全部设定分为示区/藏区/永不�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

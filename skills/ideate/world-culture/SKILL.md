@@ -45,4 +45,4 @@ description: 设计称谓体系、礼俗禁忌、各阶层语言风格与节令�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

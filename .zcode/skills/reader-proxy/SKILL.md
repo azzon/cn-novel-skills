@@ -5,7 +5,7 @@ description: 读者代理冷读——干净上下文的毒舌读者按六项冷�
 
 # reader-proxy:读者代理冷读
 
-> 溯源:docs/26(量规/锚定/判定规则)·迭代31实战。产物:`text/审/第X章-冷读.md`。
+> 溯源:docs/26(量规/锚定/判定规则)·迭代31实战。产物:`story/audit/第X章-冷读.md`。
 
 ## 前置条件
 
@@ -55,7 +55,7 @@ chapter-assemble 已过卫生(check.py全绿)。不净之稿不冷读(浪费代�
 
 ## 工艺载药
 
-冷读精度校准(三档区分/常见误判)见 `skills/assets/工艺载药包.md` 第五节。
+冷读精度校准(三档区分/常见误判)见 `skills/ops/assets/工艺载药包.md` 第五节。
 
 ## evals
 
@@ -66,4 +66,4 @@ chapter-assemble 已过卫生(check.py全绿)。不净之稿不冷读(浪费代�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

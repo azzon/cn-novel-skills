@@ -44,4 +44,4 @@ description: 设定入籍——写作中长出的"野设定"回流登记:归位�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

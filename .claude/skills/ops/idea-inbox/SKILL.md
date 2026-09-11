@@ -36,4 +36,4 @@ inbox无未分拣超一期/无删除记录/出箱率有统计。
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -5,7 +5,7 @@ description: 卷末一致性审计——时间线/称谓/事实/能力四类矛�
 
 # consistency-audit:一致性审计(卷末)
 
-> 溯源:docs/26(长程一致性工程)·danjdewhurst/story-skills确定性审计思想(矛盾=类型错误)。产物:`text/审/一致性-卷N.md`。
+> 溯源:docs/26(长程一致性工程)·danjdewhurst/story-skills确定性审计思想(矛盾=类型错误)。产物:`story/audit/一致性-卷N.md`。
 
 ## 前置条件
 
@@ -49,4 +49,4 @@ description: 卷末一致性审计——时间线/称谓/事实/能力四类矛�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

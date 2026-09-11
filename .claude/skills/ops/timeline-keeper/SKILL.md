@@ -47,4 +47,4 @@ description: 时间线权威维护——故事内时间/地点/在场人物的�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

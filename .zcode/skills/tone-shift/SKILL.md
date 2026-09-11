@@ -41,4 +41,4 @@ description: 调性校正——喜剧/严肃配比失衡时的整场景调性重
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

@@ -52,7 +52,7 @@ docs/22人物立体十问逐条过;任何一问答不出→回对应小节补。
 
 ## 工艺载药
 
-弧线链五环(Ghost/Wound/Lie/Want/Need)的**正反例**见 `skills/assets/工艺载药包.md` 第三节。
+弧线链五环(Ghost/Wound/Lie/Want/Need)的**正反例**见 `skills/ops/assets/工艺载药包.md` 第三节。
 
 ## evals
 
@@ -64,4 +64,4 @@ docs/22人物立体十问逐条过;任何一问答不出→回对应小节补。
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

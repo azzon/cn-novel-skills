@@ -5,7 +5,7 @@ description: 伏笔账本盘点——对照总谱核对埋/养/收进度、显�
 
 # foreshadow-audit:伏笔盘点
 
-> 溯源:docs/15(埋养收/显影四阶/三次法则/超卷提醒义务)。产物:`text/审/伏笔盘点-卷N.md`。
+> 溯源:docs/15(埋养收/显影四阶/三次法则/超卷提醒义务)。产物:`story/audit/伏笔盘点-卷N.md`。
 
 ## 前置条件
 
@@ -47,4 +47,4 @@ description: 伏笔账本盘点——对照总谱核对埋/养/收进度、显�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

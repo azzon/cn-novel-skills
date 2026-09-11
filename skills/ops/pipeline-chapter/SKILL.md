@@ -65,4 +65,4 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。

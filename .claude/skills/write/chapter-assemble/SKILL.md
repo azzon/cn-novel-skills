@@ -44,4 +44,4 @@ description: 拼章与卫生检查——把同章2-3个已验收场景拼为一�
 
 ## 产物格式与示例
 
-见 `skills/assets/产物模板.md` 对应节。
+见 `skills/ops/assets/产物模板.md` 对应节。
