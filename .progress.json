@@ -1,14 +1,14 @@
 {
-  "max_chapter": 7,
-  "count": 7,
-  "next_chapter": 8,
+  "max_chapter": 8,
+  "count": 8,
+  "next_chapter": 9,
   "volumes": {
     "卷1": [
       1,
-      7
+      8
     ]
   },
-  "story_time": "- 第006章|2005-06-13全天|电子城门口摊位/早市/修表摊|马小丁,崔兰,王婶,曹三伙计x2,管理员x2,丁师傅|曹三围堵撬客;管理员暂停经营;鬼秤",
-  "next_action": "pipeline-chapter 第008章(卷1)",
+  "story_time": "- 第008章|2005-08-31晚|家中|马小丁,马建军,崔兰,马小满|学费4500从马小丁手里出;父亲\"明天我陪你去交\";两月契约完成",
+  "next_action": "pipeline-chapter 第009章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
