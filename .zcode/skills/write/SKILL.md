@@ -23,6 +23,7 @@ description: 写作域入口与编排器——从风格包到成章的路由与�
 | 前三章成稿打磨 | golden-opening(与opening-arc分工见其卡) |
 | 写场景前的行为铁律 | scene-discipline |
 | 重点章/情感重场的灵魂层 | writing-heart(硬门冲突时硬门优先) |
+| 写章前定爽点/装逼打脸/期待链 | cool-point(七型轮换+管道+震惊四层) |
 
 ## 域闸门
 

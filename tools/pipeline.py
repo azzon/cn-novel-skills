@@ -307,6 +307,13 @@ def cmd_bundle(args):
     picked = sorted(mat_lines, key=mat_score)[:12]
     add("10生活素材(优先消耗)", 1200, "\n".join(picked))
 
+    # 11 爽点管道(docs/爽点引擎): 在充能各条+型+距兑现章数——期待链的生成现场
+    pipe_path = LEDGERS / "爽点管道.md"
+    if pipe_path.exists():
+        pipe_lines = [l for l in read_text(pipe_path).splitlines()
+                      if l.strip().startswith("| P") and "充能" in l]
+        add("11爽点管道(在充能)", 400, "\n".join(pipe_lines) or "(管道空——期待链红灯,先补P)")
+
     total = sum(x[1] for x in items)
     print("=== 注入预算报告(第{}章) ===".format(n))
     for name, used, cap, _ in items:
