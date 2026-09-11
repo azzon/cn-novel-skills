@@ -1,14 +1,14 @@
 {
-  "max_chapter": 13,
-  "count": 13,
-  "next_chapter": 14,
+  "max_chapter": 14,
+  "count": 14,
+  "next_chapter": 15,
   "volumes": {
     "卷1": [
       1,
-      13
+      14
     ]
   },
-  "story_time": "- 第012章|2005-10-15下午|电子城柜台/家中|马小丁,来人,罗胖子,崔兰,马建军,马小满|拒收赃机N73x2;老周报价单到;马建军帮看收音机线路",
-  "next_action": "pipeline-chapter 第014章(卷1)",
+  "story_time": "- 第014章|2005-08-26决赛夜|小卖部门口/家中|全院+马小丁,崔兰,马小满|超女决赛夜;全院分裂;先知微装;马建军在屋里修收音机",
+  "next_action": "pipeline-chapter 第015章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
