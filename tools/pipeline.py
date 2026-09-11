@@ -61,7 +61,7 @@ def card_for(n):
 
 def card_volume(card):
     m = re.search(r"卷(\d+)", card.name)
-    return f"卷{m.group(1)}" if m else None
+    return f"卷{int(m.group(1))}" if m else None
 
 def is_committed(path):
     _, out, _ = git("status", "--porcelain", "--", str(path.relative_to(ROOT)))
@@ -257,7 +257,10 @@ def crop(text, cap, tag):
 def cmd_bundle(args):
     if not args:
         print("用法: pipeline.py bundle N"); return 2
-    n = int(args[0])
+    try:
+        n = int(args[0])
+    except (ValueError, IndexError):
+        print("用法: pipeline.py done <章号>"); return 2
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
     exp = G.expected_volume(n, vols) or "卷1"

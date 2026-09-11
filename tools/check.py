@@ -656,6 +656,8 @@ def main():
         if not pathlib.Path(a).exists():
             print(f"文件不存在: {a}"); return 2
     if args[0] == "--threads":
+        if len(args) < 2:
+            print("用法: check.py --threads <目录>"); return 2
         return threads_mode(pathlib.Path(args[1]))
     files = []
     for a in args:
