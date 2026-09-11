@@ -1,14 +1,14 @@
 {
-  "max_chapter": 24,
-  "count": 24,
-  "next_chapter": 25,
+  "max_chapter": 25,
+  "count": 25,
+  "next_chapter": 26,
   "volumes": {
     "卷1": [
       1,
-      24
+      25
     ]
   },
-  "story_time": "第024章·2006-03上旬",
-  "next_action": "pipeline-chapter 第025章(卷1)",
+  "story_time": "第025章·2006-03中旬迅捷开业当日",
+  "next_action": "pipeline-chapter 第026章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
