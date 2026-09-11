@@ -71,8 +71,9 @@ pipeline.py bundle 080    # 上下文装配:固定+按需+摘要三档注入物+
 (按scene-draft生成正文)
 pipeline.py check text/卷4/第080章.md
 (冷读:reader-proxy,cadence到期时)
+pipeline.py done 080      # 提交前验收(commit后可再跑一次作后验刷新scores)
 git commit                # hook最后防线
-pipeline.py done 080      # 验收+重算progress+提示七账盖章
+pipeline.py done 080      # 提交后刷新committed状态与scores
 ```
 
 ## 技能库治理

@@ -439,8 +439,12 @@ def cmd_done(args):
 
     committed = is_committed(p)
     if committed and not revise:
-        print(f"[exit 2] 第{n:03d}章已committed——改写验收用 `pipeline.py done {n} --revise`")
-        return 2
+        # v3.1: 已提交章允许后验刷新(audits/22-12: done常在commit后补跑,committed字段结构性为false的修复)
+        print(f"[post] 第{n:03d}章已committed——跑后验刷新(scores.committed将置真);改写验收用 --revise")
+        revise = True  # 后验模式=按改写口径验收,但committed写真值
+        post = True
+    else:
+        post = False
 
     # 1 卡
     card = card_for(n)
@@ -488,6 +492,11 @@ def cmd_done(args):
         delta = (cjk - mid) / mid * 100
         if delta < -40:
             warns.append(f"字数低于卡预算{delta:.0f}%(实测{cjk} vs 卡{budget})——beat-expand回炉项")
+
+    # 6.5 当前时刻卡随章断言(软门,audits/22-11)
+    moment = read_text(LEDGERS / "当前时刻卡.md")
+    if f"第{n:03d}章" not in moment and f"第{n}章" not in moment:
+        warns.append(f"当前时刻卡未含第{n:03d}章——跨会话恢复注入物过期,更新ledgers/当前时刻卡.md")
 
     # 7 七账盖章
     stamped = ledger_stamped(n)
