@@ -532,6 +532,18 @@ def check(fp: pathlib.Path):
     if n >= 1500 and not has_idle:
         warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
+    # 42) 时代语言穿帮(年代文专用: text/.era2005存在时激活; audits/20-E)
+    #     2005后网络语混入正文=事实级出戏; 1发WARN,≥2发FAIL
+    if (pathlib.Path("text/.era2005")).exists():
+        ANACHRONISM = ["微信","朋友圈","扫码","二维码","内卷","躺平","佛系","破防",
+                       "社死","绝绝子","yyds","YYDS","拿捏","凡尔赛","干饭","打工人",
+                       "给力","点赞","带货","热搜","刷屏","吐槽"]
+        anachron = [w for w in ANACHRONISM if w in body]
+        if len(anachron) >= 2:
+            issues.append(f"时代语言穿帮:{','.join(anachron)}——2005年不存在这些词(素材库J区负册)")
+        elif len(anachron) == 1:
+            warns.append(f"疑似时代穿帮词「{anachron[0]}」——核对素材库J区语言年代学")
+
     status = "FAIL" if issues else ("WARN" if warns else "PASS")
     metrics["status"] = status
     metrics["fails"] = len(issues)
