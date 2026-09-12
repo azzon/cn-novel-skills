@@ -30,7 +30,7 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 - 生成前:`python3 tools/pipeline.py bundle <章号>`(缺卡/缺风格包/缺声纹表即拦,兼产注入包);
 - 拼章前:对章文件跑 `python3 tools/pipeline.py check <文件>`;
 - 归档前:`python3 tools/pipeline.py done <章号>`(韧性门/冷读节奏/七账盖章在此核);
-- 硬门FAIL=当场停线,回到对应技能,**禁止绕过**(gates.py已退役,勿再调用)。
+- 硬门FAIL=当场停线,回到对应技能,**禁止绕过**(gate_chapter.py已退役,勿再调用)。
 
 **2 标准工序(串行,闸间不放行)**
 2.1 `write:scene-card`(填卡)→
@@ -67,3 +67,6 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 ## 产物格式与示例
 
 见 `skills/ops/assets/产物模板.md` 对应节。
+
+## 写前新鲜度（大审计-20）
+取位前看pipeline status的"新鲜度"行：时刻卡'下一章'≠实扫next时先更新ledgers/当前时刻卡.md，禁带过期注入物开写。

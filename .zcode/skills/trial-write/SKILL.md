@@ -1,6 +1,6 @@
 ---
 name: trial-write
-description: 试写验证——正式开写前写3章"感觉测试"，不行就推翻重来。白金作家实况：辰东会先试写看感觉。Use when 构思域走完/准备开写/用户说"可以开写了吗"。
+description: 试写验证——正式开写前写3章'感觉测试',不行就推翻重来(白金作家实况)。立项闸门(red-team)通过后、风格包就绪时使用;'这个想法行不行'的红队质询走ideate-audit。Use when 用户说'试写/先写三章看看'。
 ---
 
 # Skill: trial-write

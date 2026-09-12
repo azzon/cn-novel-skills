@@ -61,7 +61,7 @@ description: 构思域入口与编排器——从一句话想法到可开写的�
 
 **4.5 机器门**
 
-序列走完先跑 `python3 tools/gates.py ideate-complete`(缺件即拦,清单即续跑路线)。
+序列走完先跑 `python3 tools/gate_chapter.py ideate-complete`(缺件即拦,清单即续跑路线)。
 
 **5 总闸(与ideate-audit共担)**
 

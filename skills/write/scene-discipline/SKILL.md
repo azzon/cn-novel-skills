@@ -1,6 +1,6 @@
 ---
 name: scene-discipline
-description: 场景化写作纪律（写作时只挂6条铁律，其余下沉到check.py事后检测）+角色即兴权+情绪预演协议。Use when 写任何场景/章节前。
+description: 场景化写作纪律（写作时只挂6条铁律,其余下沉check.py事后检测）+角色即兴权+情绪预演协议。写任何场景/章节前挂载;去AI味详单走revise:de-ai。Use when 用户说'写这一章/这场怎么写'。
 ---
 
 # Skill: scene-discipline
