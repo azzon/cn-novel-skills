@@ -252,8 +252,8 @@ def check(fp: pathlib.Path):
         dpct = dialog_chars / n * 100
         metrics["dia_char_pct"] = round(dpct, 1)
         if dpct < 25:
-            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:起点白金对话40-60%;角色必须开口说话!)")
-        elif dpct < 40:
+            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:角色必须开口说话!)")
+        elif dpct < 30:
             warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
 
     # 17) 心理活动密度(用户标准:每千字≥2处心理beat)

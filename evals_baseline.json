@@ -198,7 +198,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第009章.md": {
    "cjk": 1950,
@@ -248,7 +248,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第011章.md": {
    "cjk": 1903,
@@ -423,7 +423,7 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 5
   },
   "第018章.md": {
    "cjk": 2678,
@@ -448,7 +448,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 5
   },
   "第019章.md": {
    "cjk": 2374,
@@ -473,7 +473,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第020章.md": {
    "cjk": 2188,
@@ -498,7 +498,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 5
   },
   "第021章.md": {
    "cjk": 1842,
@@ -523,7 +523,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第022章.md": {
    "cjk": 1904,
@@ -573,7 +573,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第024章.md": {
    "cjk": 1827,
@@ -673,7 +673,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 5
   },
   "第028章.md": {
    "cjk": 1819,
@@ -698,7 +698,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 6
   },
   "第029章.md": {
    "cjk": 1827,
@@ -823,7 +823,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第034章.md": {
    "cjk": 1867,
@@ -851,10 +851,10 @@
    "warns": 6
   },
   "第035章.md": {
-   "cjk": 1805,
+   "cjk": 1791,
    "dia_line_pct": 73.7,
-   "dia_char_pct": 36.1,
-   "psych_per_k": 2.77,
+   "dia_char_pct": 35.6,
+   "psych_per_k": 2.23,
    "hook_signals": 0,
    "dup18": 0,
    "money_sample": "三块,一块,二块,一块,三块,五十块",
@@ -868,12 +868,12 @@
    "idle_beat": 1,
    "near_dup": 0,
    "money_conflict": 0,
-   "avg_para_len": 31.7,
+   "avg_para_len": 31.4,
    "long_paras": 1,
    "aphor_endings": 0,
-   "status": "WARN",
-   "fails": 0,
-   "warns": 6
+   "status": "FAIL",
+   "fails": 1,
+   "warns": 5
   },
   "第036章.md": {
    "cjk": 1800,
@@ -923,7 +923,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第038章.md": {
    "cjk": 1872,
@@ -948,7 +948,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   }
  },
  "structure": {
@@ -962,7 +962,7 @@
   "日记收账": 13
  },
  "skills": "OK",
- "total_cjk": 74278,
+ "total_cjk": 74264,
  "structure_raw": "跨章结构同构检测: 30章\n── 开场型分布 ──\n  动作直入: 17章 (57%)  [WARN] 占比超标(小样本)\n  时间状语: 9章 (30%)  [WARN] 占比超标(小样本)\n  判断句: 3章 (10%)\n  对话直入: 1章 (3%)\n── 收尾型分布 ──\n  叙述收: 11章 (37%)  [WARN] 占比超标(小样本)\n  短句重音: 9章 (30%)  [WARN] 占比超标(小样本)\n  对话切: 6章 (20%)\n  日记收账: 4章 (13%)\n── 场景数: 均值1.5 标准差1.5 (标准差<1=节奏机械) ──\n  第001章.md: 开=动作直入 收=短句重音 场=1\n  第002章.md: 开=动作直入 收=对话切 场=1\n  第003章.md: 开=动作直入 收=叙述收 场=1\n  第004章.md: 开=动作直入 收=叙述收 场=1\n  第005章.md: 开=动作直入 收=对话切 场=1\n  第006章.md: 开=动作直入 收=叙述收 场=1\n  第007章.md: 开=动作直入 收=短句重音 场=1\n  第008章.md: 开=时间状语 收=短句重音 场=1\n  第009章.md: 开=时间状语 收=叙述收 场=1\n  第010章.md: 开=动作直入 收=叙述收 场=1\n  第011章.md: 开=动作直入 收=日记收账 场=1\n  第012章.md: 开=动作直入 收=叙述收 场=4\n  第013章.md: 开=动作直入 收=短句重音 场=1\n  第014章.md: 开=判断句 收=短句重音 场=1\n  第015章.md: 开=动作直入 收=对话切 场=7\n  第016章.md: 开=判断句 收=对话切 场=6\n  第017章.md: 开=时间状语 收=叙述收 场=1\n  第018章.md: 开=时间状语 收=日记收账 场=1\n  第019章.md: 开=判断句 收=叙述收 场=1\n  第020章.md: 开=动作直入 收=日记收账 场=1\n  第021章.md: 开=动作直入 收=短句重音 场=1\n  第022章.md: 开=时间状语 收=短句重音 场=1\n  第023章.md: 开=时间状语 收=叙述收 场=1\n  第024章.md: 开=时间状语 收=短句重音 场=1\n  第025章.md: 开=动作直入 收=叙述收 场=1\n  第026章.md: 开=对话直入 收=对话切 场=1\n  第027章.md: 开=动作直入 收=对话切 场=1\n  第028章.md: 开=时间状语 收=叙述收 场=1\n  第029章.md: 开=时间状语 收=短句重音 场=1\n  第030章.md: 开=动作直入 收=日记收账 场=1\n结构门: WARN\n",
  "syntax": "OK",
  "recompute": "[progress] max=38 next=39 volumes={'卷1': [1, 30], '卷2': [31, 38]}",
