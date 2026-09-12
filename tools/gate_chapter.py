@@ -24,6 +24,30 @@ TIMELINE = ROOT / "ledgers" / "时间线.md"
 def cjk_len(t):
     return len(re.findall(r"[\u4e00-\u9fff]", t))
 
+def _shingles(s, k=12):
+    c = re.sub(r"[\s，。！？；：、\u201c\u201d]", "", s)
+    return {c[i:i+k] for i in range(max(0, len(c)-k+1))}
+
+def cross_chapter_dup(staged_bodies, corpus_paras):
+    """G8跨章贴入门: staged章的段落与存量章段落shingle相似>0.85=贴入残留(006→009事故形状)。
+    返回[(staged段预览, 存量文件, 相似度)]"""
+    hits = []
+    corpus = [(f, _shingles(x)) for f in corpus_paras for x in corpus_paras[f] if cjk_len(x) >= 40]
+    for body in staged_bodies:
+        for para in re.split(r"\n\s*\n", body):
+            para = para.strip()
+            if cjk_len(para) < 40:
+                continue
+            sp = _shingles(para)
+            if len(sp) < 3:
+                continue
+            for f, cp in corpus:
+                inter = len(sp & cp)
+                if inter and inter / min(len(sp), len(cp)) > 0.85:
+                    hits.append((para[:24], f, round(inter/min(len(sp),len(cp)), 2)))
+                    break
+    return hits
+
 def chapter_files():
     return sorted(ROOT.glob("text/卷*/第*章.md"))
 
@@ -133,6 +157,17 @@ def main():
     n_new_staged = len([p for p in staged
                         if parse_num(p) is not None and parse_num(p) not in existing_nums])
     jump_cap = max_existing + n_new_staged
+    # G8语料: 存量章(排除staged)按段预切
+    corpus_paras = {}
+    for p2 in files:
+        if str(p2.resolve()) in staged_paths:
+            continue
+        try:
+            raw2 = p2.read_text(encoding="utf-8-sig")
+            corpus_paras[str(p2)] = [x.strip() for x in re.split(r"\n\s*\n", raw2) if x.strip()]
+        except OSError:
+            pass
+    staged_bodies = []
     for p in staged:
         problems, warns = [], []
         n = parse_num(p)
@@ -145,6 +180,7 @@ def main():
         raw = p.read_text(encoding="utf-8-sig")
         body = "\n".join(l for l in raw.splitlines() if l.strip() and not l.startswith("#"))
         title = raw.splitlines()[0].strip() if raw.splitlines() else ""
+        staged_bodies.append(body)
 
         # G1 字数硬底线(只卡新增章;存量章回炉是计划内工作)
         cn = cjk_len(body)
@@ -244,6 +280,15 @@ def main():
         for w in warns:
             print(f"  [WARN] {w}")
         fail_total += len(problems)
+
+    # G8 跨章贴入门(整批一次)
+    if mode == "new" and staged_bodies and corpus_paras:
+        hits = cross_chapter_dup(staged_bodies, corpus_paras)
+        if hits:
+            print("=== gate_chapter [G8跨章贴入] FAIL ===")
+            for prev, f, r in hits[:4]:
+                print(f"  [FAIL] 段落「{prev}…」与存量{f.rsplit('/',1)[-1]}相似{r}——贴入残留,必须重写该段(006→009事故形状)")
+            fail_total += len(hits)
 
     if fail_total:
         print(f"\n汇总: {fail_total}项FAIL")
