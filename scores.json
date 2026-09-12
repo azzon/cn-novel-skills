@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-12T12:34:36",
-  "head_commit": "01ef408",
+  "generated_at": "2026-09-12T12:50:48",
+  "head_commit": "fc02240",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -150,20 +150,22 @@
     "9": {
       "path": "text/卷1/第009章.md",
       "volume": "卷1",
-      "cjk": 1811,
-      "dia_char_pct": 29.8,
-      "psych_per_k": 1.66,
+      "cjk": 1936,
+      "dia_char_pct": 27.0,
+      "psych_per_k": 1.03,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "hook_level_from_card": "中重",
+      "hook_level_from_card": "中",
       "card_budget": [
         2600,
         3000
       ],
-      "budget_delta_pct": -35.3,
-      "cold_read": null
+      "budget_delta_pct": -30.9,
+      "cold_read": null,
+      "committed": false,
+      "drift_flags": []
     },
     "10": {
       "path": "text/卷1/第010章.md",
@@ -319,9 +321,9 @@
     "20": {
       "path": "text/卷1/第020章.md",
       "committed": false,
-      "cjk": 2234,
-      "dia_char_pct": 33.5,
-      "psych_per_k": 1.79,
+      "cjk": 2188,
+      "dia_char_pct": 34.6,
+      "psych_per_k": 1.37,
       "hook_signals": 0,
       "dup18": 0,
       "check_status": "WARN",
@@ -331,18 +333,18 @@
         2400,
         3000
       ],
-      "budget_delta_pct": -17.3,
+      "budget_delta_pct": -19.0,
       "cold_read": "冷读-第020章.md",
       "drift_flags": []
     },
     "21": {
       "path": "text/卷1/第021章.md",
       "committed": false,
-      "cjk": 1809,
-      "dia_char_pct": 40.6,
-      "psych_per_k": 1.66,
+      "cjk": 1801,
+      "dia_char_pct": 40.4,
+      "psych_per_k": 1.67,
       "hook_signals": 1,
-      "dup18": 1,
+      "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
       "hook_level_from_card": null,
@@ -350,7 +352,7 @@
         2200,
         2800
       ],
-      "budget_delta_pct": -27.6,
+      "budget_delta_pct": -28.0,
       "cold_read": null,
       "drift_flags": []
     },
