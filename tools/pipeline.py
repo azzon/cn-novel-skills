@@ -74,6 +74,36 @@ def cold_read_for(n):
             return hits[0]
     return None
 
+
+def zh_num_variants(x):
+    """数字表对账用: 4500→[四千五,四千五百,4500]; 返回候选字符串列表"""
+    try:
+        v = int(x)
+    except ValueError:
+        return [x]
+    digits = "零一二三四五六七八九"
+    if v <= 0 or v > 9999:
+        return [x]
+    out = {x}
+    qian, bai, shi, ge = v // 1000, v % 1000 // 100, v % 100 // 10, v % 10
+    parts = []
+    if qian: parts.append(digits[qian] + "千")
+    if bai: parts.append(digits[bai] + "百")
+    if shi: parts.append(("一" if shi == 1 and not (qian or bai) else digits[shi]) + "十")
+    if ge: parts.append(digits[ge])
+    s = "".join(parts) if parts else "零"
+    out.add(s)
+    # 口语省略: 4500→四千五; 250→二百五
+    if qian and not bai and shi == 5 and ge == 0:
+        out.add(digits[qian] + "千五")
+    if qian and bai and shi == 5 and ge == 0:
+        out.add(digits[qian] + "千" + digits[bai] + "百五")
+    if shi == 2 and not (qian or bai):
+        out.add(s.replace("二十", "廿十"))
+    if v >= 20 and v < 100 and ge == 0 and shi:
+        out.add(digits[shi] + "十")
+    return sorted(out)
+
 def ledger_stamped(n):
     toks = (f"第{n}章", f"第{n:03d}章")
     stamped = []
@@ -196,6 +226,15 @@ def cmd_status():
     nxt = maxn + 1
     pg = progress_data()
     print(f"进度: max={maxn} next={nxt} 卷={vols}")
+    # 结构同构门(advisory,大审计-08/11): 跨章开场/收尾/场景数分布
+    try:
+        sc = subprocess.run([sys.executable, str(ROOT / "tools" / "structure_check.py")],
+                            capture_output=True, text=True, timeout=60)
+        lines = [l for l in sc.stdout.splitlines() if l.startswith(("  ", "跨章", "结构门", "──"))]
+        brief = [l for l in lines if "[WARN]" in l or "[FAIL]" in l or "标准差" in l or l.startswith("跨章")]
+        print("结构门: " + ("; ".join(brief) if brief else "PASS"))
+    except Exception as e:
+        print(f"结构门: 跳过({e})")
     if pg.get("story_time"):
         print(f"故事时间: {pg['story_time']}")
 
@@ -521,6 +560,29 @@ def cmd_done(args):
     moment = read_text(LEDGERS / "当前时刻卡.md")
     if f"第{n:03d}章" not in moment and f"第{n}章" not in moment:
         warns.append(f"当前时刻卡未含第{n:03d}章——跨会话恢复注入物过期,更新ledgers/当前时刻卡.md")
+
+    # 6.6 口供对账(大审计-11:台账引用的章末拍必须真实存在于正文末尾)
+    m2 = re.search(r'上一章末拍[:：]\s*[“"](.+?)[”"]\s*[（(](\d{3})[）)]', moment)
+    if m2:
+        quote, qn = m2.group(1), int(m2.group(2))
+        qf = cm.get(qn)
+        if qf is not None:
+            qtail = [l.strip() for l in qf.read_text(encoding="utf-8").splitlines() if l.strip()]
+            if qtail and not any(quote[:10] in l for l in qtail[-3:]):
+                warns.append(f"当前时刻卡'上一章末拍'引文「{quote}」不在第{qn:03d}章末三行——口供失真,更新当前时刻卡")
+
+    # 6.7 数字表对账(大审计-11反向:卡上数字表条目必须在正文兑现)
+    if card is not None:
+        card_text = card.read_text(encoding="utf-8-sig")
+        mt = re.search(r'数字表\*?\*?[:：]\s*([^\n]+)', card_text)
+        if mt:
+            body_full = p.read_text(encoding="utf-8")
+            miss = []
+            for x in re.findall(r'\d{2,4}(?:\.\d+)?', mt.group(1)):
+                if not any(v in body_full for v in zh_num_variants(x)):
+                    miss.append(x)
+            if miss:
+                warns.append(f"数字表条目未在正文兑现: {miss}——表外数字=穿帮,表内数字=空账,对齐两者")
 
     # 7 七账盖章
     stamped = ledger_stamped(n)

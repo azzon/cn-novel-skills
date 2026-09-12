@@ -182,6 +182,12 @@ def main():
         title = raw.splitlines()[0].strip() if raw.splitlines() else ""
         staged_bodies.append(body)
 
+        # G9 开场型门(新章;大审计-08:存量25章100%时间状语开场=同构固化)
+        if mode == "new":
+            first_para = next((x.strip() for x in re.split(r"\n\s*\n", body) if x.strip()), "")
+            if re.match(r"^(第?[一二三四五六七八九十百0-9]+[章日天早晚月年]|开春|进了腊月|正月|入了|那年|当年|次日|第二天|当天|礼拜|周[一二三四五六日末]|深夜|凌晨|傍晚|天黑|十月|十一月|十二月|三月)", first_para):
+                problems.append("G9开场型: 首段时间状语开场——禁令生效(PREFIX/场景卡开场型字段),用对话/动作/异常直入")
+
         # G1 字数硬底线(只卡新增章;存量章回炉是计划内工作)
         cn = cjk_len(body)
         if cn < 1500:
