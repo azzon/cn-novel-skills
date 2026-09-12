@@ -75,6 +75,17 @@ def collect():
     sk = run([sys.executable, "tools/skills_check.py"])
     data["skills"] = "OK" if sk.returncode == 0 else "FAIL:" + sk.stdout[-200:]
 
+    # 全工具语法门(防坏提交: 本项目hook不查py语法,曾发生PREFIX断裂被提交)
+    import py_compile
+    syn = "OK"
+    for tool in ["pipeline.py", "check.py", "gate_chapter.py", "structure_check.py", "skills_check.py", "evals.py"]:
+        try:
+            py_compile.compile(str(ROOT / "tools" / tool), doraise=True)
+        except py_compile.PyCompileError as e:
+            syn = f"FAIL:{tool}:{e}"
+            break
+    data["syntax"] = syn
+
     rec = run([sys.executable, "tools/gate_chapter.py", "--recompute"])
     data["recompute"] = rec.stdout.strip().splitlines()[-1] if rec.stdout else "FAIL"
 
@@ -129,6 +140,8 @@ def cmd_check():
 
     if base.get("gate_new_smoke") == "OK" and cur.get("gate_new_smoke") != "OK":
         regressions.append("gate new模式冒烟崩溃(门代码存在未捕获异常)")
+    if base.get("syntax") == "OK" and cur.get("syntax") != "OK":
+        regressions.append(f"工具语法门: {cur['syntax'][:140]}")
     if cur.get("bundle_cropped", 0) > base.get("bundle_cropped", 0):
         regressions.append(f"bundle注入出现新裁剪: {cur['bundle_cropped']}处(注入预算被突破)")
 
