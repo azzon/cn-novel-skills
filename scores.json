@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-13T00:06:01",
-  "head_commit": "7d6fb02",
+  "generated_at": "2026-09-13T00:25:45",
+  "head_commit": "c0db193",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -737,6 +737,25 @@
         3000
       ],
       "budget_delta_pct": -33.1,
+      "cold_read": null,
+      "drift_flags": []
+    },
+    "42": {
+      "path": "text/卷2/第042章.md",
+      "committed": false,
+      "cjk": 1803,
+      "dia_char_pct": 28.1,
+      "psych_per_k": 3.88,
+      "hook_signals": 0,
+      "dup18": 1,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2400,
+        3000
+      ],
+      "budget_delta_pct": -33.2,
       "cold_read": null,
       "drift_flags": []
     }
