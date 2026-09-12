@@ -1,7 +1,7 @@
 {
-  "max_chapter": 39,
-  "count": 39,
-  "next_chapter": 40,
+  "max_chapter": 40,
+  "count": 40,
+  "next_chapter": 41,
   "volumes": {
     "卷1": [
       1,
@@ -9,10 +9,10 @@
     ],
     "卷2": [
       31,
-      39
+      40
     ]
   },
-  "story_time": "第039章·2006-05下旬至06上旬",
-  "next_action": "pipeline-chapter 第040章(卷2)",
+  "story_time": "第040章·2006-06上中旬",
+  "next_action": "pipeline-chapter 第041章(卷2)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
