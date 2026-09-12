@@ -122,7 +122,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         elif [ ! -s "$CARD" ] || ! grep -q "第${CH_NUM}章" "$CARD" || ! grep -qE "场景型|价值|钩" "$CARD"; then
             echo -e "${RED}  [FAIL] 空壳卡/缺关键字段(需含:第${CH_NUM}章+场景型|价值|钩): $CARD${NC}"
             FAIL=1
-        elif echo "$NEW_CH" | grep -q "第${CH_NUM}章" && ! grep -qE "开场型[:：]\s*(对话直入|动作直入|异常直入|判断句)" "$CARD"; then
+        elif echo "$NEW_CH" | grep -q "第${CH_NUM}章" && ! grep -qE "^[-*][[:space:]]*\*{0,2}开场型\*{0,2}[:：][[:space:]]*(对话直入|动作直入|异常直入|判断句)" "$CARD"; then
             # 大审计-08/11: 25章100%时间状语开场=同构固化;新章卡必须声明开场型且非时间状语
             echo -e "${RED}  [FAIL] 新章卡缺'开场型'字段(须为:对话直入|动作直入|异常直入|判断句)——禁时间状语开场: $CARD${NC}"
             FAIL=1

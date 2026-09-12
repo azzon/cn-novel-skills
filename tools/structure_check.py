@@ -38,7 +38,7 @@ def classify_end(paras):
         return "日记收账"
     if cjk(last) <= 15 and "\u201c" not in last:
         return "短句重音"
-    if last.endswith("\u201d") or last.endswith("”"):
+    if last.endswith("\u201d"):
         return "对话切"
     return "叙述收"
 
@@ -46,12 +46,14 @@ def scan(files):
     data = []
     for f in files:
         t = f.read_text(encoding="utf-8-sig")
-        paras = [p for p in re.split(r"\n\s*\n", t) if p.strip()]
+        paras = [p.strip() for p in re.split(r"\n\s*\n", t) if p.strip()]
+        # 跳过标题行(大审计-18 P0-2: 标题"第N章"恒判时间状语=度量假象)
+        paras = [p for p in paras if not re.match(r"^第[一二三四五六七八九十百0-9]+章", p)]
         if len(paras) < 3:
             continue
-        scenes = sum(1 for p in paras if p.strip() == "。") + 1
+        scenes = sum(1 for p in paras if p == "。") + 1
         data.append({
-            "file": f.name, "open": classify_open(paras),
+            "file": f.name, "open": classify_open([paras[0]]),
             "end": classify_end(paras), "scenes": scenes,
         })
     return data
@@ -78,10 +80,11 @@ def main():
         print(f"── {spec}分布 ──")
         for k, (cnt, pct) in sorted(dist(data, key).items(), key=lambda x: -x[1][0]):
             mark = ""
-            if pct > 80:
+            eff = max(pct, pct * n / 10)  # 小样本(n<10)降级
+            if pct > 80 and n >= 10:
                 mark = "  [FAIL] 同构固化"; fails += 1
-            elif pct > 60:
-                mark = "  [WARN] 占比超标"; warns += 1
+            elif eff > 60:
+                mark = "  [WARN] 占比超标(小样本)"; warns += 1
             print(f"  {k}: {cnt}章 ({pct}%){mark}")
     scenes = [d["scenes"] for d in data]
     import statistics

@@ -33,19 +33,17 @@ def cross_chapter_dup(staged_bodies, corpus_paras):
     返回[(staged段预览, 存量文件, 相似度)]"""
     hits = []
     corpus = [(f, _shingles(x)) for f in corpus_paras for x in corpus_paras[f] if cjk_len(x) >= 40]
-    for body in staged_bodies:
-        for para in re.split(r"\n\s*\n", body):
-            para = para.strip()
-            if cjk_len(para) < 40:
-                continue
-            sp = _shingles(para)
-            if len(sp) < 3:
-                continue
-            for f, cp in corpus:
-                inter = len(sp & cp)
-                if inter and inter / min(len(sp), len(cp)) > 0.85:
-                    hits.append((para[:24], f, round(inter/min(len(sp),len(cp)), 2)))
-                    break
+    for para in staged_paras:
+        if cjk_len(para) < 40:
+            continue
+        sp = _shingles(para)
+        if len(sp) < 3:
+            continue
+        for f, cp in corpus:
+            inter = len(sp & cp)
+            if inter and inter / min(len(sp), len(cp)) > 0.85:
+                hits.append((para[:24], f, round(inter/min(len(sp),len(cp)), 2)))
+                break
     return hits
 
 def chapter_files():
@@ -164,10 +162,11 @@ def main():
             continue
         try:
             raw2 = p2.read_text(encoding="utf-8-sig")
-            corpus_paras[str(p2)] = [x.strip() for x in re.split(r"\n\s*\n", raw2) if x.strip()]
+            # G8用原始空行分段(大审计-18 D3-G8: body过滤空行后单\n拼接,再按空行切=死代码)
+            corpus_paras[str(p2)] = [x.strip() for x in re.split(r"\n\s*\n", raw2) if x.strip() and not re.match(r"^第[一二三四五六七八九十百0-9]+章", x.strip())]
         except OSError:
             pass
-    staged_bodies = []
+    staged_paras = []
     for p in staged:
         problems, warns = [], []
         n = parse_num(p)
@@ -180,11 +179,17 @@ def main():
         raw = p.read_text(encoding="utf-8-sig")
         body = "\n".join(l for l in raw.splitlines() if l.strip() and not l.startswith("#"))
         title = raw.splitlines()[0].strip() if raw.splitlines() else ""
-        staged_bodies.append(body)
+        staged_paras += [x.strip() for x in re.split(r"\n\s*\n", raw) if x.strip() and not re.match(r"^第[一二三四五六七八九十百0-9]+章", x.strip())]
 
         # G9 开场型门(新章;大审计-08:存量25章100%时间状语开场=同构固化)
         if mode == "new":
-            first_para = next((x.strip() for x in re.split(r"\n\s*\n", body) if x.strip()), "")
+            # 跳过标题行: 本项目标题无#前缀, body首元素即"第N章 XXX"(大审计-18 P0-1)
+            _lines = [l for l in body.splitlines() if l.strip()]
+            first_para = ""
+            for _l in _lines:
+                if not re.match(r"^第[一二三四五六七八九十百0-9]+章", _l.strip()):
+                    first_para = _l.strip()
+                    break
             if re.match(r"^(第?[一二三四五六七八九十百0-9]+[章日天早晚月年]|开春|进了腊月|正月|入了|那年|当年|次日|第二天|当天|礼拜|周[一二三四五六日末]|深夜|凌晨|傍晚|天黑|十月|十一月|十二月|三月)", first_para):
                 problems.append("G9开场型: 首段时间状语开场——禁令生效(PREFIX/场景卡开场型字段),用对话/动作/异常直入")
 
@@ -288,8 +293,8 @@ def main():
         fail_total += len(problems)
 
     # G8 跨章贴入门(整批一次)
-    if mode == "new" and staged_bodies and corpus_paras:
-        hits = cross_chapter_dup(staged_bodies, corpus_paras)
+    if mode == "new" and staged_paras and corpus_paras:
+        hits = cross_chapter_dup(staged_paras, corpus_paras)
         if hits:
             print("=== gate_chapter [G8跨章贴入] FAIL ===")
             for prev, f, r in hits[:4]:

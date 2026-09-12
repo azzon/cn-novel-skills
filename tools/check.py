@@ -549,8 +549,12 @@ def check(fp: pathlib.Path):
 
     # 46) 近似重复(大审计-11:变体逃逸拼接残留)——段间shingle Jaccard>0.85=FAIL
     def _shingles(s, k=10):
+        c = re.sub(r"⟪[^⟫]*⟫", "", s)  # 继承#15的⟪⟫刻意反复豁免(大审计-18 D4)
         c = re.sub(r"[\s，。！？；：、“”]", "", s)
         return {c[i:i+k] for i in range(max(0, len(c)-k+1))}
+    def _jac(a, b):
+        u = len(a | b)
+        return len(a & b) / u if u else 0.0  # 真Jaccard(大审计-18 D3: 原为重叠系数,度量错标)
     near_pairs = []
     for i in range(len(paras)):
         si = _shingles(paras[i])
@@ -560,9 +564,9 @@ def check(fp: pathlib.Path):
             sj = _shingles(paras[j])
             if len(sj) < 3:
                 continue
-            inter = len(si & sj)
-            if inter and inter / min(len(si), len(sj)) > 0.85:
-                near_pairs.append((i, j, round(inter/min(len(si),len(sj)), 2)))
+            j = _jac(si, sj)
+            if j > 0.85:
+                near_pairs.append((i, j, round(j, 2)))
     metrics["near_dup"] = len(near_pairs)
     if near_pairs:
         i, j, r = near_pairs[0]
@@ -570,15 +574,34 @@ def check(fp: pathlib.Path):
 
     # 47) 金额算术器(大审计-11:钱面矛盾零机器)——同章同名科目出现两个不同值=FAIL
     import collections as _col
-    _fig = re.compile(r"(流水|毛利|净利|净剩|基金|学费|房租)([一二三四五六七八九十百千两0-9点零]+)")
+    _fig = re.compile(r"(流水|毛利|净利|净剩|基金|学费|房租|存款|货款|本金|账上)([一二三四五六七八九十百千两0-9点零]+)")
+    def _zh2int(s):
+        """中文数字→数值(大审计-18 D5: 只比字符串则'四千五'与'4500'互为假阴假阳)"""
+        m = {"零":0,"一":1,"二":2,"两":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9}
+        if s.isdigit():
+            return int(float(s))
+        total, num, ok = 0, 0, False
+        for ch in s:
+            if ch in m:
+                num, ok = m[ch], True
+            elif ch == "十":
+                total += (num or 1) * 10; num = 0; ok = True
+            elif ch == "百":
+                total += (num or 1) * 100; num = 0; ok = True
+            elif ch == "千":
+                total += (num or 1) * 1000; num = 0; ok = True
+            elif ch == "万":
+                total += (num or 1) * 10000; num = 0; ok = True
+        return total + num if ok else None
     _acc = _col.defaultdict(set)
     for _mm in _fig.finditer(body):
-        _acc[_mm.group(1)].add(_mm.group(2))
-    _bad = {k: sorted(v) for k, v in _acc.items() if len(v) > 1 and len({x for x in v}) > 1
-            and not (len(v) == 2 and any(a in b or b in a for a in v for b in v if a != b))}
+        _v = _zh2int(_mm.group(2))
+        if _v is not None:
+            _acc[_mm.group(1)].add(_v)
+    _bad = {k: sorted(v) for k, v in _acc.items() if len(v) > 1}
     metrics["money_conflict"] = len(_bad)
     if _bad:
-        issues.append(f"金额科目冲突{_bad}——同章同科目出现不同数值(大审计-11 #47),对齐数字表")
+        issues.append(f"金额科目数值冲突{_bad}——同章同科目出现不同数值(大审计-11 #47数值化),对齐数字表")
 
     # 43) 段落形态刻度(漂移审计2期: 17-20章段均>30红/长段超配)——只进METRICS+WARN,不FAIL
     para_lens = [cjk_len(x) for x in paras]
@@ -597,7 +620,7 @@ def check(fp: pathlib.Path):
         r"(不是[^。」』]{1,14}[,，]?(是|而是)[^。」』]{1,24}。$)"
         r"|(这(就是|才是)|(才)是(这家人|这条街|这个家|生意|日子|手艺|年代)[^。」』]{0,14}。$)"
         r"|(压着的?不是[^。」』]{1,10}[,，]?是[^。」』]{1,20}。$)"
-        r"|(有些[^。」』]{2,10}[,，]?[^。」』]{0,4}(说一遍|不用回头|就够了|忘了不了|替谁)[^。」』]{0,12}。$)"
+        r"|(有些[^。」』]{2,10}[,，]?[^。」』]{0,4}(说一遍|不用回头|就够了|忘不了|替谁)[^。」』]{0,12}[。！？]$)"
         r"|(像(把|一颗|一(枚|颗))[^。」』]{1,8}(钉|扣子|雷)[^。」』]{0,10}。$)"
         r"|(一个(道理|理|意思)[^。」』]{0,20}。$)"
     )
