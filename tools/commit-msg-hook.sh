@@ -7,7 +7,7 @@ NUMS=$(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACM 2
 [ -z "$NUMS" ] && exit 0   # 非章节提交不约束
 MSG=$(cat "$MSG_FILE")
 for N in $NUMS; do
-    if echo "$MSG" | grep -qE "第0?${N}章|^ch0?${N}[^0-9]"; then
+    if echo "$MSG" | grep -qE "第0*${N}章|ch0*${N}[^0-9]"; then
         exit 0
     fi
 done
