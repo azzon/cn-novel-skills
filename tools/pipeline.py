@@ -347,7 +347,7 @@ def cmd_bundle(args):
         items.append((name, len(text), cap, crop(text, cap, name)))
 
     add("1固定指令前缀", 650, PREFIX)
-    add("2场景卡(全文)", 1100, read_text(card))  # 大审计-20: 收口卡700被裁
+    add("2场景卡(全文)", 1300, read_text(card))  # 大审计-20: 收口卡700被裁
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带
     voice_lines = [l for l in read_text(voice).splitlines() if l.strip()]
@@ -390,7 +390,7 @@ def cmd_bundle(args):
     # 8 伏笔账在跑项
     fb = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
           if re.search(r"状态.*(养|悬空|待回收)", l)]
-    add("8伏笔在跑项", 1700, "\n".join(fb))  # 大审计-20: 1435/600静默裁剪,P0
+    add("8伏笔在跑项", 2000, "\n".join(fb))  # 大审计-20: 1435/600静默裁剪,P0
     # 9 钩分布/类型轮换近窗
     hooks = read_text(LEDGERS / "钩分布.md", -250)
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
@@ -467,7 +467,7 @@ def cmd_bundle(args):
     for name, used, cap, _ in items:
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
-    print(f"  合计: {total}字 (硬上限9000" + (",超限!" if total > 9000 else ",OK") + ")")
+    print(f"  合计: {total}字 (硬上限9800" + (",超限!" if total > 9000 else ",OK") + ")")
     print()
     print("===== BUNDLE-START (按序注入,顺序即优先级) =====")
     for name, used, cap, body in items:
