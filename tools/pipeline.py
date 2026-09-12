@@ -584,6 +584,19 @@ def cmd_done(args):
             if miss:
                 warns.append(f"数字表条目未在正文兑现: {miss}——表外数字=穿帮,表内数字=空账,对齐两者")
 
+    # 6.8 期待链刻度(技能-检测对齐表#1): 爽点管道在充能<2条=WARN
+    try:
+        _pipe = read_text(LEDGERS / "爽点管道.md")
+        _charging = len(re.findall(r"\|\s*P\d\s*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|\s*(充能|大压中|排期)", _pipe))
+        if _pipe and _charging < 2:
+            warns.append(f"期待链在充能仅{_charging}条(<2红线)——排下一波蓄压,见ledgers/爽点管道.md")
+    except Exception:
+        pass
+
+    # 6.9 漂移审计触发器(技能-检测对齐表#2): 每10章硬提醒
+    if n % 10 == 0 and not (ROOT / "story" / "audit" / f"漂移审计-第{n // 10}期.md").exists():
+        warns.append(f"第{n // 10}期漂移审计未落盘(story/audit/漂移审计-第{n // 10}期.md)——满10章强制项[硬提醒]")
+
     # 7 七账盖章
     stamped = ledger_stamped(n)
     missing = [x for x in LEDGER_NAMES if x not in stamped]
