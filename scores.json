@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-12T13:30:01",
-  "head_commit": "370041b",
+  "generated_at": "2026-09-12T13:43:39",
+  "head_commit": "7b8f476",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -96,7 +96,7 @@
     "6": {
       "path": "text/卷1/第006章.md",
       "volume": "卷1",
-      "cjk": 1983,
+      "cjk": 1984,
       "dia_char_pct": 27.4,
       "psych_per_k": 2.52,
       "hook_signals": 1,
@@ -108,15 +108,17 @@
         2500,
         2900
       ],
-      "budget_delta_pct": -26.6,
-      "cold_read": null
+      "budget_delta_pct": -26.5,
+      "cold_read": "冷读-第006章.md",
+      "committed": false,
+      "drift_flags": []
     },
     "7": {
       "path": "text/卷1/第007章.md",
       "volume": "卷1",
-      "cjk": 1910,
-      "dia_char_pct": 25.1,
-      "psych_per_k": 1.57,
+      "cjk": 1876,
+      "dia_char_pct": 25.6,
+      "psych_per_k": 1.6,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -126,8 +128,10 @@
         2800,
         3200
       ],
-      "budget_delta_pct": -36.3,
-      "cold_read": null
+      "budget_delta_pct": -37.5,
+      "cold_read": "冷读-第007章.md",
+      "committed": false,
+      "drift_flags": []
     },
     "8": {
       "path": "text/卷1/第008章.md",
@@ -150,10 +154,10 @@
     "9": {
       "path": "text/卷1/第009章.md",
       "volume": "卷1",
-      "cjk": 2194,
-      "dia_char_pct": 25.1,
-      "psych_per_k": 0.91,
-      "hook_signals": 1,
+      "cjk": 1950,
+      "dia_char_pct": 27.5,
+      "psych_per_k": 1.03,
+      "hook_signals": 0,
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
@@ -162,8 +166,8 @@
         2600,
         3000
       ],
-      "budget_delta_pct": -21.6,
-      "cold_read": null,
+      "budget_delta_pct": -30.4,
+      "cold_read": "冷读-第009章.md",
       "committed": false,
       "drift_flags": []
     },
@@ -188,20 +192,20 @@
     "12": {
       "path": "text/卷1/第012章.md",
       "committed": false,
-      "cjk": 2044,
-      "dia_char_pct": 25.4,
-      "psych_per_k": 1.47,
+      "cjk": 2029,
+      "dia_char_pct": 25.2,
+      "psych_per_k": 0.99,
       "hook_signals": 0,
-      "dup18": 1,
+      "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "hook_level_from_card": "中重",
+      "hook_level_from_card": "轻",
       "card_budget": [
-        2600,
-        3000
+        2200,
+        2600
       ],
-      "budget_delta_pct": -27.0,
-      "cold_read": null,
+      "budget_delta_pct": -15.5,
+      "cold_read": "冷读-第012章.md",
       "drift_flags": []
     },
     "13": {
@@ -226,9 +230,9 @@
     "14": {
       "path": "text/卷1/第014章.md",
       "committed": false,
-      "cjk": 1843,
-      "dia_char_pct": 30.3,
-      "psych_per_k": 2.71,
+      "cjk": 1956,
+      "dia_char_pct": 41.3,
+      "psych_per_k": 3.07,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -238,8 +242,8 @@
         2400,
         2800
       ],
-      "budget_delta_pct": -29.1,
-      "cold_read": null,
+      "budget_delta_pct": -24.8,
+      "cold_read": "冷读-第014章.md",
       "drift_flags": []
     },
     "16": {
@@ -378,11 +382,11 @@
     "23": {
       "path": "text/卷1/第023章.md",
       "committed": false,
-      "cjk": 2018,
-      "dia_char_pct": 30.9,
-      "psych_per_k": 0.99,
+      "cjk": 1992,
+      "dia_char_pct": 31.6,
+      "psych_per_k": 0.5,
       "hook_signals": 1,
-      "dup18": 1,
+      "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
       "hook_level_from_card": null,
@@ -390,8 +394,8 @@
         2200,
         2800
       ],
-      "budget_delta_pct": -19.3,
-      "cold_read": null,
+      "budget_delta_pct": -20.3,
+      "cold_read": "冷读-第023章.md",
       "drift_flags": []
     },
     "24": {
@@ -430,6 +434,25 @@
       ],
       "budget_delta_pct": -22.4,
       "cold_read": "冷读-第025章.md",
+      "drift_flags": []
+    },
+    "11": {
+      "path": "text/卷1/第011章.md",
+      "committed": false,
+      "cjk": 1903,
+      "dia_char_pct": 25.5,
+      "psych_per_k": 1.05,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": "中重",
+      "card_budget": [
+        2800,
+        3200
+      ],
+      "budget_delta_pct": -36.6,
+      "cold_read": "冷读-第011章.md",
       "drift_flags": []
     }
   }
