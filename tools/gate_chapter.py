@@ -74,10 +74,25 @@ def scan_volumes(files):
     order = sorted(vols, key=lambda v: int(re.search(r"\d+", v).group()))
     return {v: list(vols[v]) for v in order}
 
+def volume_decl():
+    """卷册声明(story/30-情节/卷册表.md): `卷N: 起章-止章` 每行一条;新卷开写时在此登记,门按声明判归属"""
+    f = ROOT / "story" / "30-情节" / "卷册表.md"
+    out = {}
+    if f.exists():
+        for l in f.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^[-*]?\s*卷(\d+)[:：]\s*(\d+)\s*[-–—~至]\s*(\d+)", l.strip())
+            if m:
+                out[f"卷{int(m.group(1))}"] = (int(m.group(2)), int(m.group(3)))
+    return out
+
 def expected_volume(n, volumes):
-    """章号→期望卷: 落入区间用该卷; 大于所有max→末卷(max+1顺写); 落入间隙/小于所有min→None(异常); 空库→None(新书任意)"""
+    """章号→期望卷: 声明表优先(story/30-情节/卷册表.md);未声明则落入区间用该卷;大于所有max→末卷顺写"""
     if not volumes:
         return None
+    decl = volume_decl()
+    for v, (lo, hi) in decl.items():
+        if lo <= n <= hi:
+            return v
     for v, (lo, hi) in volumes.items():
         if lo <= n <= hi:
             return v
