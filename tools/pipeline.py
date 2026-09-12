@@ -347,7 +347,7 @@ def cmd_bundle(args):
         items.append((name, len(text), cap, crop(text, cap, name)))
 
     add("1固定指令前缀", 650, PREFIX)
-    add("2场景卡(全文)", 1300, read_text(card))  # 大审计-20: 收口卡700被裁
+    add("2场景卡(全文)", 1600, read_text(card))  # 大审计-20: 收口卡700被裁
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带
     voice_lines = [l for l in read_text(voice).splitlines() if l.strip()]
@@ -467,7 +467,7 @@ def cmd_bundle(args):
     for name, used, cap, _ in items:
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
-    print(f"  合计: {total}字 (硬上限9800" + (",超限!" if total > 9000 else ",OK") + ")")
+    print(f"  合计: {total}字 (硬上限10200" + (",超限!" if total > 9000 else ",OK") + ")")
     print()
     print("===== BUNDLE-START (按序注入,顺序即优先级) =====")
     for name, used, cap, body in items:
