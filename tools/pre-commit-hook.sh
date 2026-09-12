@@ -178,6 +178,14 @@ if [ "$FAIL" -eq 1 ]; then
     exit 1
 else
     echo -e "${GREEN}  ✅ 质量+流程+韧性门通过${NC}"
+    # 长跑回归闸(advisory,大审计-11 evals可执行化): 基线存在时跑diff
+    if [ -f evals_baseline.json ]; then
+        EV=$(python3 tools/evals.py check 2>&1 | tail -1)
+        case "$EV" in
+            无回归*) echo -e "${GREEN}  [PASS] evals回归: ${EV}${NC}" ;;
+            *) echo -e "${YELLOW}  [WARN] evals回归: ${EV}${NC}" ;;
+        esac
+    fi
 fi
 echo "═══════════════════════════════════════════"
 exit 0
