@@ -1,7 +1,7 @@
 {
-  "max_chapter": 31,
-  "count": 31,
-  "next_chapter": 32,
+  "max_chapter": 32,
+  "count": 32,
+  "next_chapter": 33,
   "volumes": {
     "卷1": [
       1,
@@ -9,10 +9,10 @@
     ],
     "卷2": [
       31,
-      31
+      32
     ]
   },
-  "story_time": "第030章·2006-03-25周六⚠时间线滞后1章,先补ledgers/时间线.md",
-  "next_action": "pipeline-chapter 第032章(卷2)",
+  "story_time": "第032章·2006-04中旬",
+  "next_action": "pipeline-chapter 第033章(卷2)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
