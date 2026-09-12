@@ -391,7 +391,7 @@ def cmd_bundle(args):
     # 8 伏笔账在跑项
     fb = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
           if re.search(r"状态.*(养|悬空|待回收)", l)]
-    add("8伏笔在跑项", 2000, "\n".join(fb))  # 大审计-20: 1435/600静默裁剪,P0
+    add("8伏笔在跑项", 2600, "\n".join(fb))  # 随章数增长,季度性归档已兑项可回撤  # 大审计-20: 1435/600静默裁剪,P0
     # 9 钩分布/类型轮换近窗
     hooks = read_text(LEDGERS / "钩分布.md", -250)
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
