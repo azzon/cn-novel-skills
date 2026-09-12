@@ -238,6 +238,10 @@ def cmd_status():
     if pg.get("story_time"):
         print(f"故事时间: {pg['story_time']}")
 
+    # 写前新鲜度门(大审计-20: 时刻卡新鲜度只在done查,写前不查)
+    mm = re.search(r"下一章[:：]\s*第?(\d{3})章", read_text(LEDGERS / "当前时刻卡.md"))
+    if mm and int(mm.group(1)) != nxt:
+        print(f"新鲜度: [WARN] 当前时刻卡'下一章'指向第{mm.group(1)}章,实扫应为第{nxt:03d}章——先更新ledgers/当前时刻卡.md")
     gaps = [n for n in range(1, maxn + 1) if n not in cm]
     no_card = [n for n in cm if card_for(n) is None]
     dirty = [n for n, p in cm.items() if not is_committed(p)]
@@ -343,7 +347,7 @@ def cmd_bundle(args):
         items.append((name, len(text), cap, crop(text, cap, name)))
 
     add("1固定指令前缀", 650, PREFIX)
-    add("2场景卡(全文)", 700, read_text(card))
+    add("2场景卡(全文)", 1100, read_text(card))  # 大审计-20: 收口卡700被裁
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带
     voice_lines = [l for l in read_text(voice).splitlines() if l.strip()]
@@ -372,20 +376,28 @@ def cmd_bundle(args):
     prev = cm.get(n - 1)
     add("5上一章末尾(原文)", 900, read_text(prev, -900) if prev else "(本章为开篇,无上一章)")
     # 6 当前时刻卡(全文,唯一整读账本)
-    add("6当前时刻卡", 500, read_text(LEDGERS / "当前时刻卡.md"))
-    # 7 圣经: 全书卡+当前卷摘要
+    add("6当前时刻卡", 1400, read_text(LEDGERS / "当前时刻卡.md"))  # 大审计-20: 934/500静默裁剪收口指令,P0
+    # 7 圣经: 全书卡(修烂账:进度改由实扫)+卷摘要(不存在则用章摘要近窗,大审计-20)
     bible = read_text(BIBLE / "全书卡.md")
-    if exp:
-        bible += "\n" + read_text(BIBLE / f"卷摘要-{exp}.md")
-    add("7圣经(全书卡+本卷摘要)", 700, bible)
+    _volsum = BIBLE / f"卷摘要-{exp}.md"
+    if _volsum.exists():
+        bible += "\n" + read_text(_volsum)
+    else:
+        _zq = BIBLE / "章摘要.md"
+        if _zq.exists():
+            bible += "\n" + read_text(_zq, -900)
+    add("7圣经(全书卡+章摘要近窗)", 1500, bible)
     # 8 伏笔账在跑项
     fb = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
           if re.search(r"状态.*(养|悬空|待回收)", l)]
-    add("8伏笔在跑项", 600, "\n".join(fb))
+    add("8伏笔在跑项", 1700, "\n".join(fb))  # 大审计-20: 1435/600静默裁剪,P0
     # 9 钩分布/类型轮换近窗
     hooks = read_text(LEDGERS / "钩分布.md", -250)
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
     add("9钩/类型近窗", 550, hooks + "\n" + rotate)
+    # 12 知情状态近窗(大审计-20断点恢复缺口: 知情状态无法恢复)
+    kb = read_text(LEDGERS / "口碑账.md", -450)
+    add("12口碑账近窗(谁知道什么)", 500, kb)
 
     # 10 生活素材(audits/21-Fix1): cast从声纹表派生(禁硬编码),按卡面提及打分,
     #    按地点分区加权,J区语言恒带2条;素材须变形入文(数字保留,表述重造)
@@ -455,7 +467,7 @@ def cmd_bundle(args):
     for name, used, cap, _ in items:
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
-    print(f"  合计: {total}字 (硬上限6500" + (",超限!" if total > 6500 else ",OK") + ")")
+    print(f"  合计: {total}字 (硬上限9000" + (",超限!" if total > 9000 else ",OK") + ")")
     print()
     print("===== BUNDLE-START (按序注入,顺序即优先级) =====")
     for name, used, cap, body in items:
@@ -566,7 +578,9 @@ def cmd_done(args):
     if m2:
         quote, qn = m2.group(1), int(m2.group(2))
         qf = cm.get(qn)
-        if qf is not None:
+        if qf is None:
+            warns.append(f"当前时刻卡'上一章末拍'引用第{qn:03d}章——该章不存在(坏引用,大审计-20不可自愈点)")
+        else:
             qtail = [l.strip() for l in qf.read_text(encoding="utf-8").splitlines() if l.strip()]
             if qtail and not any(quote[:10] in l for l in qtail[-3:]):
                 warns.append(f"当前时刻卡'上一章末拍'引文「{quote}」不在第{qn:03d}章末三行——口供失真,更新当前时刻卡")

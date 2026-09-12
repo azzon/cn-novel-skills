@@ -77,6 +77,20 @@ def collect():
 
     rec = run([sys.executable, "tools/gate_chapter.py", "--recompute"])
     data["recompute"] = rec.stdout.strip().splitlines()[-1] if rec.stdout else "FAIL"
+
+    # gate new模式冒烟: tmp新章走全部门,任何崩溃(Traceback/NameError)都算回归
+    # (大审计-20 P0: G8参数错位曾致新章必崩,而evals不覆盖gate new故漏检)
+    tmp = ROOT / "text" / "卷1" / "第999章.md"
+    tmp.write_text("第九十九章 冒烟\n\n“马哥，早。”王大龙把车支好。\n\n他把货搬下来，一块一块码齐。\n", encoding="utf-8")
+    try:
+        g = run([sys.executable, "tools/gate_chapter.py", "new", str(tmp)])
+        data["gate_new_smoke"] = "CRASH" if "Traceback" in g.stderr or "Traceback" in g.stdout else "OK"
+    finally:
+        tmp.unlink(missing_ok=True)
+
+    # bundle冒烟: 注入项不得出现"已裁剪"(注入预算健康)
+    b = run([sys.executable, "tools/pipeline.py", "bundle", "2"])
+    data["bundle_cropped"] = len(re.findall(r"已裁剪", b.stdout))
     return data
 
 
@@ -112,6 +126,11 @@ def cmd_check():
 
     if base["skills"].startswith("OK") and cur["skills"].startswith("FAIL"):
         regressions.append(f"skills_check回归: {cur['skills'][:120]}")
+
+    if base.get("gate_new_smoke") == "OK" and cur.get("gate_new_smoke") != "OK":
+        regressions.append("gate new模式冒烟崩溃(门代码存在未捕获异常)")
+    if cur.get("bundle_cropped", 0) > base.get("bundle_cropped", 0):
+        regressions.append(f"bundle注入出现新裁剪: {cur['bundle_cropped']}处(注入预算被突破)")
 
     if regressions:
         print(f"回归 {len(regressions)} 项:")

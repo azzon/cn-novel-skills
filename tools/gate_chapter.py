@@ -28,7 +28,7 @@ def _shingles(s, k=12):
     c = re.sub(r"[\s，。！？；：、\u201c\u201d]", "", s)
     return {c[i:i+k] for i in range(max(0, len(c)-k+1))}
 
-def cross_chapter_dup(staged_bodies, corpus_paras):
+def cross_chapter_dup(staged_paras, corpus_paras):  # 大审计-20 P0: 参数名与调用点错位曾致NameError
     """G8跨章贴入门: staged章的段落与存量章段落shingle相似>0.85=贴入残留(006→009事故形状)。
     返回[(staged段预览, 存量文件, 相似度)]"""
     hits = []
@@ -101,7 +101,10 @@ def recompute():
         for l in reversed(lines):
             m = re.match(r"- 第(\d+)章\|([^|]+)\|", l.strip())
             if m:
-                story_time = f"第{int(m.group(1)):03d}章·{m.group(2).strip()}"
+                ql = int(m.group(1))
+                story_time = f"第{ql:03d}章·{m.group(2).strip()}"
+                if nums and ql < max(nums):
+                    story_time += f"⚠时间线滞后{max(nums) - ql}章,先补ledgers/时间线.md"
                 break
     maxn = max(nums) if nums else 0
     last_vol = max(vols, key=lambda v: vols[v][1]) if vols else "卷1"
