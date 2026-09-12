@@ -547,6 +547,39 @@ def check(fp: pathlib.Path):
     if n >= 1500 and not has_idle:
         warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
+    # 46) 近似重复(大审计-11:变体逃逸拼接残留)——段间shingle Jaccard>0.85=FAIL
+    def _shingles(s, k=10):
+        c = re.sub(r"[\s，。！？；：、“”]", "", s)
+        return {c[i:i+k] for i in range(max(0, len(c)-k+1))}
+    near_pairs = []
+    for i in range(len(paras)):
+        si = _shingles(paras[i])
+        if len(si) < 3:
+            continue
+        for j in range(i+1, len(paras)):
+            sj = _shingles(paras[j])
+            if len(sj) < 3:
+                continue
+            inter = len(si & sj)
+            if inter and inter / min(len(si), len(sj)) > 0.85:
+                near_pairs.append((i, j, round(inter/min(len(si),len(sj)), 2)))
+    metrics["near_dup"] = len(near_pairs)
+    if near_pairs:
+        i, j, r = near_pairs[0]
+        issues.append(f"近似重复段{len(near_pairs)}处(Jaccard={r})——变体拼接残留,必须整体清创(大审计-11 #46)")
+
+    # 47) 金额算术器(大审计-11:钱面矛盾零机器)——同章同名科目出现两个不同值=FAIL
+    import collections as _col
+    _fig = re.compile(r"(流水|毛利|净利|净剩|基金|学费|房租)([一二三四五六七八九十百千两0-9点零]+)")
+    _acc = _col.defaultdict(set)
+    for _mm in _fig.finditer(body):
+        _acc[_mm.group(1)].add(_mm.group(2))
+    _bad = {k: sorted(v) for k, v in _acc.items() if len(v) > 1 and len({x for x in v}) > 1
+            and not (len(v) == 2 and any(a in b or b in a for a in v for b in v if a != b))}
+    metrics["money_conflict"] = len(_bad)
+    if _bad:
+        issues.append(f"金额科目冲突{_bad}——同章同科目出现不同数值(大审计-11 #47),对齐数字表")
+
     # 43) 段落形态刻度(漂移审计2期: 17-20章段均>30红/长段超配)——只进METRICS+WARN,不FAIL
     para_lens = [cjk_len(x) for x in paras]
     if para_lens:
@@ -560,11 +593,18 @@ def check(fp: pathlib.Path):
             warns.append(f"长段{long_n}个(≥110字,规格≤3)——整章匀速感超标,拆段")
 
     # 44) 旁白判词刻度(冷读3期: 收束腔逐章加重)——启发式:段尾抽象总结句式,只计数进METRICS
-    aphor_pat = re.compile(r"(不是[^。」』]{1,12}[,，]?(是|而是)[^。」』]{1,20}。$)|(这(就是|才是)|(才)是(这家人|这条街|生意|日子)[^。」』]{0,12}。$)")
+    aphor_pat = re.compile(
+        r"(不是[^。」』]{1,14}[,，]?(是|而是)[^。」』]{1,24}。$)"
+        r"|(这(就是|才是)|(才)是(这家人|这条街|这个家|生意|日子|手艺|年代)[^。」』]{0,14}。$)"
+        r"|(压着的?不是[^。」』]{1,10}[,，]?是[^。」』]{1,20}。$)"
+        r"|(有些[^。」』]{2,10}[,，]?[^。」』]{0,4}(说一遍|不用回头|就够了|忘了不了|替谁)[^。」』]{0,12}。$)"
+        r"|(像(把|一颗|一(枚|颗))[^。」』]{1,8}(钉|扣子|雷)[^。」』]{0,10}。$)"
+        r"|(一个(道理|理|意思)[^。」』]{0,20}。$)"
+    )
     aphor_n = sum(1 for x in paras if not ("\u201c" in x) and aphor_pat.search(x.strip()))
     metrics["aphor_endings"] = aphor_n
-    if aphor_n >= 3:
-        warns.append(f"旁白判词句{aphor_n}处(冷读3期:收束腔恶化)——场景已把话说完,删旁白总结")
+    if aphor_n >= 2:
+        issues.append(f"旁白判词句{aphor_n}处(≥2即FAIL,大审计-11:写了没强制+阈值错)——删旁白总结,画面已把话说完")
 
     # 42) 时代语言穿帮(年代文专用: text/.era2005存在时激活; audits/20-E)
     #     2005后网络语混入正文=事实级出戏; 1发WARN,≥2发FAIL
