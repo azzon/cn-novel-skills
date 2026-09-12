@@ -16,6 +16,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "夜市的灯泡一串一串，亮到街口。|2005年的夏天，刚开头。",
    "idle_beat": 1,
+   "tl_per_k": 6.5,
+   "dialogue_frag_rate": 93.8,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 22.0,
@@ -23,7 +26,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 11
   },
   "第002章.md": {
    "cjk": 1859,
@@ -41,6 +44,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "“你去哪？”马小满趴在窗口喊。|“电子城。”他说，“挣钱去。”",
    "idle_beat": 0,
+   "tl_per_k": 5.9,
+   "dialogue_frag_rate": 92.9,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 22.1,
@@ -48,7 +54,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 10
   },
   "第003章.md": {
    "cjk": 1824,
@@ -66,6 +72,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "马小丁把帆布包往肩上一甩，走进人流里。|身后，修表摊的小台灯还亮着，亮得比整条电",
    "idle_beat": 1,
+   "tl_per_k": 5.9,
+   "dialogue_frag_rate": 92.5,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 22.2,
@@ -73,7 +82,7 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第004章.md": {
    "cjk": 1960,
@@ -91,6 +100,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "收件人：妹。|内容他扫了一眼，没往下翻，把卡退了回去。",
    "idle_beat": 1,
+   "tl_per_k": 3.4,
+   "dialogue_frag_rate": 90.4,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 25.5,
@@ -98,7 +110,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 10
   },
   "第005章.md": {
    "cjk": 2052,
@@ -116,6 +128,9 @@
    "ending_shape": "对话切",
    "ending_tail": "他顿了顿，又添一行：|“另：欠苏棠一个人情。此人账，另算。”",
    "idle_beat": 1,
+   "tl_per_k": 1.9,
+   "dialogue_frag_rate": 86.3,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 23.6,
@@ -123,7 +138,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 10
   },
   "第006章.md": {
    "cjk": 1984,
@@ -141,6 +156,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "“明天别来了。歇一天。缓过了再摆。”|马小丁脚步顿了一下，没回头，抬手比了个O",
    "idle_beat": 1,
+   "tl_per_k": 9.2,
+   "dialogue_frag_rate": 95.8,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 21.1,
@@ -166,6 +184,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "这股劲，值钱。|他把绒布包好，搁进抽屉，关了灯。",
    "idle_beat": 1,
+   "tl_per_k": 4.2,
+   "dialogue_frag_rate": 78.3,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 21.6,
@@ -173,7 +194,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 9
   },
   "第008章.md": {
    "cjk": 1968,
@@ -191,6 +212,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "但这些事，没一件是能跟人说的。|他站起来，拍拍裤子上的灰，回屋了。",
    "idle_beat": 1,
+   "tl_per_k": 9.7,
+   "dialogue_frag_rate": 83.9,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 17.6,
@@ -216,6 +240,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "黑着灯，他把白天那个空信封在手里折了一遍|明早坛子底下取钱，交学费，买球鞋。一样一",
    "idle_beat": 0,
+   "tl_per_k": 14.9,
+   "dialogue_frag_rate": 88.5,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 16.1,
@@ -241,6 +268,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "回去的路上，马小丁路过五金行，买了一把新|钱是一分一分挣的。路也是一步一步通的。",
    "idle_beat": 1,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 77.9,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 21.2,
@@ -248,7 +278,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 9
   },
   "第011章.md": {
    "cjk": 1903,
@@ -266,6 +296,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "夜里锁柜台，他把日记本翻开，就着灯写了一|“2006年，要变天了。”",
    "idle_beat": 1,
+   "tl_per_k": 6.2,
+   "dialogue_frag_rate": 90.8,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 17.6,
@@ -273,7 +306,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 10
   },
   "第012章.md": {
    "cjk": 2029,
@@ -291,6 +324,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "他去修表摊看了看。丁师傅的灯关了，但柜台|马小丁没有过去。他站在灯的外面，站了一会",
    "idle_beat": 1,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 90.1,
+   "dialogue_abs_per_k": 2.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 16.2,
@@ -298,7 +334,7 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 11
+   "warns": 12
   },
   "第013章.md": {
    "cjk": 1903,
@@ -316,6 +352,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "出门前，他把玻璃底下那张纸条抽出来，对折|没打。也没扔。",
    "idle_beat": 0,
+   "tl_per_k": 5.8,
+   "dialogue_frag_rate": 79.7,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 18.7,
@@ -323,7 +362,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 11
   },
   "第014章.md": {
    "cjk": 1939,
@@ -341,6 +380,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "他把报表合上，放进了抽屉。|明天开始，接着修。",
    "idle_beat": 0,
+   "tl_per_k": 3.8,
+   "dialogue_frag_rate": 76.9,
+   "dialogue_abs_per_k": 2.5,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 19.8,
@@ -348,7 +390,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 9
   },
   "第015章.md": {
    "cjk": 1860,
@@ -366,6 +408,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "马小丁把锉刀放下，擦了擦手。|“手艺不值钱。”他说，“能帮人解决问题才",
    "idle_beat": 1,
+   "tl_per_k": 3.6,
+   "dialogue_frag_rate": 85.7,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 19.8,
@@ -373,7 +418,7 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 10
   },
   "第016章.md": {
    "cjk": 1884,
@@ -391,6 +436,9 @@
    "ending_shape": "对话切",
    "ending_tail": "王大龙把钥匙攥在手心里，攥出了一圈印子。|“马哥，放心。”他说，“有它在，就有我在",
    "idle_beat": 0,
+   "tl_per_k": 8.9,
+   "dialogue_frag_rate": 89.0,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 15.1,
@@ -416,6 +464,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "“中等个，三十多岁，笑起来牙很白。”|马小丁把胶带一圈一圈拆下来，没说话。他知",
    "idle_beat": 1,
+   "tl_per_k": 4.7,
+   "dialogue_frag_rate": 87.9,
+   "dialogue_abs_per_k": 2.3,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 29.9,
@@ -423,7 +474,7 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 6
   },
   "第018章.md": {
    "cjk": 2678,
@@ -441,6 +492,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "马小丁把报表折好，收进日记本夹层。躺下之|钱从哪来。",
    "idle_beat": 1,
+   "tl_per_k": 2.8,
+   "dialogue_frag_rate": 92.7,
+   "dialogue_abs_per_k": 1.9,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 31.1,
@@ -448,7 +502,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 6
   },
   "第019章.md": {
    "cjk": 2374,
@@ -466,6 +520,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "“马哥，三百台？！咱这是要发财啊！”|“先睡觉。”马小丁说。",
    "idle_beat": 1,
+   "tl_per_k": 2.7,
+   "dialogue_frag_rate": 89.9,
+   "dialogue_abs_per_k": 4.1,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 27.9,
@@ -473,7 +530,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 9
   },
   "第020章.md": {
    "cjk": 2188,
@@ -491,6 +548,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "“五十台只是试。三百台在明年。”|他合上本子，压在那块手绢包旁边。十一月的",
    "idle_beat": 1,
+   "tl_per_k": 2.6,
+   "dialogue_frag_rate": 88.3,
+   "dialogue_abs_per_k": 1.3,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.4,
@@ -498,7 +558,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 6
   },
   "第021章.md": {
    "cjk": 1842,
@@ -516,6 +576,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "红的灯底下，那张招聘启事还没干透。|懂串号检测者优先。",
    "idle_beat": 1,
+   "tl_per_k": 2.7,
+   "dialogue_frag_rate": 86.5,
+   "dialogue_abs_per_k": 4.1,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 26.3,
@@ -523,7 +586,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第022章.md": {
    "cjk": 1904,
@@ -541,6 +604,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "王大龙凑到马小丁耳朵边上：“马哥，我怎么|水声停了。",
    "idle_beat": 1,
+   "tl_per_k": 5.8,
+   "dialogue_frag_rate": 95.6,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 28.0,
@@ -548,7 +614,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第023章.md": {
    "cjk": 1992,
@@ -566,6 +632,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "马小丁冲她点了点头。|窗外的炮仗味淡了，年过完了。桌上的报表被",
    "idle_beat": 1,
+   "tl_per_k": 3.2,
+   "dialogue_frag_rate": 88.5,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 27.7,
@@ -573,7 +642,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第024章.md": {
    "cjk": 1827,
@@ -591,6 +660,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "八点，丁师傅那边的灯灭了。这条街上的灯，|修表摊的灯，照旧八点灭。",
    "idle_beat": 1,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 89.4,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 23.1,
@@ -598,7 +670,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 7
   },
   "第025章.md": {
    "cjk": 1941,
@@ -616,6 +688,9 @@
    "ending_shape": "对话切",
    "ending_tail": "可有数归有数，胳膊拧不过大腿。两台机器，|“怕。”他说。",
    "idle_beat": 1,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 87.3,
+   "dialogue_abs_per_k": 6.1,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 31.8,
@@ -623,7 +698,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 7
   },
   "第026章.md": {
    "cjk": 1874,
@@ -641,6 +716,9 @@
    "ending_shape": "对话切",
    "ending_tail": "黑影里蹿出来一个人，压着嗓子，嗓门还是压|“马哥，那俩黄毛，我知道在哪。”",
    "idle_beat": 1,
+   "tl_per_k": 3.9,
+   "dialogue_frag_rate": 85.5,
+   "dialogue_abs_per_k": 1.9,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 33.5,
@@ -648,7 +726,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 4
+   "warns": 5
   },
   "第027章.md": {
    "cjk": 1903,
@@ -666,6 +744,9 @@
    "ending_shape": "对话切",
    "ending_tail": "“苏老板还要对什么账？”|“没有了。”苏棠站起来，走到门口又停下，",
    "idle_beat": 1,
+   "tl_per_k": 7.7,
+   "dialogue_frag_rate": 85.9,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.7,
@@ -673,7 +754,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 6
   },
   "第028章.md": {
    "cjk": 1819,
@@ -691,6 +772,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "“没吵最好。”崔兰转身进屋，“锅里有汤。|汤是棒骨的，熬了一下午，浮着几粒枸杞。王",
    "idle_beat": 0,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 82.1,
+   "dialogue_abs_per_k": 1.6,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 32.5,
@@ -698,7 +782,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 7
   },
   "第029章.md": {
    "cjk": 1827,
@@ -716,6 +800,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "怀表在抽屉里走。滴答，滴答。他躺下，睁着|明天，请爹进一趟电子城。",
    "idle_beat": 1,
+   "tl_per_k": 4.2,
+   "dialogue_frag_rate": 91.7,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 32.6,
@@ -723,7 +810,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 9
   },
   "第030章.md": {
    "cjk": 1875,
@@ -741,6 +828,9 @@
    "ending_shape": "对话切",
    "ending_tail": "上楼，翻日记本。他把这一天记了半页，末尾|“卷一完。卷二，开张。”",
    "idle_beat": 1,
+   "tl_per_k": 3.9,
+   "dialogue_frag_rate": 89.4,
+   "dialogue_abs_per_k": 7.9,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.2,
@@ -748,7 +838,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第031章.md": {
    "cjk": 1820,
@@ -766,6 +856,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "“赔十。”崔兰说，“你的牌是‘不收钱’，|马小丁愣了一下，笑出了声。灯底下，汤的热",
    "idle_beat": 1,
+   "tl_per_k": 4.6,
+   "dialogue_frag_rate": 85.1,
+   "dialogue_abs_per_k": 4.6,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.3,
@@ -773,7 +866,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第032章.md": {
    "cjk": 1873,
@@ -791,6 +884,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "这部机器什么都好：便宜，皮实，喇叭大，连|它在柜台外面站着。他修了半年的那些旧机器",
    "idle_beat": 1,
+   "tl_per_k": 11.4,
+   "dialogue_frag_rate": 88.5,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.2,
@@ -816,6 +912,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "灯底下，各干各的。马小丁填完表，抬头看了|他把填好的报名表压在台灯座底下，压平。灯",
    "idle_beat": 0,
+   "tl_per_k": 3.1,
+   "dialogue_frag_rate": 94.3,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 34.0,
@@ -823,7 +922,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第034章.md": {
    "cjk": 1867,
@@ -841,6 +940,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "第一批五十台，下周一进县。|他锁上柜台，抬头看了一眼墙上。爹的烙铁旁",
    "idle_beat": 1,
+   "tl_per_k": 3.4,
+   "dialogue_frag_rate": 85.0,
+   "dialogue_abs_per_k": 3.4,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 34.6,
@@ -848,13 +950,13 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 6
+   "warns": 7
   },
   "第035章.md": {
-   "cjk": 1791,
+   "cjk": 1809,
    "dia_line_pct": 73.7,
-   "dia_char_pct": 35.6,
-   "psych_per_k": 2.23,
+   "dia_char_pct": 35.3,
+   "psych_per_k": 2.21,
    "hook_signals": 0,
    "dup18": 0,
    "money_sample": "三块,一块,二块,一块,三块,五十块",
@@ -866,14 +968,17 @@
    "ending_shape": "叙述收",
    "ending_tail": "九点四十，一辆旧解放车突突地开进街口，柴|马小丁把签收单夹在腋下，迎着车走过去。",
    "idle_beat": 1,
+   "tl_per_k": 6.3,
+   "dialogue_frag_rate": 85.9,
+   "dialogue_abs_per_k": 0.0,
    "near_dup": 0,
    "money_conflict": 0,
-   "avg_para_len": 31.4,
+   "avg_para_len": 31.7,
    "long_paras": 1,
    "aphor_endings": 0,
-   "status": "FAIL",
-   "fails": 1,
-   "warns": 5
+   "status": "WARN",
+   "fails": 0,
+   "warns": 7
   },
   "第036章.md": {
    "cjk": 1800,
@@ -891,6 +996,9 @@
    "ending_shape": "叙述收",
    "ending_tail": "他吹熄台灯之前，把那张反对票又看了一眼。|窗外有夜班货车过街，灯光在天花板上扫了一",
    "idle_beat": 1,
+   "tl_per_k": 1.3,
+   "dialogue_frag_rate": 88.1,
+   "dialogue_abs_per_k": 1.3,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 30.5,
@@ -898,7 +1006,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 6
   },
   "第037章.md": {
    "cjk": 1830,
@@ -916,6 +1024,9 @@
    "ending_shape": "对话切",
    "ending_tail": "“牌子一挂，就不是马记一家的事了。”马小|“所以要你牵头。”罗胖子说，“这楼里，如",
    "idle_beat": 1,
+   "tl_per_k": 0.0,
+   "dialogue_frag_rate": 88.7,
+   "dialogue_abs_per_k": 3.6,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 33.3,
@@ -923,7 +1034,7 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 8
   },
   "第038章.md": {
    "cjk": 1872,
@@ -941,6 +1052,9 @@
    "ending_shape": "短句重音",
    "ending_tail": "“送的才要辟邪。”|六月的风从街口灌进来，吹得缎带一飘一飘的",
    "idle_beat": 1,
+   "tl_per_k": 8.9,
+   "dialogue_frag_rate": 83.6,
+   "dialogue_abs_per_k": 3.6,
    "near_dup": 0,
    "money_conflict": 0,
    "avg_para_len": 26.0,
@@ -949,6 +1063,34 @@
    "status": "WARN",
    "fails": 0,
    "warns": 7
+  },
+  "第039章.md": {
+   "cjk": 1849,
+   "dia_line_pct": 68.3,
+   "dia_char_pct": 45.9,
+   "psych_per_k": 2.16,
+   "hook_signals": 1,
+   "dup18": 0,
+   "money_sample": "两千,四十块,两千二,五百块,两千二,五块",
+   "money_count": 15,
+   "fuzzy_duration": 0,
+   "bushi_shi": 1,
+   "body_stickers": 0,
+   "exclamations": 1,
+   "ending_shape": "短句重音",
+   "ending_tail": "散会后，马小丁把日记本翻开，在当月账目最|还撑得住。",
+   "idle_beat": 1,
+   "tl_per_k": 3.5,
+   "dialogue_frag_rate": 87.0,
+   "dialogue_abs_per_k": 1.2,
+   "near_dup": 0,
+   "money_conflict": 0,
+   "avg_para_len": 29.3,
+   "long_paras": 0,
+   "aphor_endings": 0,
+   "status": "WARN",
+   "fails": 0,
+   "warns": 6
   }
  },
  "structure": {
@@ -962,10 +1104,10 @@
   "日记收账": 13
  },
  "skills": "OK",
- "total_cjk": 74264,
+ "total_cjk": 76131,
  "structure_raw": "跨章结构同构检测: 30章\n── 开场型分布 ──\n  动作直入: 17章 (57%)  [WARN] 占比超标(小样本)\n  时间状语: 9章 (30%)  [WARN] 占比超标(小样本)\n  判断句: 3章 (10%)\n  对话直入: 1章 (3%)\n── 收尾型分布 ──\n  叙述收: 11章 (37%)  [WARN] 占比超标(小样本)\n  短句重音: 9章 (30%)  [WARN] 占比超标(小样本)\n  对话切: 6章 (20%)\n  日记收账: 4章 (13%)\n── 场景数: 均值1.5 标准差1.5 (标准差<1=节奏机械) ──\n  第001章.md: 开=动作直入 收=短句重音 场=1\n  第002章.md: 开=动作直入 收=对话切 场=1\n  第003章.md: 开=动作直入 收=叙述收 场=1\n  第004章.md: 开=动作直入 收=叙述收 场=1\n  第005章.md: 开=动作直入 收=对话切 场=1\n  第006章.md: 开=动作直入 收=叙述收 场=1\n  第007章.md: 开=动作直入 收=短句重音 场=1\n  第008章.md: 开=时间状语 收=短句重音 场=1\n  第009章.md: 开=时间状语 收=叙述收 场=1\n  第010章.md: 开=动作直入 收=叙述收 场=1\n  第011章.md: 开=动作直入 收=日记收账 场=1\n  第012章.md: 开=动作直入 收=叙述收 场=4\n  第013章.md: 开=动作直入 收=短句重音 场=1\n  第014章.md: 开=判断句 收=短句重音 场=1\n  第015章.md: 开=动作直入 收=对话切 场=7\n  第016章.md: 开=判断句 收=对话切 场=6\n  第017章.md: 开=时间状语 收=叙述收 场=1\n  第018章.md: 开=时间状语 收=日记收账 场=1\n  第019章.md: 开=判断句 收=叙述收 场=1\n  第020章.md: 开=动作直入 收=日记收账 场=1\n  第021章.md: 开=动作直入 收=短句重音 场=1\n  第022章.md: 开=时间状语 收=短句重音 场=1\n  第023章.md: 开=时间状语 收=叙述收 场=1\n  第024章.md: 开=时间状语 收=短句重音 场=1\n  第025章.md: 开=动作直入 收=叙述收 场=1\n  第026章.md: 开=对话直入 收=对话切 场=1\n  第027章.md: 开=动作直入 收=对话切 场=1\n  第028章.md: 开=时间状语 收=叙述收 场=1\n  第029章.md: 开=时间状语 收=短句重音 场=1\n  第030章.md: 开=动作直入 收=日记收账 场=1\n结构门: WARN\n",
  "syntax": "OK",
- "recompute": "[progress] max=38 next=39 volumes={'卷1': [1, 30], '卷2': [31, 38]}",
+ "recompute": "[progress] max=39 next=40 volumes={'卷1': [1, 30], '卷2': [31, 39]}",
  "gate_new_smoke": "OK",
  "bundle_cropped": 0
 }

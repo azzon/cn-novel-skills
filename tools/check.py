@@ -544,6 +544,41 @@ def check(fp: pathlib.Path):
             has_idle = True
             break
     metrics["idle_beat"] = 1 if has_idle else 0
+
+    # 48) 对白语气词密度(大审计-28: 每个人说话都很装——缺语气词=机器对白)
+    _tl_words = ["啊","呗","嘛","呃","那啥","反正","横竖","得嘞","嗯","哦","啦","呀","咧","哩","得了","行了","算了吧","咋"]
+    _dialogue_text = "".join(re.findall(r"\u201c([^\u201d]*)\u201d", body))
+    _dl = cjk_len(_dialogue_text)
+    _tl_count = sum(_dialogue_text.count(w) for w in _tl_words)
+    if _dl > 200:
+        tl_per_k = round(_tl_count / _dl * 1000, 1)
+        metrics["tl_per_k"] = tl_per_k
+        if tl_per_k < 8:
+            warns.append(f"对白语气词密度{tl_per_k}/千字(<8)——对白太干净,加语气词/废话/口头禅(dialogue-voice)")
+
+    # 49) 对白完整句率(大审计-28: 碎片化不足=机器对白)
+    if _dl > 200:
+        _dl_sents = [s.strip() for s in re.split(r"[。！？]", _dialogue_text) if s.strip()]
+        if _dl_sents:
+            _complete = sum(1 for s in _dl_sents if len(s) >= 8 and re.match(r"^[我你他她它咱]", s))
+            _frag_rate = round((1 - _complete / len(_dl_sents)) * 100, 1)
+            metrics["dialogue_frag_rate"] = _frag_rate
+            if _frag_rate < 20:
+                warns.append(f"对白完整句率{_frag_rate}%碎片率(<20%碎片=太工整)——加省略主语/断句/只说半句(dialogue-voice)")
+
+    # 50) 对白抽象名词密度(大审计-28: 哲理化对白=机器指纹)
+    _abstract = ["道理","规矩","命运","人生","本事","选择","道理","底线","原则","出路","前景","格局","心态","境界"]
+    _abs_count = sum(_dialogue_text.count(w) for w in _abstract)
+    if _dl > 300:
+        abs_per_k = round(_abs_count / _dl * 1000, 1)
+        metrics["dialogue_abs_per_k"] = abs_per_k
+        if abs_per_k > 12:
+            issues.append(f"对白抽象名词密度{abs_per_k}/千字(>12=哲理化对白)——改成具体的事/钱/人名(dialogue-voice #50)")
+        elif abs_per_k > 8:
+            warns.append(f"对白抽象名词密度{abs_per_k}/千字(偏高)——少讲道理多讲事(dialogue-voice)")
+
+    if n >= 1500 and not has_idle:
+        pass  # 闲笔检查已在上方
     if n >= 1500 and not has_idle:
         warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
