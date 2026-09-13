@@ -642,6 +642,20 @@ def check(fp: pathlib.Path):
     elif _manifesto == 1:
         warns.append("末3段含1处疑似宣言句式——检查是否作者越喉说话(人物台词内豁免)")
 
+    # 56) 工程残渣门(法医ch001冷读事故: 18对反向弯引号+破句"嘴唇，，。"+单破折号残迹"角膜—,"
+    # ——比文风问题更劝退,读者解读为"没人校过")
+    _rq_lines = [l for l in raw.splitlines() if l.strip().startswith("\u201d")]
+    if _rq_lines:
+        issues.append(f"行首右引号{len(_rq_lines)}行(FAIL)——引号方向反了(事故形状:'”对话。‘'),运行 tools/fix_quotes.py 或人工修复")
+    _brk = re.findall(r"[，。；：、]{2,}", body)
+    _half_dash = re.findall(r"(?<!—)—(?!—)", body)
+    metrics["broken_punct"] = len(_brk)
+    metrics["half_dash"] = len(_half_dash)
+    if _brk:
+        warns.append(f"破句/连续标点{len(_brk)}处({';'.join(_brk[:3])})——编辑残渣,占位文本未清理干净")
+    if _half_dash:
+        warns.append(f"单破折号残迹{len(_half_dash)}处——中文破折号应为'——'双字符,单'—'多为删除残留")
+
     if _peak_explain >= 2:
         issues.append(f"峰后解释{_peak_explain}处(>=2=FAIL,大审计-29:峰后必释=杀掉心头一紧)——情感峰值后下一段必须是动作/物件/沉默,禁叙述者解释")
 
@@ -860,6 +874,7 @@ def main():
         else:
             files.append(p)
     total_fail = 0
+    total_warn = 0
     for fp in files:
         fp, n, status, issues, warns, metrics = check(fp)
         print(f"\n=== {fp.name} [{n}字] {status} ===")
@@ -869,7 +884,11 @@ def main():
         if metrics_mode:
             print("METRICS " + json.dumps(metrics, ensure_ascii=False))
         total_fail += 1 if issues else 0
-    print(f"\n汇总:{len(files)}章,FAIL {total_fail}章")
+        total_warn += len(warns)
+    print(f"\n汇总:{len(files)}章,FAIL {total_fail}章,WARN {total_warn}条")
+    if total_warn:
+        print("WARN处置纪律(法医ch001教训:重复段WARN被静默放过→冷读事故): 归档前每条WARN必须"
+              "修复或在ledgers/waivers.md登记豁免——只看FAIL不算过门")
     return 1 if total_fail else 0
 
 if __name__ == "__main__":

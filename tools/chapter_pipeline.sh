@@ -32,15 +32,10 @@ if [ -z "$CARD" ]; then
 fi
 echo "  ✅ $CARD"
 
-# ── Step 2: 直引号修复 ──
+# ── Step 2: 引号三重修复(直引号/弯引号方向/反向对——法医ch001事故管线化) ──
 echo ""
-echo "▶ Step 2: 直引号修复"
-if grep -q '"' "$FILE"; then
-  python3 tools/fix_quotes.py "$FILE" > /dev/null 2>&1
-  echo "  🔧 已修复直引号"
-else
-  echo "  ✅ 无直引号"
-fi
+echo "▶ Step 2: 引号三重修复"
+python3 tools/fix_quotes.py "$FILE"
 
 # ── Step 3: check.py 质量门 ──
 echo ""
