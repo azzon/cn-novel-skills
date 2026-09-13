@@ -553,8 +553,10 @@ def check(fp: pathlib.Path):
     if _dl > 200:
         tl_per_k = round(_tl_count / _dl * 1000, 1)
         metrics["tl_per_k"] = tl_per_k
-        if tl_per_k < 8:
-            warns.append(f"对白语气词密度{tl_per_k}/千字(<8)——对白太干净,加语气词/废话/口头禅(dialogue-voice)")
+        if tl_per_k < 3:
+            issues.append(f"对白语气词密度{tl_per_k}/千字(<3=严重不足:机器对白)——每段对话至少一个啊/呗/嘛/那啥(dialogue-voice)")
+        elif tl_per_k < 8:
+            warns.append(f"对白语气词密度{tl_per_k}/千字(<8)——对白偏干净,多加语气词/口头禅(dialogue-voice)")
 
     # 49) 对白完整句率(大审计-28: 碎片化不足=机器对白)
     if _dl > 200:
@@ -601,6 +603,23 @@ def check(fp: pathlib.Path):
         if _has_emo and _has_explain and _is_narr:
             _peak_explain += 1
     metrics["peak_explain"] = _peak_explain
+    if _peak_explain >= 2:
+        pass  # 已有#52
+
+    # 54) 章末金句门(大审计-31: 每章末作者出来总结=节律指纹)
+    _last_3 = [p.strip() for p in paras[-3:] if p.strip()]
+    _aphor_end = 0
+    for _p in _last_3:
+        if "\u201c" in _p:
+            continue
+        if re.search(r"(一种|这个|这叫|才是|就是|都得|都得|要?知道)[^。」』]{0,15}。\s*$", _p):
+            _aphor_end += 1
+        if re.search(r"[^。」』]{2,8}，[^。」』]{2,8}。\s*$", _p) and cjk_len(_p) < 30:
+            _aphor_end += 1
+    metrics["end_aphor"] = _aphor_end
+    if _aphor_end >= 1 and any(w in "".join(_last_3) for w in ["明白","道理","认","守","懂"]):
+        warns.append("章末疑似金句/主题句收尾——用动作/物件/对话替代(大审计-31)")
+
     if _peak_explain >= 2:
         issues.append(f"峰后解释{_peak_explain}处(>=2=FAIL,大审计-29:峰后必释=杀掉心头一紧)——情感峰值后下一段必须是动作/物件/沉默,禁叙述者解释")
 
