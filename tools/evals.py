@@ -17,7 +17,16 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-BASELINE = ROOT / "evals_baseline.json"
+BASELINE = ROOT / "evals_baseline.json"   # 主书基线; 书根基线=<书根>/evals_baseline.json(多书隔离)
+
+
+def _book(argv):
+    """解析可选书根参数: evals.py record|check|show [书根]"""
+    args = [a for a in argv[2:] if not a.startswith("-")]
+    if args:
+        root = pathlib.Path(args[0]).resolve()
+        return root, root / "evals_baseline.json"
+    return ROOT, BASELINE
 
 
 def run(cmd, timeout=600):
@@ -53,10 +62,14 @@ def check_metrics(fp):
     return m
 
 
-def collect():
+def collect(book_root=ROOT):
     data = {"chapters": {}, "structure": {}, "skills": "", "total_cjk": 0}
     total = 0
-    for f in chapter_files():
+    if book_root == ROOT:
+        files = chapter_files()
+    else:
+        files = sorted(book_root.glob("text/卷*/第*.md"))
+    for f in files:
         m = check_metrics(f)
         m.pop("file", None)
         data["chapters"][f.name] = m
@@ -74,6 +87,19 @@ def collect():
 
     sk = run([sys.executable, "tools/skills_check.py"])
     data["skills"] = "OK" if sk.returncode == 0 else "FAIL:" + sk.stdout[-200:]
+
+    # 质量分并入基线(防"越写越差": 质量均分跌幅>5分=回归)
+    qs_cmd = [sys.executable, "tools/quality_score.py", "--json"]
+    if book_root != ROOT:
+        qs_cmd.append(str(book_root))
+    qs = run(qs_cmd)
+    try:
+        rows = json.loads(qs.stdout)
+        scores = {pathlib.Path(r["file"]).name: r["score"] for r in rows if r.get("score") is not None}
+        data["quality_scores"] = scores
+        data["quality_avg"] = round(sum(scores.values()) / len(scores), 1) if scores else None
+    except (json.JSONDecodeError, KeyError):
+        data["quality_scores"], data["quality_avg"] = {}, None
 
     # 全工具语法门(防坏提交: 本项目hook不查py语法,曾发生PREFIX断裂被提交)
     import py_compile
@@ -106,18 +132,21 @@ def collect():
 
 
 def cmd_record():
-    data = collect()
-    BASELINE.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 结构{data['structure']} / skills={data['skills'][:20]}")
+    book, baseline = _book(sys.argv)
+    data = collect(book)
+    baseline.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    tag = "主书" if book == ROOT else f"书根{book.name}"
+    print(f"[{tag}]基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 质量均分{data.get('quality_avg')} / skills={data['skills'][:20]}")
     return 0
 
 
 def cmd_check():
-    if not BASELINE.exists():
-        print("无基线。先运行: python3 tools/evals.py record")
+    book, baseline = _book(sys.argv)
+    if not baseline.exists():
+        print("无基线。先运行: python3 tools/evals.py record [书根]")
         return 2
-    base = json.loads(BASELINE.read_text(encoding="utf-8"))
-    cur = collect()
+    base = json.loads(baseline.read_text(encoding="utf-8"))
+    cur = collect(book)
     regressions = []
 
     for name, old in base["chapters"].items():
@@ -134,6 +163,17 @@ def cmd_check():
         new_pct = cur["structure"].get(k, 0)
         if new_pct > old_pct + 10:
             regressions.append(f"结构分布恶化[{k}]: {old_pct}%→{new_pct}%")
+
+    base_avg = base.get("quality_avg")
+    cur_avg = cur.get("quality_avg")
+    if base_avg is not None and cur_avg is not None and base_avg - cur_avg > 5:
+        regressions.append(f"质量均分下滑: {base_avg}→{cur_avg}(>5分,越写越差警报)")
+    base_scores = base.get("quality_scores", {})
+    cur_scores = cur.get("quality_scores", {})
+    for name, old_s in base_scores.items():
+        new_s = cur_scores.get(name)
+        if new_s is not None and new_s is not None and old_s - new_s > 8:
+            regressions.append(f"单章质量骤降[{name}]: {old_s}→{new_s}(>8分)")
 
     if base["skills"].startswith("OK") and cur["skills"].startswith("FAIL"):
         regressions.append(f"skills_check回归: {cur['skills'][:120]}")
