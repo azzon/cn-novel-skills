@@ -6,6 +6,9 @@ workflow: chapter_production
 version: "2.0"
 description: "单章从场景卡到入库的确定性流程"
 
+# 多书隔离: 本工作流中一切 story/ text/ <书根>/ledgers/ 路径均指【书根内】相对路径(docs/多书隔离协议.md)。
+# <书根>/ledgers/ 同样按书隔离: 主书=仓库根<书根>/ledgers/, 非主书=<书根>/<书根>/ledgers/。
+
 phases:
   phase_1_prep:
     name: "章节准备"
@@ -15,12 +18,12 @@ phases:
         type: agent
         skill: scene-card
         inputs:
-          - "ledgers/当前时刻卡.md"
-          - "story/30-情节/卷X纲.md"
+          - "<书根>/ledgers/当前时刻卡.md"
+          - "<书根>/story/30-情节/卷X纲.md"
           - "上章末段原文(500字)"
-          - "story/60-圣经/声口卡.md"
+          - "<书根>/story/60-圣经/声口卡.md"
         outputs:
-          - "text/卡/卷X-第NNN章-场1.md"
+          - "<书根>/text/卡/卷X-第NNN章-场1.md"
         gate:
           - "卡包含:情感目标/冲突源/代价/赢法类型/峰值场景/峰后动作/开场型"
           - "开场型与前两章错型"
@@ -45,9 +48,9 @@ phases:
         skill: scene-draft
         inputs:
           - "pipeline bundle输出(含PREFIX/卡/声纹/风格卡/上一章末/时刻卡/圣经/伏笔/钩型/素材/爽点管道/口碑账)"
-          - "text/卡/卷X-第NNN章-场1.md"
+          - "<书根>/text/卡/卷X-第NNN章-场1.md"
         outputs:
-          - "text/卷X/第NNN章.md"
+          - "<书根>/text/卷X/第NNN章.md"
         gate:
           - "CJK字数≥2500(硬线)"
           - "直引号=0"
@@ -63,10 +66,10 @@ phases:
         type: agent
         skill: scene-audit
         inputs:
-          - "text/卷X/第NNN章.md"
-          - "text/卡/卷X-第NNN章-场1.md"
+          - "<书根>/text/卷X/第NNN章.md"
+          - "<书根>/text/卡/卷X-第NNN章-场1.md"
         outputs:
-          - "story/audit/自审-第NNN章.md"
+          - "<书根>/story/audit/自审-第NNN章.md"
         gate:
           - "场景卡的所有beats都有正文对应"
           - "价值换极发生了"
@@ -78,10 +81,10 @@ phases:
         type: agent
         skill: reader-proxy
         inputs:
-          - "text/卷X/第NNN章.md"
+          - "<书根>/text/卷X/第NNN章.md"
           - "上章末段原文(500字)"
         outputs:
-          - "story/audit/冷读-第NNN章.md"
+          - "<书根>/story/audit/冷读-第NNN章.md"
         gate:
           - "判定不是REWRITE/HOOK_FAIL"
           - "跳读≤2处"

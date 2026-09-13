@@ -10,6 +10,17 @@ workflow: book_design
 version: "2.0"
 description: "从零开始设计一本新书的确定性流程。所有步骤按序执行，每步有门，门不过不继续。"
 
+# 多书隔离: 本工作流中一切 story/ text/ 路径均指【书根内】相对路径,
+# 书根=<书名>/ 独立目录(docs/多书隔离协议.md)。禁止把非主书产物写入仓库根 story/ text/ ledgers/。
+book_root_required: true
+phase_0_isolation:
+  name: "书根隔离"
+  type: manual
+  gate:
+    - "premise-fit五维闸≥20/25已通过"
+    - "书根目录已建: <书名>/{卡,text/卷1,ledgers}"
+    - "后续一切产物路径以书根为前缀"
+
 phases:
   phase_1_market:
     name: "市场调研"
@@ -22,7 +33,7 @@ phases:
         inputs:
           - "用户的一句话想法"
         outputs:
-          - "story/audit/市场调研.md"
+          - "<书根>/story/audit/市场调研.md"
         gate:
           - "output文件存在"
           - "包含至少3个对标作品"
@@ -33,10 +44,10 @@ phases:
         type: agent
         skill: market-scan
         inputs:
-          - "story/audit/市场调研.md"
+          - "<书根>/story/audit/市场调研.md"
           - "对标作品的前10章(在线获取或用户提供的文本)"
         outputs:
-          - "story/audit/对标拆解.md"
+          - "<书根>/story/audit/对标拆解.md"
         gate:
           - "output文件存在"
           - "包含至少3章的逐段拆解"
@@ -53,11 +64,11 @@ phases:
         count: 3  # 生成3个不同方向的前提
         inputs:
           - "用户的一句话想法"
-          - "story/audit/市场调研.md"
+          - "<书根>/story/audit/市场调研.md"
         outputs:
-          - "story/audit/前提方案A.md"
-          - "story/audit/前提方案B.md"
-          - "story/audit/前提方案C.md"
+          - "<书根>/story/audit/前提方案A.md"
+          - "<书根>/story/audit/前提方案B.md"
+          - "<书根>/story/audit/前提方案C.md"
         gate:
           - "三个方案方向不同(不是同一想法的三种措辞)"
           - "每个方案包含:核心冲突/对手/代价/金手指/情感钩"
@@ -69,7 +80,7 @@ phases:
         inputs:
           - "三个前提方案"
         outputs:
-          - "story/audit/前提红队报告.md"
+          - "<书根>/story/audit/前提红队报告.md"
         gate:
           - "每个方案都经过六维评分"
           - "每个方案都有预验尸(假设扑街倒推死因)"
@@ -79,12 +90,12 @@ phases:
         name: "前提确认"
         type: manual
         inputs:
-          - "story/audit/前提红队报告.md"
+          - "<书根>/story/audit/前提红队报告.md"
         outputs:
-          - "story/00-前提.md"
+          - "<书根>/story/00-前提.md"
         gate:
           - "用户确认最终方案"
-          - "story/00-前提.md已填写"
+          - "<书根>/story/00-前提.md已填写"
 
   phase_3_characters:
     name: "角色设计"
@@ -95,10 +106,10 @@ phases:
         type: agent
         skill: dialogue-voice
         inputs:
-          - "story/00-前提.md"
-          - "story/60-圣经/声口对照.md"
+          - "<书根>/story/00-前提.md"
+          - "<书根>/story/60-圣经/声口对照.md"
         outputs:
-          - "story/60-圣经/声口卡.md"
+          - "<书根>/story/60-圣经/声口卡.md"
         gate:
           - "每个主要角色一张卡"
           - "每张卡包含:聪明等级/知识域/3口头禅/3禁词/碎片习惯/废话主题/说话目的/信息盲区/性格关键/弧光方向"
@@ -110,10 +121,10 @@ phases:
         type: agent
         skill: char-bible
         inputs:
-          - "story/00-前提.md"
-          - "story/60-圣经/声口卡.md"
+          - "<书根>/story/00-前提.md"
+          - "<书根>/story/60-圣经/声口卡.md"
         outputs:
-          - "story/20-人物/人物圣经.md"
+          - "<书根>/story/20-人物/人物圣经.md"
         gate:
           - "每个主要角色有:生理/社会/心理三层+ghost/wound/lie/want/need弧线链"
           - "角色关系网络图完成"
@@ -128,9 +139,9 @@ phases:
         type: agent
         skill: world-rules
         inputs:
-          - "story/00-前提.md"
+          - "<书根>/story/00-前提.md"
         outputs:
-          - "story/10-世界/规则.md"
+          - "<书根>/story/10-世界/规则.md"
         gate:
           - "核心规则有边界和代价"
           - "规则不会被主角轻易绕过"
@@ -139,9 +150,9 @@ phases:
         type: agent
         skill: world-economy
         inputs:
-          - "story/00-前提.md"
+          - "<书根>/story/00-前提.md"
         outputs:
-          - "story/10-世界/经济.md"
+          - "<书根>/story/10-世界/经济.md"
         gate:
           - "物价锚点≥10个"
           - "主角生存账可算"
@@ -150,9 +161,9 @@ phases:
         type: agent
         skill: world-culture
         inputs:
-          - "story/00-前提.md"
+          - "<书根>/story/00-前提.md"
         outputs:
-          - "story/10-世界/文化.md"
+          - "<书根>/story/10-世界/文化.md"
         gate:
           - "称谓体系/礼俗禁忌/节令叙事完成"
 
@@ -165,10 +176,10 @@ phases:
         type: agent
         skill: plot-spine
         inputs:
-          - "story/00-前提.md"
-          - "story/20-人物/人物圣经.md"
+          - "<书根>/story/00-前提.md"
+          - "<书根>/story/20-人物/人物圣经.md"
         outputs:
-          - "story/30-情节/主线.md"
+          - "<书根>/story/30-情节/主线.md"
         gate:
           - "核心冲突句(一个问句)存在"
           - "三段式或四段式结构完整"
@@ -178,9 +189,9 @@ phases:
         type: agent
         skill: volume-outline
         inputs:
-          - "story/30-情节/主线.md"
+          - "<书根>/story/30-情节/主线.md"
         outputs:
-          - "story/30-情节/卷一纲.md"
+          - "<书根>/story/30-情节/卷一纲.md"
         gate:
           - "三峰位置确定"
           - "每章有单元型/压弹/主线心跳/情感拍/笑点责任"
@@ -190,10 +201,10 @@ phases:
         type: agent
         skill: ideate-audit
         inputs:
-          - "story/30-情节/卷一纲.md"
-          - "story/audit/研究-网文爽点设计2026.md"
+          - "<书根>/story/30-情节/卷一纲.md"
+          - "<书根>/story/audit/研究-网文爽点设计2026.md"
         outputs:
-          - "story/audit/大纲红队报告.md"
+          - "<书根>/story/audit/大纲红队报告.md"
         gate:
           - "红队判定=放行或放行带修改"
           - "放行带修改的修改项已全部落地"
@@ -207,10 +218,10 @@ phases:
         type: agent
         skill: style-compiler
         inputs:
-          - "story/00-前提.md"
+          - "<书根>/story/00-前提.md"
           - "对标作品范例段"
         outputs:
-          - "story/50-风格包.md"
+          - "<书根>/story/50-风格包.md"
         gate:
           - "风格卡完成(声音档案)"
           - "范例段≥3段(不同类型:家庭/对抗/温情)"
@@ -220,7 +231,7 @@ phases:
         type: agent
         skill: golden-opening
         inputs:
-          - "story/50-风格包.md"
+          - "<书根>/story/50-风格包.md"
         outputs:
           - "首章前300字草稿"
         gate:

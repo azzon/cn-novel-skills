@@ -21,6 +21,21 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PROGRESS = ROOT / ".progress.json"
 TIMELINE = ROOT / "ledgers" / "时间线.md"
 
+_RESERVED = {"text", "tools", "docs", "skills", "story", "ledgers", "workflows",
+             "audits", "reports", "scripts", "卡", "evals", ".git", ".zcode"}
+
+def book_root(p):
+    """书根感知(docs/多书隔离协议.md): 主书文件在ROOT/text/下;非主书在<书名>/text/下。
+    返回书根目录(主书=ROOT)。查重/语料/时序比对只在同书根内进行。"""
+    r = p.resolve()
+    if ROOT in r.parents and r.relative_to(ROOT).parts[0] == "text":
+        return ROOT
+    for parent in r.parents:
+        if parent.parent == ROOT and parent.is_dir() and (parent / "text").is_dir() \
+                and parent.name not in _RESERVED:
+            return parent
+    return ROOT
+
 def cjk_len(t):
     return len(re.findall(r"[\u4e00-\u9fff]", t))
 
@@ -151,7 +166,16 @@ def main():
         print("用法: gate_chapter.py <章节文件...> | --recompute")
         return 2
 
-    files = chapter_files()
+    # 多书隔离(docs/多书隔离协议.md): 一次调用只处理一个书根;查重/卷区间/G8语料均限定同书根
+    roots = {book_root(p) for p in staged}
+    if len(roots) > 1:
+        print("=== gate_chapter FAIL ===")
+        print("  [FAIL] 跨书混提: " + ", ".join(str(r) for r in roots)
+              + " —— 请按书分开调用gate_chapter(多书隔离协议§4)")
+        return 2
+    book = roots.pop()
+
+    files = [p for p in chapter_files() if book_root(p) == book]
     existing = {}   # num -> path (工作区现状, 不含本次staged路径)
     staged_paths = {str(p.resolve()) for p in staged}
     for p in files:
@@ -224,14 +248,14 @@ def main():
 
         # G2 章号重复门
         if n is not None and n in existing:
-            problems.append(f"G2章号重复: 第{n}章已存在于{existing[n].relative_to(ROOT)}——重复写章(事故A),如为改写请用原路径,如为插章需arc-restructure重编号")
+            problems.append(f"G2章号重复: 第{n}章已存在于{existing[n].relative_to(book)}——重复写章(事故A),如为改写请用原路径,如为插章需arc-restructure重编号")
 
         # G3 标题重复门
         if title:
             for num2, p2 in existing.items():
                 t2 = p2.read_text(encoding="utf-8-sig").splitlines()[0].strip() if p2.exists() else ""
                 if t2 and t2 == title:
-                    problems.append(f"G3标题重复: 「{title}」与{p2.relative_to(ROOT)}相同")
+                    problems.append(f"G3标题重复: 「{title}」与{p2.relative_to(book)}相同")
 
         # G2b 跳章门(new): 章号超前于max+本批新章数=挖洞
         if mode == "new" and n is not None and n not in existing_nums and n > jump_cap:
@@ -286,9 +310,10 @@ def main():
                 warns.append(f"G5跨章查重: 与{worst_p.name if worst_p else '?'}相似度{worst:.0%}(>8%,检查是否自我复读)")
 
         # G6 时序门(硬化,audits/13攻击7): 解析时间线账,新章号≤账面末章且无插叙标记=FAIL
-        if TIMELINE.exists() and n is not None:
+        book_timeline = book / "ledgers" / "时间线.md"
+        if book_timeline.exists() and n is not None:
             tl_max = 0
-            for l in TIMELINE.read_text(encoding="utf-8-sig").splitlines():
+            for l in book_timeline.read_text(encoding="utf-8-sig").splitlines():
                 m = re.match(r"-\s*第(\d+)章\|", l.strip())
                 if m:
                     mm = int(m.group(1))

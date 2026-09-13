@@ -4,6 +4,9 @@
 workflow: periodic
 version: "2.0"
 
+# 多书隔离: 本工作流中一切 story/ text/ <书根>/ledgers/ 路径均指【书根内】相对路径(docs/多书隔离协议.md)。
+# <书根>/ledgers/ 同样按书隔离: 主书=仓库根<书根>/ledgers/, 非主书=<书根>/<书根>/ledgers/。
+
 phases:
   every_10:
     name: "每10章审计"
@@ -12,19 +15,19 @@ phases:
       - id: drift_audit
         name: "漂移审计"
         type: agent
-        outputs: ["story/audit/漂移审计-第N期.md"]
+        outputs: ["<书根>/story/audit/漂移审计-第N期.md"]
         gate: ["报告存在且包含数据表"]
       - id: style_recal
         name: "风格包范例段更新"
         type: agent
         inputs: ["近10章中评分最高的3段"]
-        outputs: ["story/50-风格包.md(范例段替换)"]
+        outputs: ["<书根>/story/50-风格包.md(范例段替换)"]
         gate: ["范例段≥3段且来自不同章"]
       - id: voice_check
         name: "角色声口复核"
         type: agent
         inputs: ["近10章对白+声口卡"]
-        outputs: ["story/audit/声口复核-第N期.md"]
+        outputs: ["<书根>/story/audit/声口复核-第N期.md"]
         gate: ["无新增S级装对白"]
       - id: conflict_check
         name: "冲突升级检查"
@@ -45,25 +48,25 @@ phases:
         type: agent
         skill: arc-review
         inputs: ["本卷全部章节"]
-        outputs: ["story/audit/连读审查-卷N.md"]
+        outputs: ["<书根>/story/audit/连读审查-卷N.md"]
       - id: consistency_audit
         name: "一致性审计"
         type: agent
         skill: consistency-audit
         inputs: ["本卷全部章节+全部台账"]
-        outputs: ["story/audit/一致性审计-卷N.md"]
+        outputs: ["<书根>/story/audit/一致性审计-卷N.md"]
         gate: ["矛盾清单中P0=0"]
       - id: character_audit
         name: "人设漂移审计"
         type: agent
         skill: character-audit
         inputs: ["本卷全部章节+人物圣经"]
-        outputs: ["story/audit/人设审计-卷N.md"]
+        outputs: ["<书根>/story/audit/人设审计-卷N.md"]
       - id: volume_retro
         name: "卷末复盘"
         type: agent
         inputs: ["卷二纲+实际产出+全部审计报告"]
-        outputs: ["story/audit/卷N复盘.md"]
+        outputs: ["<书根>/story/audit/卷N复盘.md"]
         gate:
           - "三峰位置回顾"
           - "下一卷冲突升了一级吗"
@@ -73,5 +76,5 @@ phases:
         type: agent
         skill: volume-outline
         inputs: ["卷N复盘+当前时刻卡+下一卷冲突升级要求"]
-        outputs: ["story/30-情节/卷(N+1)纲.md"]
+        outputs: ["<书根>/story/30-情节/卷(N+1)纲.md"]
         gate: ["红队通过"]

@@ -5,9 +5,11 @@ quality_score.py 全书45章质量评分器
 每个章打一个0-100分。分数越高=读者越可能继续读。
 评分维度基于32份审计报告的高频发现加权。
 
-用法: python3 tools/quality_score.py [--json]
+用法: python3 tools/quality_score.py [--json] [书根|章节文件...]
+  默认书根=仓库根(主书); 传目录=该目录为书根; 传文件=只评该文件(多书隔离协议)
 """
 import json, math, pathlib, re, statistics, sys
+from pathlib import Path
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -99,17 +101,25 @@ def score_chapter(fp):
     return round(min(100, score), 1), details
 
 
-def cmd_all():
+def collect(root):
+    root = Path(root)
+    if root.is_file():
+        return [root]
+    return sorted(root.glob("text/卷*/第*.md"))
+
+
+def cmd_all(root=ROOT):
     results = []
-    for f in sorted(ROOT.glob("text/卷*/第*.md")):
+    for f in collect(root):
         s, d = score_chapter(f)
-        results.append((f.name, s, d))
-    
+        results.append((f, s, d))
+
     results.sort(key=lambda x: x[1])
     print(f"{'章名':<20} {'得分':>6} {'字数':>6} {'对话%':>6} {'段均':>6} {'冲突':>4} {'语气':>4}")
     print("-" * 70)
-    for name, s, d in results:
-        print(f"  {name:<18} {s:>6.1f} ({d.get('字数',0):>4.0f}字 对话{d.get('对话%',0):>4.0f}% 段均{d.get('段均',0):>4.1f} 冲突{d.get('冲突词',0):>2} 语气{d.get('语气词/千',0):>4.1f})")
+    for f, s, d in results:
+        name = str(f.relative_to(root) if root in f.parents else f)
+        print(f"  {name:<24} {s:>6.1f} ({d.get('字数',0):>4.0f}字 对话{d.get('对话%',0):>4.0f}% 段均{d.get('段均',0):>4.1f} 冲突{d.get('冲突词',0):>2} 语气{d.get('语气词/千',0):>4.1f})")
     
     avg = statistics.mean(s for _, s, _ in results)
     print(f"\n全书均分: {avg:.1f}/100")
@@ -120,20 +130,42 @@ def cmd_all():
     return results
 
 
-def cmd_json():
+def cmd_json(root=ROOT):
     results = []
-    for f in sorted(ROOT.glob("text/卷*/第*.md")):
+    for f in collect(root):
         s, d = score_chapter(f)
-        results.append({"file": f.name, "score": s, **d})
+        results.append({"file": str(f), "score": s, **d})
     print(json.dumps(results, ensure_ascii=False, indent=1))
     return results
 
 
 def main():
-    results = cmd_all()
-    # 保存
-    out = [{"file": r[0], "score": r[1]} for r in results]
-    (ROOT / "quality_scores.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    args = [a for a in sys.argv[1:] if a != "--json"]
+    as_json = "--json" in sys.argv
+    if not args:
+        root = ROOT
+    elif len(args) == 1 and Path(args[0]).is_dir():
+        root = Path(args[0])
+    else:
+        root = None
+    if root is not None:
+        results = cmd_json(root) if as_json else cmd_all(root)
+        if root == ROOT:
+            out = [{"file": str(r[0]), "score": r[1]} for r in results]
+            (ROOT / "quality_scores.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    else:
+        results = []
+        rows = []
+        for a in args:
+            f = Path(a)
+            s, d = score_chapter(f)
+            results.append((f, s, d))
+            rows.append({"file": str(f), "score": s, **d})
+        if as_json:
+            print(json.dumps(rows, ensure_ascii=False, indent=1))
+        else:
+            for f, s, d in results:
+                print(f"  {f.name:<18} {s:>6.1f} ({d.get('字数',0):>4.0f}字 对话{d.get('对话%',0):>4.0f}%)")
     return 0
 
 

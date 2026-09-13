@@ -620,6 +620,28 @@ def check(fp: pathlib.Path):
     if _aphor_end >= 1 and any(w in "".join(_last_3) for w in ["明白","道理","认","守","懂"]):
         warns.append("章末疑似金句/主题句收尾——用动作/物件/对话替代(大审计-31)")
 
+    # 55) 排比宣言收尾门(法医ch001事故: "证明了三件事:一…二…三…"逃过#52/#54双门)
+    # 模式A: 末3段序数排比(一…二…三…/一是…二是…)
+    # 模式B: 末3段自觉宣言(他不是那种X/他永远不会是/从这一刻起/再也不需要…才能)
+    # 模式C: 末3段"证明了/说明了/意味着N个道理(事实)"句式
+    _manifesto = 0
+    for _p in _last_3:
+        if "\u201c" in _p:   # 人物台词里的排比不判
+            continue
+        if re.search(r"(一[，是].{2,40}[二，][，是]?.{2,40}三[，是])", _p) or re.search(r"(一是.{2,40}二是.{2,40})", _p):
+            _manifesto += 1
+        if re.search(r"(证明了?|说明了?|意味着)[^。」』]{0,8}(一件|一个|三件|三个|两个|道理|事实)", _p):
+            _manifesto += 1
+        if re.search(r"(他|她)[^。」』]{0,6}不是那种[^。」』]{1,12}[。.]", _p):
+            _manifesto += 1
+        if re.search(r"(从(这|那)(一刻|一天|天起)|永远不会再|(再也不|不再)需要[^。」』]{0,10}才能)", _p):
+            _manifesto += 1
+    metrics["end_manifesto"] = _manifesto
+    if _manifesto >= 2:
+        issues.append(f"排比宣言收尾{_manifesto}处命中(>=2=FAIL)——末章作者代言总结/序数排比/自觉宣言,三连即AI腔铁证;峰后禁释令:收在动作/物件/对话,不收在道理")
+    elif _manifesto == 1:
+        warns.append("末3段含1处疑似宣言句式——检查是否作者越喉说话(人物台词内豁免)")
+
     if _peak_explain >= 2:
         issues.append(f"峰后解释{_peak_explain}处(>=2=FAIL,大审计-29:峰后必释=杀掉心头一紧)——情感峰值后下一段必须是动作/物件/沉默,禁叙述者解释")
 
