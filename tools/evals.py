@@ -101,6 +101,10 @@ def collect(book_root=ROOT):
     except (json.JSONDecodeError, KeyError):
         data["quality_scores"], data["quality_avg"] = {}, None
 
+    # 工具自测套件(历次事故靶测固化: cn2num/引号三态/声口归属/书根判定/数值比对)
+    st = run([sys.executable, "tools/self_test.py"])
+    data["self_test"] = "OK" if st.returncode == 0 else "FAIL:" + st.stdout[-200:]
+
     # 全工具语法门(防坏提交: 本项目hook不查py语法,曾发生PREFIX断裂被提交)
     import py_compile
     syn = "OK"
@@ -136,7 +140,7 @@ def cmd_record():
     data = collect(book)
     baseline.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     tag = "主书" if book == ROOT else f"书根{book.name}"
-    print(f"[{tag}]基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 质量均分{data.get('quality_avg')} / skills={data['skills'][:20]}")
+    print(f"[{tag}]基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 质量均分{data.get('quality_avg')} / skills={data['skills'][:15]} 自测={data.get("self_test","?")[:15]}")
     return 0
 
 

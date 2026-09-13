@@ -92,9 +92,18 @@ phases:
       - id: machine_gates
         name: "机器门"
         type: script
-        script: "python3 tools/check.py --modern text/卷X/第NNN章.md"
+        script: |
+          bash tools/fix_quotes.py <书根>/text/卷X/第NNN章.md   # 引号三重修复先于门
+          python3 tools/check.py --modern <书根>/text/卷X/第NNN章.md
+          python3 tools/gate_chapter.py <书根>/text/卷X/第NNN章.md
+          python3 tools/voice_check.py <书根>/text/卷X/第NNN章.md --card <书根>/声口卡.md
+          python3 tools/card_check.py NNN --volume X
         gate:
-          - "FAIL=0"
+          - "check.py FAIL=0"
+          - "gate PASS"
+          - "声口门PASS(禁词零FAIL)"
+          - "数字表对账零FAIL(WARN需人工核对或修卡)"
+        on_fail: "按门类型路由: 文本伤→revise / 声口违例→dialogue-doctor+查声口卡 / 数字漂移→修正文或修卡(rebuild原则:手稿唯一权威)"
 
   phase_4_revise:
     name: "修订(条件执行)"
@@ -120,6 +129,12 @@ phases:
         script: "python3 tools/pipeline.py done {N}"
         gate:
           - "done返回✅"
+      - id: legacy_recheck
+        name: "存量清单联动(修订期)"
+        type: script
+        script: "python3 tools/legacy_audit.py --write"
+        gate:
+          - "本章已从 ledgers/修订期清单.md 出单(若曾入单)"
       - id: ledger
         name: "台账盖章"
         type: manual

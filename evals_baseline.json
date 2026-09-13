@@ -1592,6 +1592,7 @@
   "第045章.md": 69.0
  },
  "quality_avg": 59.6,
+ "self_test": "OK",
  "syntax": "OK",
  "recompute": "[progress] max=45 next=46 volumes={'卷1': [1, 30], '卷2': [31, 45]}",
  "gate_new_smoke": "OK",
