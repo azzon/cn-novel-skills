@@ -580,6 +580,24 @@ def check(fp: pathlib.Path):
     if n >= 1500 and not has_idle:
         pass  # 闲笔检查已在上方
 
+    # 52) 峰后解释检测(大审计-29最高优先: 峰后必释=杀掉心头一紧)
+    # 检测: 情感词(疼/哭/暖/怕/红了/热了)出现在前一段,后一段含叙述者解释动词(想明白/知道/懂了/明白了/原来/这就叫/因为)
+    _emo_words = ["疼","哭","暖","怕","红了","热了","酸","堵","紧","烫","湿"]
+    _explain_words = ["想明白","知道了","懂了","明白了","原来","这就叫","因为","所以","这才","这叫","有一种账","一种说不清"," 一种说不出"]
+    _paras_clean = [p.strip() for p in paras if p.strip()]
+    _peak_explain = 0
+    for _pi in range(len(_paras_clean)-1):
+        _cur = _paras_clean[_pi]
+        _next = _paras_clean[_pi+1]
+        _has_emo = any(w in _cur for w in _emo_words)
+        _has_explain = any(w in _next for w in _explain_words)
+        _is_narr = "\u201c" not in _next
+        if _has_emo and _has_explain and _is_narr:
+            _peak_explain += 1
+    metrics["peak_explain"] = _peak_explain
+    if _peak_explain >= 2:
+        issues.append(f"峰后解释{_peak_explain}处(>=2=FAIL,大审计-29:峰后必释=杀掉心头一紧)——情感峰值后下一段必须是动作/物件/沉默,禁叙述者解释")
+
     # 51) 场景深度检测(大审计-28根因: 概述代替场景=读者无画面感)
     # 统计具体动作动词密度(拆/拧/按/推/焊/擦/切/倒/塞/挂/抽/掰/踹/拽/搓/抹/摁/戳)
     _action_verbs = ["拆","拧","按","推","焊","擦","切","倒","塞","挂","抽","掰","踹","拽","搓","抹","摁","戳","夹","舀","舖","搭","掰","拨"]
