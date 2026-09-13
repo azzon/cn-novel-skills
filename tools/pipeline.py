@@ -20,9 +20,22 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import gate_chapter as G  # noqa: E402  复用chapter_files/parse_num/scan_volumes/expected_volume
 
+# 多书隔离(docs/多书隔离协议.md): --book <书根> 切换; 主书=ROOT(历史占用)
+BOOK = ROOT
 CARD_DIR = ROOT / "text" / "卡"
 AUDIT_DIR = ROOT / "story" / "audit"
 LEDGERS = ROOT / "ledgers"
+
+
+def set_book(name):
+    """切换书根: 卡目录按书布局自动探测(主书=text/卡,新书=<书>/卡)"""
+    global BOOK, CARD_DIR, LEDGERS, PROGRESS
+    BOOK = ROOT if not name else ROOT / name
+    if not BOOK.is_dir():
+        raise SystemExit(f"[exit 2] 书根不存在: {BOOK}")
+    CARD_DIR = BOOK / "text" / "卡" if (BOOK / "text" / "卡").is_dir() else BOOK / "卡"
+    LEDGERS = BOOK / "ledgers"
+    PROGRESS = BOOK / ".progress.json"
 BIBLE = ROOT / "story" / "60-圣经"
 PROGRESS = ROOT / ".progress.json"
 SCORES = ROOT / "scores.json"
@@ -53,7 +66,8 @@ def git(*args):
 
 def chapter_map():
     out = {}
-    for p in G.chapter_files():
+    files = G.chapter_files() if BOOK == ROOT else sorted(BOOK.glob("text/卷*/第*.md"))
+    for p in files:
         n = G.parse_num(p)
         if n is not None:
             out[n] = p
@@ -721,6 +735,10 @@ def main():
     if not args:
         print(__doc__)
         return 2
+    if "--book" in args:
+        i = args.index("--book")
+        args.pop(i)
+        set_book(args.pop(i))
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()

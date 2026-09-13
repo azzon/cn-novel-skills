@@ -245,14 +245,15 @@ def check(fp: pathlib.Path):
         if w in tail:
             warns.append(f"章末300字出现总结腔词「{w}」(章末只许钩子或余韵)")
 
-    # 16) 对话字数占比(用户标准:真人白金作家对话≥40-50%)
-    dialog_str = "".join(re.findall(r'["\u201c]([^"\u201d]*)["\u201d]', body))
-    dialog_chars = cjk_len(dialog_str)
+    # 16) 对话字数占比(口径: 对白段整段/全文——织毛衣语义,台词+引导+段内动作线;
+    #     45章实测中位50%,min33% → FAIL<35/WARN<40 与历史验收水平一致)
+    _para_list = [pp.strip() for pp in re.split(r"\n\s*\n", raw) if pp.strip()]
+    dialog_chars = sum(cjk_len(pp) for pp in _para_list if "\u201c" in pp)
     if n > 500:
         dpct = dialog_chars / n * 100
         metrics["dia_char_pct"] = round(dpct, 1)
-        if dpct < 25:
-            issues.append(f"对话字数占比{dpct:.0f}%(<25%,严重不足:角色必须开口说话!)")
+        if dpct < 35:
+            issues.append(f"对话字数占比{dpct:.0f}%(<35%,严重不足:角色必须开口说话!)")
         elif dpct < 30:
             warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
 

@@ -27,7 +27,7 @@ def score_chapter(fp):
     elif n >= 1500: score += 20 * (n - 1500) / 1000
     details["字数"] = round(min(20, max(0, 20 * (n - 1500) / 1000)), 1)
 
-    # 2. 对话密度 (15分): 40-60%满
+    # 2. 对话密度 (15分): 40-60%满 (口径与check.py #16统一: 对白段整段/全文)
     dl = [p for p in paras if "\u201c" in p]
     dia_pct = sum(cjk(p) for p in dl) / n * 100 if n > 0 else 0
     if 40 <= dia_pct <= 60: score += 15

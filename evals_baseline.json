@@ -3,7 +3,7 @@
   "第001章.md": {
    "cjk": 2198,
    "dia_line_pct": 56.0,
-   "dia_char_pct": 28.0,
+   "dia_char_pct": 43.0,
    "psych_per_k": 0.91,
    "hook_signals": 1,
    "dup18": 0,
@@ -32,12 +32,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 11
+   "warns": 10
   },
   "第002章.md": {
    "cjk": 1859,
    "dia_line_pct": 50.0,
-   "dia_char_pct": 27.3,
+   "dia_char_pct": 43.6,
    "psych_per_k": 2.69,
    "hook_signals": 1,
    "dup18": 0,
@@ -66,12 +66,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 9
   },
   "第003章.md": {
    "cjk": 1824,
    "dia_line_pct": 57.3,
-   "dia_char_pct": 28.0,
+   "dia_char_pct": 52.4,
    "psych_per_k": 1.1,
    "hook_signals": 1,
    "dup18": 0,
@@ -100,12 +100,12 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第004章.md": {
    "cjk": 1960,
    "dia_line_pct": 64.9,
-   "dia_char_pct": 45.2,
+   "dia_char_pct": 65.1,
    "psych_per_k": 1.53,
    "hook_signals": 1,
    "dup18": 0,
@@ -139,7 +139,7 @@
   "第005章.md": {
    "cjk": 2058,
    "dia_line_pct": 50.6,
-   "dia_char_pct": 25.9,
+   "dia_char_pct": 46.6,
    "psych_per_k": 1.46,
    "hook_signals": 1,
    "dup18": 0,
@@ -168,12 +168,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第006章.md": {
    "cjk": 1984,
    "dia_line_pct": 41.5,
-   "dia_char_pct": 27.4,
+   "dia_char_pct": 35.2,
    "psych_per_k": 2.52,
    "hook_signals": 1,
    "dup18": 0,
@@ -202,12 +202,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 6
   },
   "第007章.md": {
    "cjk": 1876,
    "dia_line_pct": 42.5,
-   "dia_char_pct": 25.6,
+   "dia_char_pct": 42.3,
    "psych_per_k": 1.6,
    "hook_signals": 1,
    "dup18": 0,
@@ -236,12 +236,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第008章.md": {
    "cjk": 1968,
    "dia_line_pct": 59.8,
-   "dia_char_pct": 31.5,
+   "dia_char_pct": 47.6,
    "psych_per_k": 2.03,
    "hook_signals": 0,
    "dup18": 0,
@@ -275,7 +275,7 @@
   "第009章.md": {
    "cjk": 1950,
    "dia_line_pct": 48.8,
-   "dia_char_pct": 27.5,
+   "dia_char_pct": 40.1,
    "psych_per_k": 1.03,
    "hook_signals": 0,
    "dup18": 0,
@@ -304,12 +304,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 13
+   "warns": 12
   },
   "第010章.md": {
    "cjk": 1868,
    "dia_line_pct": 51.1,
-   "dia_char_pct": 31.1,
+   "dia_char_pct": 45.8,
    "psych_per_k": 1.61,
    "hook_signals": 1,
    "dup18": 0,
@@ -343,7 +343,7 @@
   "第011章.md": {
    "cjk": 1997,
    "dia_line_pct": 52.2,
-   "dia_char_pct": 25.8,
+   "dia_char_pct": 35.6,
    "psych_per_k": 1.5,
    "hook_signals": 1,
    "dup18": 0,
@@ -372,12 +372,12 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 9
   },
   "第012章.md": {
    "cjk": 2035,
    "dia_line_pct": 43.2,
-   "dia_char_pct": 25.4,
+   "dia_char_pct": 34.0,
    "psych_per_k": 0.98,
    "hook_signals": 0,
    "dup18": 0,
@@ -404,14 +404,14 @@
    "avg_para_len": 16.3,
    "long_paras": 0,
    "aphor_endings": 1,
-   "status": "WARN",
-   "fails": 0,
-   "warns": 11
+   "status": "FAIL",
+   "fails": 1,
+   "warns": 10
   },
   "第013章.md": {
    "cjk": 1903,
    "dia_line_pct": 43.1,
-   "dia_char_pct": 27.4,
+   "dia_char_pct": 33.2,
    "psych_per_k": 1.05,
    "hook_signals": 1,
    "dup18": 0,
@@ -438,14 +438,14 @@
    "avg_para_len": 18.7,
    "long_paras": 0,
    "aphor_endings": 0,
-   "status": "WARN",
-   "fails": 0,
-   "warns": 11
+   "status": "FAIL",
+   "fails": 1,
+   "warns": 10
   },
   "第014章.md": {
    "cjk": 1939,
    "dia_line_pct": 56.1,
-   "dia_char_pct": 40.6,
+   "dia_char_pct": 52.2,
    "psych_per_k": 3.09,
    "hook_signals": 1,
    "dup18": 0,
@@ -479,7 +479,7 @@
   "第015章.md": {
    "cjk": 1860,
    "dia_line_pct": 48.9,
-   "dia_char_pct": 29.8,
+   "dia_char_pct": 39.8,
    "psych_per_k": 2.69,
    "hook_signals": 1,
    "dup18": 0,
@@ -508,12 +508,12 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 9
   },
   "第016章.md": {
    "cjk": 1884,
    "dia_line_pct": 53.6,
-   "dia_char_pct": 41.9,
+   "dia_char_pct": 43.8,
    "psych_per_k": 1.59,
    "hook_signals": 1,
    "dup18": 0,
@@ -547,7 +547,7 @@
   "第017章.md": {
    "cjk": 2513,
    "dia_line_pct": 61.9,
-   "dia_char_pct": 34.1,
+   "dia_char_pct": 52.8,
    "psych_per_k": 1.59,
    "hook_signals": 1,
    "dup18": 0,
@@ -581,7 +581,7 @@
   "第018章.md": {
    "cjk": 2684,
    "dia_line_pct": 72.1,
-   "dia_char_pct": 39.5,
+   "dia_char_pct": 66.4,
    "psych_per_k": 1.86,
    "hook_signals": 1,
    "dup18": 0,
@@ -615,7 +615,7 @@
   "第019章.md": {
    "cjk": 2380,
    "dia_line_pct": 61.2,
-   "dia_char_pct": 30.8,
+   "dia_char_pct": 44.5,
    "psych_per_k": 1.26,
    "hook_signals": 3,
    "dup18": 0,
@@ -649,7 +649,7 @@
   "第020章.md": {
    "cjk": 2194,
    "dia_line_pct": 52.8,
-   "dia_char_pct": 34.7,
+   "dia_char_pct": 47.9,
    "psych_per_k": 1.37,
    "hook_signals": 0,
    "dup18": 0,
@@ -683,7 +683,7 @@
   "第021章.md": {
    "cjk": 1847,
    "dia_line_pct": 58.6,
-   "dia_char_pct": 39.7,
+   "dia_char_pct": 56.1,
    "psych_per_k": 1.62,
    "hook_signals": 1,
    "dup18": 0,
@@ -717,7 +717,7 @@
   "第022章.md": {
    "cjk": 1904,
    "dia_line_pct": 64.7,
-   "dia_char_pct": 27.2,
+   "dia_char_pct": 52.6,
    "psych_per_k": 4.73,
    "hook_signals": 1,
    "dup18": 0,
@@ -746,12 +746,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第023章.md": {
    "cjk": 1992,
    "dia_line_pct": 65.3,
-   "dia_char_pct": 31.6,
+   "dia_char_pct": 51.0,
    "psych_per_k": 0.5,
    "hook_signals": 1,
    "dup18": 0,
@@ -785,7 +785,7 @@
   "第024章.md": {
    "cjk": 1833,
    "dia_line_pct": 73.4,
-   "dia_char_pct": 41.4,
+   "dia_char_pct": 57.9,
    "psych_per_k": 3.27,
    "hook_signals": 2,
    "dup18": 0,
@@ -819,7 +819,7 @@
   "第025章.md": {
    "cjk": 1943,
    "dia_line_pct": 52.5,
-   "dia_char_pct": 25.4,
+   "dia_char_pct": 41.9,
    "psych_per_k": 2.06,
    "hook_signals": 1,
    "dup18": 0,
@@ -848,12 +848,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 7
+   "warns": 6
   },
   "第026章.md": {
    "cjk": 1874,
    "dia_line_pct": 69.6,
-   "dia_char_pct": 27.6,
+   "dia_char_pct": 65.0,
    "psych_per_k": 2.13,
    "hook_signals": 0,
    "dup18": 0,
@@ -882,12 +882,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 5
+   "warns": 4
   },
   "第027章.md": {
    "cjk": 1903,
    "dia_line_pct": 64.5,
-   "dia_char_pct": 33.9,
+   "dia_char_pct": 62.4,
    "psych_per_k": 1.05,
    "hook_signals": 1,
    "dup18": 0,
@@ -921,7 +921,7 @@
   "第028章.md": {
    "cjk": 1825,
    "dia_line_pct": 60.7,
-   "dia_char_pct": 35.6,
+   "dia_char_pct": 52.2,
    "psych_per_k": 1.1,
    "hook_signals": 1,
    "dup18": 0,
@@ -955,7 +955,7 @@
   "第029章.md": {
    "cjk": 1827,
    "dia_line_pct": 55.4,
-   "dia_char_pct": 25.9,
+   "dia_char_pct": 53.3,
    "psych_per_k": 1.64,
    "hook_signals": 1,
    "dup18": 0,
@@ -984,12 +984,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 11
+   "warns": 10
   },
   "第030章.md": {
    "cjk": 1875,
    "dia_line_pct": 61.3,
-   "dia_char_pct": 27.1,
+   "dia_char_pct": 50.1,
    "psych_per_k": 1.07,
    "hook_signals": 1,
    "dup18": 0,
@@ -1018,12 +1018,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第031章.md": {
    "cjk": 1820,
    "dia_line_pct": 78.3,
-   "dia_char_pct": 47.7,
+   "dia_char_pct": 72.4,
    "psych_per_k": 2.75,
    "hook_signals": 1,
    "dup18": 0,
@@ -1057,7 +1057,7 @@
   "第032章.md": {
    "cjk": 1873,
    "dia_line_pct": 66.1,
-   "dia_char_pct": 28.0,
+   "dia_char_pct": 55.3,
    "psych_per_k": 1.07,
    "hook_signals": 0,
    "dup18": 0,
@@ -1086,12 +1086,12 @@
    "aphor_endings": 1,
    "status": "WARN",
    "fails": 0,
-   "warns": 10
+   "warns": 9
   },
   "第033章.md": {
    "cjk": 1800,
    "dia_line_pct": 73.6,
-   "dia_char_pct": 36.3,
+   "dia_char_pct": 67.3,
    "psych_per_k": 1.11,
    "hook_signals": 0,
    "dup18": 0,
@@ -1125,7 +1125,7 @@
   "第034章.md": {
    "cjk": 1867,
    "dia_line_pct": 68.5,
-   "dia_char_pct": 47.1,
+   "dia_char_pct": 68.7,
    "psych_per_k": 0.54,
    "hook_signals": 1,
    "dup18": 0,
@@ -1159,7 +1159,7 @@
   "第035章.md": {
    "cjk": 1809,
    "dia_line_pct": 73.7,
-   "dia_char_pct": 35.3,
+   "dia_char_pct": 64.3,
    "psych_per_k": 2.21,
    "hook_signals": 0,
    "dup18": 0,
@@ -1193,7 +1193,7 @@
   "第036章.md": {
    "cjk": 1806,
    "dia_line_pct": 66.1,
-   "dia_char_pct": 41.5,
+   "dia_char_pct": 72.0,
    "psych_per_k": 0.55,
    "hook_signals": 0,
    "dup18": 0,
@@ -1227,7 +1227,7 @@
   "第037章.md": {
    "cjk": 1836,
    "dia_line_pct": 72.7,
-   "dia_char_pct": 31.0,
+   "dia_char_pct": 70.3,
    "psych_per_k": 0.54,
    "hook_signals": 0,
    "dup18": 0,
@@ -1261,7 +1261,7 @@
   "第038章.md": {
    "cjk": 1872,
    "dia_line_pct": 61.1,
-   "dia_char_pct": 30.1,
+   "dia_char_pct": 55.7,
    "psych_per_k": 1.07,
    "hook_signals": 1,
    "dup18": 1,
@@ -1295,7 +1295,7 @@
   "第039章.md": {
    "cjk": 1849,
    "dia_line_pct": 68.3,
-   "dia_char_pct": 45.9,
+   "dia_char_pct": 63.4,
    "psych_per_k": 2.16,
    "hook_signals": 1,
    "dup18": 0,
@@ -1329,7 +1329,7 @@
   "第040章.md": {
    "cjk": 1938,
    "dia_line_pct": 62.7,
-   "dia_char_pct": 28.4,
+   "dia_char_pct": 45.1,
    "psych_per_k": 1.55,
    "hook_signals": 1,
    "dup18": 0,
@@ -1358,12 +1358,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 9
+   "warns": 8
   },
   "第041章.md": {
    "cjk": 1806,
    "dia_line_pct": 53.6,
-   "dia_char_pct": 25.4,
+   "dia_char_pct": 39.9,
    "psych_per_k": 3.88,
    "hook_signals": 1,
    "dup18": 0,
@@ -1392,12 +1392,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 8
+   "warns": 7
   },
   "第042章.md": {
    "cjk": 1803,
    "dia_line_pct": 58.7,
-   "dia_char_pct": 28.6,
+   "dia_char_pct": 46.9,
    "psych_per_k": 3.88,
    "hook_signals": 0,
    "dup18": 1,
@@ -1426,12 +1426,12 @@
    "aphor_endings": 0,
    "status": "WARN",
    "fails": 0,
-   "warns": 11
+   "warns": 10
   },
   "第043章.md": {
    "cjk": 1830,
    "dia_line_pct": 59.4,
-   "dia_char_pct": 36.6,
+   "dia_char_pct": 46.0,
    "psych_per_k": 1.09,
    "hook_signals": 0,
    "dup18": 0,
@@ -1465,7 +1465,7 @@
   "第044章.md": {
    "cjk": 1930,
    "dia_line_pct": 60.0,
-   "dia_char_pct": 37.9,
+   "dia_char_pct": 41.9,
    "psych_per_k": 1.55,
    "hook_signals": 1,
    "dup18": 0,
@@ -1499,7 +1499,7 @@
   "第045章.md": {
    "cjk": 1868,
    "dia_line_pct": 61.5,
-   "dia_char_pct": 35.0,
+   "dia_char_pct": 46.9,
    "psych_per_k": 0.54,
    "hook_signals": 0,
    "dup18": 0,

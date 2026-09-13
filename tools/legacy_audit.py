@@ -61,6 +61,10 @@ def audit_chapter(fp):
     psy = len(PSYCH_PAT.findall(t)) / max(1, n) * 1000
     findings["心理缺失"] = [f"心理活动{psy:.1f}/千字(<1.0)"] if psy < 1.0 else []
 
+    # E 对话密度(与check.py #16同口径: 对白段整段/全文; <40%入单)
+    dpct = sum(cjk(pp) for pp in paras if "\u201c" in pp) / max(1, n) * 100
+    findings["对话不足"] = [f"对话{dpct:.0f}%(<40%)"] if dpct < 40 else []
+
     # 优先级: 格言条数*3 + 段超幅度 + 语气词缺幅*2 + 心理缺幅
     score = len(aphor) * 3
     score += max(0, avg - 30)
@@ -69,6 +73,8 @@ def audit_chapter(fp):
     if psy < 1.0:
         score += (1.0 - psy) * 3
     score += len(longs) * 2
+    if dpct < 40:
+        score += (40 - dpct) * 0.5
     return n, score, findings, {"段均": round(avg, 1), "语气/千": round(tw, 1), "心理/千": round(psy, 1)}
 
 
@@ -96,13 +102,13 @@ def main():
         work.append((f, score, findings, m))
         print(f"{f.name:<12}{score:>6}{m['段均']:>6}{m['语气/千']:>7}{m['心理/千']:>7}  {kinds[:60]}")
     print(f"\n待修章数: {len(work)}/{len(rows)}  优先级总和: {vol_sum:.0f}")
-    print("口径: 优先级=格言×3+段超幅度+语气缺幅×2+心理缺幅×3+长段×2; 从上往下修,每章完跑 check.py 复验")
+    print("口径: 优先级=格言×3+段超幅度+语气缺幅×2+心理缺幅×3+长段×2+对话缺幅×0.5; 从上往下修,每章完跑 check.py 复验")
 
     if write:
         out = root / "ledgers" / "修订期清单.md"
         out.parent.mkdir(exist_ok=True)
         lines = ["# 修订期清单(存量修剪)", "",
-                 f"> 由 tools/legacy_audit.py 自动生成; 优先级=格言×3+段超幅度+语气缺幅×2+心理缺幅×3+长段×2。",
+                 f"> 由 tools/legacy_audit.py 自动生成; 优先级=格言×3+段超幅度+语气缺幅×2+心理缺幅×3+长段×2+对话缺幅×0.5。",
                  "> 修订完成一章后: 重跑本脚本,该章自动出清单; 同步 check.py 复验。", "",
                  "| 章 | 优先级 | 病灶明细 |", "|---|---|---|"]
         for f, score, findings, m in work:
