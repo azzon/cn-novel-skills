@@ -5,7 +5,7 @@ legacy_audit.py 存量修剪清单生成器(修订期专项的机器化入口)
 
 扫描全部存量章,按四类病灶出修复清单+优先级评分:
   A 格言/判词密度   (不是X而是Y/这不是…/这叫…)       >0 即入单
-  B 段落形态        段均>30字=匀速感/长段(>150字)     超标入单
+  B 段落形态        段均>30字=匀速感/长段(>=110字,与check同口径)  超标入单
   C 语气词密度      对白内 吧呢啊嘛呗哦呀嘿啦 /千字    <3 入单
   D 心理活动密度    每千字<1.0 严重缺失                <1.0 入单
 
@@ -19,7 +19,7 @@ import re, sys, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APHOR_PAT = re.compile(r"(不是[^。」』]{1,12}[，。]而是|这不是[^。」』]{1,10}[，。]?是|一种叫[^。」』]{1,6}的东西|这话叫|就是道理)")
-TW_PAT = re.compile(r"[吧呢啊嘛呗哦呀嘿啦]")
+TW_PAT = re.compile(r"[吧呢啊嘛呗哦呀嘿啦呃嗯啦呀咧哩]")   # 与check.py主表对齐(含单字组)
 PSYCH_PAT = re.compile(r"(他想|她想|心想|暗想|心里|心中|心底|心知|他明白|她明白|他知道|她知道|意识到)")
 
 
@@ -48,9 +48,9 @@ def audit_chapter(fp):
     # B 段落
     plens = [cjk(p) for p in paras]
     avg = sum(plens) / len(plens) if plens else 0
-    longs = [(i, l) for i, l in enumerate(plens) if l > 150]
+    longs = [(i, l) for i, l in enumerate(plens) if l >= 110]   # 与check.py #11长段110同口径(审计-32:150vs110两口径)
     findings["段均超标"] = ([f"段均{avg:.1f}(>30)"] if avg > 30 else []) + \
-                          [f"第{i}段{l}字(>150)" for i, l in longs]
+                          [f"第{i}段{l}字(>=110)" for i, l in longs]
 
     # C 语气词
     dia = "".join(re.findall(r"\u201c([^\u201c\u201d]+)\u201d", t))

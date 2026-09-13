@@ -39,7 +39,7 @@ def score_chapter(fp):
     # 3. 语气词密度 (10分): ≥8/千字对白满
     dtxt = "".join(re.findall(r"\u201c([^\u201d]*)\u201d", t))
     dl2 = cjk(dtxt)
-    tlw = ["啊","呗","嘛","呃","那啥","反正","横竖","嗯","哦","啦","呀"]
+    tlw = ["啊","呗","嘛","呃","那啥","反正","横竖","得嘞","嗯","哦","啦","呀","咧","哩","得了","行了","算了吧","咋"]   # 与check.py #21主表统一(审计-32:四处词表各异)
     tl = sum(dtxt.count(w) for w in tlw)
     tl_k = tl / dl2 * 1000 if dl2 > 0 else 0
     tl_score = min(10, tl_k / 8 * 10)

@@ -140,7 +140,7 @@ def cmd_record():
     data = collect(book)
     baseline.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     tag = "主书" if book == ROOT else f"书根{book.name}"
-    print(f"[{tag}]基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 质量均分{data.get('quality_avg')} / skills={data['skills'][:15]} 自测={data.get("self_test","?")[:15]}")
+    print(f"[{tag}]基线已记录: {len(data['chapters'])}章 / {data['total_cjk']}字 / 质量均分{data.get('quality_avg')} / skills={data['skills'][:15]} 自测={str(data.get('self_test','?'))[:15]}")
     return 0
 
 
