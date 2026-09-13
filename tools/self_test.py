@@ -116,9 +116,26 @@ def test_new_gates():
             case(f"门命中:{key}", key in out, "未命中")
 
 
+def test_n1_assembly():
+    print("[8] N1拼装疤门三态")
+    import subprocess
+    cases = {
+        "真事故100%": ("崔兰来送饭，听说了这件事，把饭盒往桌上一放：“大龙，你娘的药吃了吗？”\n\n王大龙低头扒饭。\n\n崔兰来送饭，听说了这件事，把饭盒往桌上一放：“迅捷两千五？”", "FAIL"),
+        "动作框架87%": ("王大龙抬起头，看了崔兰一眼。\n\n崔兰把饭盒放下。\n\n王大龙看了马小丁一眼。\n\n马小丁没说话。", "WARN"),
+    }
+    for name, (body, want) in cases.items():
+        f = pathlib.Path(tempfile.mkdtemp()) / "第993章.md"
+        f.write_text(f"第993章 测试\n\n{body}\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "check.py"), "--modern", str(f)],
+                           capture_output=True, text=True)
+        got = "FAIL" if "拼装疤" in r.stdout else ("WARN" if "段首句疑似" in r.stdout else "无")
+        case(f"拼装疤:{name}→{want}", got == want, f"got={got}")
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
-             test_card_check_nums, test_legacy_aphor_exemption, test_new_gates]
+             test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
+             test_n1_assembly]
     for t in tests:
         try:
             t()

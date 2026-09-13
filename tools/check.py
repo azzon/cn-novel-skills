@@ -583,11 +583,15 @@ def check(fp: pathlib.Path):
     if n >= 1500 and not has_idle:
         pass  # 闲笔检查已在上方
 
-    # 53) 无冲突检测(大审计-28根因: 没有阻碍=没有场景=读者弃书)
-    _conflict_words = ["不行","反对","不行","不同意","等等","问题","麻烦","不对","不行","但是","可是","拒绝","不要","不行","不能","还没","还没","失败","坏了","出事","急"]
-    _has_conflict = any(w in body for w in _conflict_words)
-    if n >= 1500 and not _has_conflict:
-        issues.append("无冲突检测: 全章没有任何角色表达反对/遇到困难/面临阻碍——没有冲突就没有场景(大审计-28根因)")
+    # 53) 无冲突检测(大审计-28根因; 审计-32: 旧词表含"但是/问题/急"高频词+any()恒真=死检查,改强词计数)
+    _conflict_words = ["不行","反对","不同意","拒绝","不要","不能","失败","坏了","出事","办不成","没成","驳回","拦住","堵回","翻脸","谈崩","闹翻","卡住","凑不出","拿不出","交不起","还不上"]
+    _conflict_cnt = sum(body.count(w) for w in _conflict_words)
+    metrics["conflict_hits"] = _conflict_cnt
+    if n >= 1500 and _conflict_cnt == 0:
+        # 审计-32实测: 对赌/封锁/挖角等叙事式冲突不落词表(ch2/7/10/17/21/23全是强冲突章零命中)——语义判定归冷读,机器只降级提示
+        warns.append("全章零强冲突词——正则判不了冲突存在性(叙事式冲突不落词),冲突是否成立交冷读/场景验收人工判")
+    elif n >= 1500 and _conflict_cnt <= 2:
+        warns.append(f"冲突词仅{_conflict_cnt}处——检查本章阻碍是否足够具体")
 
     # 52) 峰后解释检测(大审计-29最高优先: 峰后必释=杀掉心头一紧)
     # 检测: 情感词(疼/哭/暖/怕/红了/热了)出现在前一段,后一段含叙述者解释动词(想明白/知道/懂了/明白了/原来/这就叫/因为)
@@ -670,6 +674,51 @@ def check(fp: pathlib.Path):
     if _qbal != 0:
         _dir = "缺右引号" if _qbal > 0 else "多右引号"
         issues.append(f"引号不闭合(FAIL): 净{_dir}{abs(_qbal)}个,首异常段第{_qfirst}段——跨段悬空引号(ch45事故形状)")
+
+    # 62) 拼装疤检测(大审计-32 N1: 同一场景两版并存仅换人名——"XX来送饭"双版本两次成灾,
+    # 18字原样重复#15/Jaccard#46/G5/G8四门全漏; 方案=段首句名词槽归一化+骨架相似度)
+    import difflib as _difflib
+    from collections import Counter as _Cnt2
+    _names = set()
+    _vc = pathlib.Path(__file__).resolve().parent.parent / "story" / "60-圣经" / "声口卡.md"
+    if _vc.exists():
+        _names = {m.group(1).strip() for m in re.finditer(r"^##\s*(.+?)\s*$", _vc.read_text(encoding="utf-8"), re.M)}
+        _names = {re.sub(r"（[^）]*）|\([^)]*\)", "", x) for x in _names}
+    _names |= {"马小丁", "崔兰", "王大龙", "苏棠", "陈会计", "罗胖子", "丁师傅", "麻老五", "老拐", "秦见微"}
+    def _slot_norm(s):
+        for _nm in _names:
+            s = s.replace(_nm, "⟨名⟩")
+        return re.sub(r"[\s，。！？“”—、]", "", s)
+    _first_sents = []
+    for _pp in paras:
+        # 开头句=到首个句读符(。！？：；)——ch42事故开头句以冒号接引语,split("。")会取整段被引号过滤漏掉
+        _head = re.split(r"[。！？：；]", _pp)[0]
+        _hc = cjk_len(_head)
+        if 10 <= _hc <= 40:
+            _first_sents.append(_slot_norm(_head))
+    _first_raw = []
+    for _pp in paras:
+        _head = re.split(r"[。！？：；]", _pp)[0]
+        _hc = cjk_len(_head)
+        if 10 <= _hc <= 40:
+            _first_raw.append(_head)
+    _frank_pairs = []
+    for _i in range(len(_first_sents)):
+        for _j in range(_i + 1, len(_first_sents)):
+            if abs(len(_first_sents[_i]) - len(_first_sents[_j])) > 6:
+                continue
+            _r = _difflib.SequenceMatcher(None, _first_sents[_i], _first_sents[_j]).ratio()
+            if _r >= 0.72:   # 0.72+冒号截断+10字下限(审计-32调参:截断修复后短句不再撑爆样本)
+                _frank_pairs.append((_r, _i, _j))
+    metrics["assembly_detail"] = [(round(r, 2), _first_raw[i][:20], _first_raw[j][:20]) for r, i, j in _frank_pairs]
+    metrics["assembly_pairs"] = len(_frank_pairs)
+    _hard = [x for x in _frank_pairs if x[0] >= 0.9]   # 真双版本开头近乎逐字(ch42原版100%); 0.85下"看了X一眼"动作框架仍会87%误报
+    _soft = [x for x in _frank_pairs if 0.72 <= x[0] < 0.9]
+    if _hard:
+        _worst = max(_hard)
+        issues.append(f"拼装疤{len(_hard)}对(FAIL,最高相似{_worst[0]:.0%})——同一场景两版并存仅换人名(ch42崔兰戏事故形状);人工核对段首,留一版删其余")
+    elif _soft:
+        warns.append(f"段首句疑似复用{_soft[0][0]:.0%}(最高)——若为'看了X一眼'类动作框架复用可豁免,若为两版场景并存则清创")
 
     # 58) 群体情绪标注(大审计-32 N6/红队A5: "全院炸了/所有人都愣住了"——情绪标注的群体变体,#38单数式盲区)
     GROUP_EMO = re.compile(r"(全院|全场|满?[屋院堂室厂]子?|整个[屋院堂室厂]|所有人|众人|大家)[一瞬时都皆齐]{0,3}(炸了锅?|愣住[了]?|安静[了下]*[了几]?秒?|沉默[了]?|倒吸|哗然|沸腾|屏住|鸦雀无声)")
