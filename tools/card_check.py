@@ -126,7 +126,7 @@ def main():
         missing = card_vals - body_vals
         if missing:
             miss = "、".join(str(int(v)) if v == int(v) else str(v) for v in sorted(missing))
-            warns.append(f"第{n:03d}章正文缺卡载数值[{miss}]: {it.strip()[:30]}——卡-文失对账(修订时数字漂移?)")
+            issues.append(f"第{n:03d}章正文缺卡载数值[{miss}]: {it.strip()[:30]}——卡-文失对账(修订时数字漂移?)")
     for l in issues:
         print(f"  [FAIL] {l}")
     for w in warns:

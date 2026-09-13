@@ -45,7 +45,7 @@ def test_fix_quotes():
     with tempfile.TemporaryDirectory() as d:
         f = pathlib.Path(d) / "t.md"
         f.write_text("”反向开头的对话。“他说。\n\n“正常。”\n\n”奇数结尾\n", encoding="utf-8")
-        subprocess.run([sys.executable, "tools/fix_quotes.py", str(f)], capture_output=True)
+        subprocess.run([sys.executable, str(ROOT / "tools" / "fix_quotes.py"), str(f)], capture_output=True)
         t = f.read_text(encoding="utf-8")
         case("反向对已修复", t.startswith("“反向开头的对话。”"), t.splitlines()[0][:20])
         case("正常行保留", "“正常。”" in t)
@@ -65,7 +65,7 @@ def test_voice_check():
     import types
     q = [("贵的也不一定是好的", "", True)]
     text_all = q[0][0]
-    case("否定前缀排除", v._negated(text_all, "一定") or "不一定" not in text_all or True)
+    case("否定前缀排除", v._negated("这不一定", "一定") and not v._negated("我一定去", "一定"))
     # 更直接: 构造_negated可测
     case("_negated(不一定)豁免", v._negated("这不一定", "一定"))
     case("_negated(一定)不豁免", not v._negated("我一定去", "一定"))
@@ -100,9 +100,25 @@ def test_legacy_aphor_exemption():
     case("该句确含判词模式(豁免前的确会误报)", m is not None)
 
 
+def test_new_gates():
+    print("[7] 大审计-32六新门")
+    import subprocess
+    with tempfile.TemporaryDirectory() as d:
+        f = pathlib.Path(d) / "第999章.md"
+        f.write_text(
+            "第999章 测试\n\n。\n\n他说“引号开着没关\n\n全院炸了。全院炸了锅。\n\n"
+            "赵大爷被他逗笑了，拍了一下大腿。崔兰又被他逗笑了。\n\n手一抖。手又抖。手再抖。\n\n"
+            "“利六百。利一百六。利二百八。合计利九百四。”他说。\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "check.py"), "--modern", str(f)],
+                           capture_output=True, text=True)
+        out = r.stdout
+        for key in ["孤立标点段", "引号不闭合", "群体情绪标注", "笑声标注", "身体反应复用", "报表对白"]:
+            case(f"门命中:{key}", key in out, "未命中")
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
-             test_card_check_nums, test_legacy_aphor_exemption]
+             test_card_check_nums, test_legacy_aphor_exemption, test_new_gates]
     for t in tests:
         try:
             t()

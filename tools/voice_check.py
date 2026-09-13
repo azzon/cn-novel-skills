@@ -88,16 +88,6 @@ def attribute_dialogue(body, people):
     return result
 
 
-def _tagged(name, q, attr):
-    """该段引号是否来自硬归属(tag行)"""
-    for qq, _, hard in attr.get(name, []):
-        if q in qq:
-            return hard
-    return False
-
-
-NEG_PREFIX = ("不", "没", "未", "别", "无", "未必", "不一定", "绝不")
-
 def _negated(text_all, w):
     """禁词被否定前缀修饰(不一定/没一定)时不算说了禁词"""
     for i in range(len(text_all)):

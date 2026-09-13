@@ -9,7 +9,7 @@ description: 立项红队预审——六维评分、预验尸(假设扑街倒推
 
 ## 前置条件
 
-构思域前23叶产物落盘。缺件→跑 `tools/gates.py ideate-complete`,按清单退回补建,不搞"先审着"。
+构思域前23叶产物落盘。缺件→跑 `python3 tools/check.py --modern`核对产物落盘(gates.py已并入check,审计-32断链修复),按清单退回补建,不搞"先审着"。
 
 ## 流程
 

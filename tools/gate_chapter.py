@@ -123,7 +123,7 @@ def shingles(text, k=18):
 
 def recompute():
     files = chapter_files()
-    nums = [parse_num(p) for p in files]
+    nums = [parse_num(p) for p in files if parse_num(p) is not None]  # 中文数字章名等无号文件剔除(审计:None入max崩溃)
     vols = scan_volumes(files)
     story_time = None
     if TIMELINE.exists():
@@ -253,7 +253,7 @@ def main():
         # G3 标题重复门
         if title:
             for num2, p2 in existing.items():
-                t2 = p2.read_text(encoding="utf-8-sig").splitlines()[0].strip() if p2.exists() else ""
+                t2 = (p2.read_text(encoding="utf-8-sig").splitlines() or [""])[0].strip() if p2.exists() else ""
                 if t2 and t2 == title:
                     problems.append(f"G3标题重复: 「{title}」与{p2.relative_to(book)}相同")
 

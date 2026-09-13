@@ -254,7 +254,7 @@ def check(fp: pathlib.Path):
         metrics["dia_char_pct"] = round(dpct, 1)
         if dpct < 35:
             issues.append(f"对话字数占比{dpct:.0f}%(<35%,严重不足:角色必须开口说话!)")
-        elif dpct < 30:
+        elif dpct < 40:
             warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
 
     # 17) 心理活动密度(用户标准:每千字≥2处心理beat)
@@ -658,6 +658,58 @@ def check(fp: pathlib.Path):
     if _half_dash:
         warns.append(f"单破折号残迹{len(_half_dash)}处——中文破折号应为'——'双字符,单'—'多为删除残留")
 
+    # 57) 稿面异物+引号平衡(大审计-32 N10/N11: 孤立标点段/跨段引号悬空——零误报FAIL)
+    _orphan_punct = [pp for pp in paras if re.fullmatch(r"[，。！？…—、;；,]+", pp.strip())]
+    if _orphan_punct:
+        issues.append(f"孤立标点段{len(_orphan_punct)}个(FAIL)——纯标点单句成段=稿面异物(ch12/15/16事故形状)")
+    _qbal, _qfirst = 0, None
+    for _i, _pp in enumerate(paras):
+        _qbal += _pp.count("\u201c") - _pp.count("\u201d")
+        if _qbal != 0 and _qfirst is None:
+            _qfirst = _i + 1   # 首个失衡段(正差=缺右引号起点,负差=多右引号)
+    if _qbal != 0:
+        _dir = "缺右引号" if _qbal > 0 else "多右引号"
+        issues.append(f"引号不闭合(FAIL): 净{_dir}{abs(_qbal)}个,首异常段第{_qfirst}段——跨段悬空引号(ch45事故形状)")
+
+    # 58) 群体情绪标注(大审计-32 N6/红队A5: "全院炸了/所有人都愣住了"——情绪标注的群体变体,#38单数式盲区)
+    GROUP_EMO = re.compile(r"(全院|全场|满?[屋院堂室厂]子?|整个[屋院堂室厂]|所有人|众人|大家)[一瞬时都皆齐]{0,3}(炸了锅?|愣住[了]?|安静[了下]*[了几]?秒?|沉默[了]?|倒吸|哗然|沸腾|屏住|鸦雀无声)")
+    _group_emo = len(GROUP_EMO.findall(body))
+    metrics["group_emo"] = _group_emo
+    if _group_emo >= 2:
+        issues.append(f"群体情绪标注{_group_emo}处(>=2=FAIL)——'全院炸了/所有人都愣住了'是情绪告知的群体变体;写具体的人的具体反应")
+    elif _group_emo == 1:
+        warns.append("群体情绪标注1处(群像高潮场面可豁免,登记waivers)")
+
+    # 59) 笑声标注公式(大审计-32 N7/红队A6: "被X逗笑了"=替笑点打分,解说笑点变体)
+    LAUGH_PAT = re.compile(r"([被把][^，。！？\u201c\u201d]{1,6}逗[得的了]?笑了?|逗[得了]?[他她它众人][^，。]{0,6}笑了?)")
+    _laugh = len(LAUGH_PAT.findall(body))
+    metrics["laugh_tag"] = _laugh
+    if _laugh >= 2:
+        issues.append(f"笑声标注{_laugh}处(>=2=FAIL)——'被逗笑了'是解说笑点:删标注让下一句人物反应自己接住")
+    elif _laugh == 1:
+        warns.append("笑声标注1处(检查是否解说笑点)")
+
+    # 60) 身体反应配额(大审计-32 N8: 同章同一身体仪表复用>=3次,如ch16手抖×4)
+    BODY_PAT = re.compile(r"手[指腕]?[一又再都发直]?抖|指尖[发颤抖]|腿一?软|后背发?凉|鼻[子头]一酸|眼眶一?热|呼吸一滞|心口一?紧|胃里一沉|喉结滚动|攥[紧出]")
+    from collections import Counter as _Counter
+    # 归一化: 剥掉修饰助词(手一抖/手又抖/手发抖→手抖)——ch16事故正是靠变体措辞绕过同token判定
+    _body_cnt = _Counter(re.sub(r"[一又再都直着了个]", "", m.group()) for m in BODY_PAT.finditer(body))
+    _body_over = [f"{k}×{v}" for k, v in _body_cnt.items() if v >= 3]
+    metrics["body_top"] = dict(_body_cnt.most_common(5))
+    if _body_over:
+        issues.append(f"身体反应复用(FAIL): {'、'.join(_body_over)}(同章同仪表>=3次)——身体反应轮换表:同一紧张仪表一章最多2次")
+
+    # 61) Excel朗读腔(大审计-32 N12/红队确认: 报表数字成串朗读,ch45事故形状)
+    _excel_hits = 0
+    for _q in re.findall(r"\u201c([^\u201c\u201d]{20,})\u201d", body):
+        _cl = [c for c in re.split(r"[。！？]", _q) if c.strip()]
+        _numc = [c for c in _cl if cjk_len(c) <= 10 and re.search(r"(利|亏|赚|流水|合计|进账|出账|成本|单价)[^，。]{0,3}[一二两三四五六七八九十百千万零\d点]+|[一二两三四五六七八九十百千万零\d点]+[块元]", c)]
+        if len(_numc) >= 4 or (len(_numc) >= 3 and "合计" in _q):
+            _excel_hits += 1
+    metrics["excel_dialog"] = _excel_hits
+    if _excel_hits >= 1:
+        issues.append(f"报表对白{_excel_hits}段(FAIL)——数字成串朗读=给对账程序看的数(ch45事故);真人只报总数+一个细节,其余进叙述")
+
     if _peak_explain >= 2:
         issues.append(f"峰后解释{_peak_explain}处(>=2=FAIL,大审计-29:峰后必释=杀掉心头一紧)——情感峰值后下一段必须是动作/物件/沉默,禁叙述者解释")
 
@@ -701,32 +753,33 @@ def check(fp: pathlib.Path):
     import collections as _col
     _fig = re.compile(r"(流水|毛利|净利|净剩|基金|学费|房租|存款|货款|本金|账上)([一二三四五六七八九十百千两0-9点零]+)")
     def _zh2int(s):
-        """中文数字→数值(大审计-18 D5: 只比字符串则'四千五'与'4500'互为假阴假阳)"""
-        m = {"零":0,"一":1,"二":2,"两":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9}
-        if s.isdigit():
-            return int(float(s))
-        total, num, ok = 0, 0, False
+        """中文口语数字→int; 末尾裸数字按最后单位升位(两千五=2500,与card_check.cn2num同口径,审计:两工具不一致致假阳假阴)"""
+        s = s.strip()
+        if not s:
+            return None
+        total, section, digit, has, last_unit = 0, 0, 0, False, None
         for ch in s:
-            if ch in m:
-                num, ok = m[ch], True
-            elif ch == "十":
-                total += (num or 1) * 10; num = 0; ok = True
-            elif ch == "百":
-                total += (num or 1) * 100; num = 0; ok = True
-            elif ch == "千":
-                total += (num or 1) * 1000; num = 0; ok = True
-            elif ch == "万":
-                total += (num or 1) * 10000; num = 0; ok = True
-        return total + num if ok else None
-    _acc = _col.defaultdict(set)
-    for _mm in _fig.finditer(body):
-        _v = _zh2int(_mm.group(2))
-        if _v is not None:
-            _acc[_mm.group(1)].add(_v)
-    _bad = {k: sorted(v) for k, v in _acc.items() if len(v) > 1}
-    metrics["money_conflict"] = len(_bad)
-    if _bad:
-        issues.append(f"金额科目数值冲突{_bad}——同章同科目出现不同数值(大审计-11 #47数值化),对齐数字表")
+            if ch in "零一二两三四五六七八九":
+                digit = {"零":0,"一":1,"二":2,"两":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9}[ch]
+                has = True
+            elif ch in "十百千万亿":
+                u = {"十":10,"百":100,"千":1000,"万":10000,"亿":100000000}[ch]
+                if u >= 10000:
+                    section = (section + digit) * u if digit else section * u
+                    total += section
+                    section, digit = 0, 0
+                else:
+                    section += (digit or 1) * u
+                    digit = 0
+                last_unit = ch
+            else:
+                return None
+        if digit:
+            lift = {"万":1000, "千":100, "百":10}.get(last_unit, 1)
+            section += digit * lift
+        return total + section if (has or section) else None
+
+
 
     # 43) 段落形态刻度(漂移审计2期: 17-20章段均>30红/长段超配)——只进METRICS+WARN,不FAIL
     para_lens = [cjk_len(x) for x in paras]

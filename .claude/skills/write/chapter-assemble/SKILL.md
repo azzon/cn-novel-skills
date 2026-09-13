@@ -36,6 +36,16 @@ description: 拼章与卫生检查——把同章2-3个已验收场景拼为一�
 
 `NEXT-SKILL: audit:reader-proxy`(章级冷读)。
 
+拼章后机器门链(审计-32:五工具此前技能层零接线,双真相源):
+```bash
+bash tools/fix_quotes.py <章文件>                                    # 引号三重修复先于一切门
+python3 tools/check.py --modern <章文件>                             # 61项质量门
+python3 tools/gate_chapter.py <章文件>                               # 韧性门G1-G9
+python3 tools/voice_check.py <章文件> [--card <书根>/声口卡.md]      # 声口卡禁词门
+python3 tools/card_check.py <章号> --volume <卷>                     # 卡-文数字对账门
+python3 tools/self_test.py                                           # 工具自测(改工具后必跑)
+```
+
 ## evals
 
 - "两场接不上"(→2.1断口检查)
