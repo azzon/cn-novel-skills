@@ -1,0 +1,246 @@
+# workflows/book_design.yaml
+# 新书设计阶段确定性工作流
+# 每个step有: id, name, type(agent/script/manual), inputs, outputs, gate
+# type=agent: 需要LLM代理执行
+# type=script: 运行已有工具
+# type=manual: 需要人工确认
+# gate: 通过条件(不通过=阻断下一步)
+
+workflow: book_design
+version: "2.0"
+description: "从零开始设计一本新书的确定性流程。所有步骤按序执行，每步有门，门不过不继续。"
+
+phases:
+  phase_1_market:
+    name: "市场调研"
+    description: "调研目标平台的当前标准、热门赛道、读者偏好"
+    steps:
+      - id: market_scan
+        name: "市场扫描"
+        type: agent
+        skill: market-scan
+        inputs:
+          - "用户的一句话想法"
+        outputs:
+          - "story/audit/市场调研.md"
+        gate:
+          - "output文件存在"
+          - "包含至少3个对标作品"
+          - "包含目标平台章长/节奏/爽点标准"
+
+      - id: 对标拆解
+        name: "对标作品拆解"
+        type: agent
+        skill: market-scan
+        inputs:
+          - "story/audit/市场调研.md"
+          - "对标作品的前10章(在线获取或用户提供的文本)"
+        outputs:
+          - "story/audit/对标拆解.md"
+        gate:
+          - "output文件存在"
+          - "包含至少3章的逐段拆解"
+          - "包含节奏分析(每章几个场景/几个爽点/几个情感拍)"
+
+  phase_2_concept:
+    name: "概念生成"
+    description: "多方案头脑风暴→红队对抗→收敛"
+    steps:
+      - id: premise_batch
+        name: "前提句批量生成"
+        type: agent
+        skill: story-incubate
+        count: 3  # 生成3个不同方向的前提
+        inputs:
+          - "用户的一句话想法"
+          - "story/audit/市场调研.md"
+        outputs:
+          - "story/audit/前提方案A.md"
+          - "story/audit/前提方案B.md"
+          - "story/audit/前提方案C.md"
+        gate:
+          - "三个方案方向不同(不是同一想法的三种措辞)"
+          - "每个方案包含:核心冲突/对手/代价/金手指/情感钩"
+
+      - id: premise_redteam
+        name: "前提红队对抗"
+        type: agent
+        skill: ideate-audit
+        inputs:
+          - "三个前提方案"
+        outputs:
+          - "story/audit/前提红队报告.md"
+        gate:
+          - "每个方案都经过六维评分"
+          - "每个方案都有预验尸(假设扑街倒推死因)"
+          - "最终推荐一个方案并说明理由"
+
+      - id: premise_select
+        name: "前提确认"
+        type: manual
+        inputs:
+          - "story/audit/前提红队报告.md"
+        outputs:
+          - "story/00-前提.md"
+        gate:
+          - "用户确认最终方案"
+          - "story/00-前提.md已填写"
+
+  phase_3_characters:
+    name: "角色设计"
+    description: "声口卡+人物圣经+关系网络"
+    steps:
+      - id: voice_cards
+        name: "角色声口卡"
+        type: agent
+        skill: dialogue-voice
+        inputs:
+          - "story/00-前提.md"
+          - "story/60-圣经/声口对照.md"
+        outputs:
+          - "story/60-圣经/声口卡.md"
+        gate:
+          - "每个主要角色一张卡"
+          - "每张卡包含:聪明等级/知识域/3口头禅/3禁词/碎片习惯/废话主题/说话目的/信息盲区/性格关键/弧光方向"
+          - "聪明预算分级:A级仅主角/B级限领域/C级普通/D级偶尔"
+          - "遮名测试通过"
+
+      - id: char_bible
+        name: "人物圣经"
+        type: agent
+        skill: char-bible
+        inputs:
+          - "story/00-前提.md"
+          - "story/60-圣经/声口卡.md"
+        outputs:
+          - "story/20-人物/人物圣经.md"
+        gate:
+          - "每个主要角色有:生理/社会/心理三层+ghost/wound/lie/want/need弧线链"
+          - "角色关系网络图完成"
+          - "无角色功能重叠"
+
+  phase_4_world:
+    name: "世界构建"
+    description: "世界规则/经济/文化/地理"
+    steps:
+      - id: world_rules
+        name: "世界规则"
+        type: agent
+        skill: world-rules
+        inputs:
+          - "story/00-前提.md"
+        outputs:
+          - "story/10-世界/规则.md"
+        gate:
+          - "核心规则有边界和代价"
+          - "规则不会被主角轻易绕过"
+      - id: world_economy
+        name: "经济体系"
+        type: agent
+        skill: world-economy
+        inputs:
+          - "story/00-前提.md"
+        outputs:
+          - "story/10-世界/经济.md"
+        gate:
+          - "物价锚点≥10个"
+          - "主角生存账可算"
+      - id: world_culture
+        name: "文化体系"
+        type: agent
+        skill: world-culture
+        inputs:
+          - "story/00-前提.md"
+        outputs:
+          - "story/10-世界/文化.md"
+        gate:
+          - "称谓体系/礼俗禁忌/节令叙事完成"
+
+  phase_5_plot:
+    name: "情节架构"
+    description: "主线/卷纲/冲突升级/爽点管道"
+    steps:
+      - id: plot_spine
+        name: "全书主线"
+        type: agent
+        skill: plot-spine
+        inputs:
+          - "story/00-前提.md"
+          - "story/20-人物/人物圣经.md"
+        outputs:
+          - "story/30-情节/主线.md"
+        gate:
+          - "核心冲突句(一个问句)存在"
+          - "三段式或四段式结构完整"
+          - "冲突升级追踪表填完"
+      - id: volume_outline
+        name: "卷一纲"
+        type: agent
+        skill: volume-outline
+        inputs:
+          - "story/30-情节/主线.md"
+        outputs:
+          - "story/30-情节/卷一纲.md"
+        gate:
+          - "三峰位置确定"
+          - "每章有单元型/压弹/主线心跳/情感拍/笑点责任"
+          - "冲突升级追踪表更新(本卷对手能威胁上一卷主角)"
+      - id: red_team
+        name: "大纲红队"
+        type: agent
+        skill: ideate-audit
+        inputs:
+          - "story/30-情节/卷一纲.md"
+          - "story/audit/研究-网文爽点设计2026.md"
+        outputs:
+          - "story/audit/大纲红队报告.md"
+        gate:
+          - "红队判定=放行或放行带修改"
+          - "放行带修改的修改项已全部落地"
+
+  phase_6_style:
+    name: "风格校准"
+    description: "风格包+范例段+首章验算"
+    steps:
+      - id: style_pack
+        name: "风格包"
+        type: agent
+        skill: style-compiler
+        inputs:
+          - "story/00-前提.md"
+          - "对标作品范例段"
+        outputs:
+          - "story/50-风格包.md"
+        gate:
+          - "风格卡完成(声音档案)"
+          - "范例段≥3段(不同类型:家庭/对抗/温情)"
+          - "劣稿锚存在(知道什么是坏的)"
+      - id: first_300
+        name: "首章前300字验算"
+        type: agent
+        skill: golden-opening
+        inputs:
+          - "story/50-风格包.md"
+        outputs:
+          - "首章前300字草稿"
+        gate:
+          - "悬念≤30字"
+          - "金手指≤500字"
+          - "爽点≤1500字"
+          - "死局在第一章成立"
+          - "前300字得分≥7/10"
+
+  final_gate:
+    name: "设计阶段终门"
+    description: "所有设计文档完成后,最终检查"
+    checks:
+      - "小说设计文档已填写(核心冲突/代价系统/角色声口卡/赢法轮换表/冲突升级追踪/爽点管道/情感伏笔账本)"
+      - "前提方案确认(不是三个里随便挑的)"
+      - "红队报告通过"
+      - "角色声口卡≥5张且遮名测试通过"
+      - "世界规则/经济/文化完成"
+      - "卷一纲通过红队"
+      - "风格包范例段校准"
+      - "首章前300字得分≥7"
+    on_pass: "进入章节生产阶段"
+    on_fail: "列出未通过项,退回对应phase修补"

@@ -1,0 +1,77 @@
+# workflows/periodic.yaml
+# 周期性审计确定性工作流
+
+workflow: periodic
+version: "2.0"
+
+phases:
+  every_10:
+    name: "每10章审计"
+    trigger: "章号 % 10 == 0"
+    steps:
+      - id: drift_audit
+        name: "漂移审计"
+        type: agent
+        outputs: ["story/audit/漂移审计-第N期.md"]
+        gate: ["报告存在且包含数据表"]
+      - id: style_recal
+        name: "风格包范例段更新"
+        type: agent
+        inputs: ["近10章中评分最高的3段"]
+        outputs: ["story/50-风格包.md(范例段替换)"]
+        gate: ["范例段≥3段且来自不同章"]
+      - id: voice_check
+        name: "角色声口复核"
+        type: agent
+        inputs: ["近10章对白+声口卡"]
+        outputs: ["story/audit/声口复核-第N期.md"]
+        gate: ["无新增S级装对白"]
+      - id: conflict_check
+        name: "冲突升级检查"
+        type: script
+        script: "检查冲突升级追踪表是否需要更新"
+        gate: ["冲突规模比上期大"]
+      - id: evals_rebaseline
+        name: "evals基线重录"
+        type: script
+        script: "python3 tools/evals.py record"
+
+  volume_end:
+    name: "卷末审计"
+    trigger: "卷最后一章done通过"
+    steps:
+      - id: arc_review
+        name: "连读审查"
+        type: agent
+        skill: arc-review
+        inputs: ["本卷全部章节"]
+        outputs: ["story/audit/连读审查-卷N.md"]
+      - id: consistency_audit
+        name: "一致性审计"
+        type: agent
+        skill: consistency-audit
+        inputs: ["本卷全部章节+全部台账"]
+        outputs: ["story/audit/一致性审计-卷N.md"]
+        gate: ["矛盾清单中P0=0"]
+      - id: character_audit
+        name: "人设漂移审计"
+        type: agent
+        skill: character-audit
+        inputs: ["本卷全部章节+人物圣经"]
+        outputs: ["story/audit/人设审计-卷N.md"]
+      - id: volume_retro
+        name: "卷末复盘"
+        type: agent
+        inputs: ["卷二纲+实际产出+全部审计报告"]
+        outputs: ["story/audit/卷N复盘.md"]
+        gate:
+          - "三峰位置回顾"
+          - "下一卷冲突升了一级吗"
+          - "伏笔对账(应收的收了吗/该养的在养吗)"
+      - id: next_volume_plan
+        name: "下一卷大纲"
+        type: agent
+        skill: volume-outline
+        inputs: ["卷N复盘+当前时刻卡+下一卷冲突升级要求"]
+        outputs: ["story/30-情节/卷(N+1)纲.md"]
+        gate: ["红队通过"]

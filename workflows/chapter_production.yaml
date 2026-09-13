@@ -1,0 +1,139 @@
+# workflows/chapter_production.yaml
+# 章节生产阶段确定性工作流
+# 每章经过以下步骤，任何一步FAIL不继续
+
+workflow: chapter_production
+version: "2.0"
+description: "单章从场景卡到入库的确定性流程"
+
+phases:
+  phase_1_prep:
+    name: "章节准备"
+    steps:
+      - id: scene_card
+        name: "场景卡"
+        type: agent
+        skill: scene-card
+        inputs:
+          - "ledgers/当前时刻卡.md"
+          - "story/30-情节/卷X纲.md"
+          - "上章末段原文(500字)"
+          - "story/60-圣经/声口卡.md"
+        outputs:
+          - "text/卡/卷X-第NNN章-场1.md"
+        gate:
+          - "卡包含:情感目标/冲突源/代价/赢法类型/峰值场景/峰后动作/开场型"
+          - "开场型与前两章错型"
+          - "数字表完成(所有数字事实列出)"
+          - "Forbid列表非空"
+          - "continues_from填了(承接上章末)"
+
+      - id: bundle_check
+        name: "注入物检查"
+        type: script
+        script: "python3 tools/pipeline.py bundle {N}"
+        gate:
+          - "所有注入物无裁剪标记"
+          - "总字数在上限内"
+
+  phase_2_draft:
+    name: "初稿生成"
+    steps:
+      - id: draft
+        name: "生成初稿"
+        type: agent
+        skill: scene-draft
+        inputs:
+          - "pipeline bundle输出(含PREFIX/卡/声纹/风格卡/上一章末/时刻卡/圣经/伏笔/钩型/素材/爽点管道/口碑账)"
+          - "text/卡/卷X-第NNN章-场1.md"
+        outputs:
+          - "text/卷X/第NNN章.md"
+        gate:
+          - "CJK字数≥2500(硬线)"
+          - "直引号=0"
+          - "破折号≤3"
+          - "money_conflict=0"
+          - "near_dup=0"
+
+  phase_3_review:
+    name: "审改"
+    steps:
+      - id: self_review
+        name: "自审"
+        type: agent
+        skill: scene-audit
+        inputs:
+          - "text/卷X/第NNN章.md"
+          - "text/卡/卷X-第NNN章-场1.md"
+        outputs:
+          - "story/audit/自审-第NNN章.md"
+        gate:
+          - "场景卡的所有beats都有正文对应"
+          - "价值换极发生了"
+          - "Forbid没有违犯"
+          - "峰后禁释令合规"
+          - "对白声口合规"
+      - id: cold_read
+        name: "冷读"
+        type: agent
+        skill: reader-proxy
+        inputs:
+          - "text/卷X/第NNN章.md"
+          - "上章末段原文(500字)"
+        outputs:
+          - "story/audit/冷读-第NNN章.md"
+        gate:
+          - "判定不是REWRITE/HOOK_FAIL"
+          - "跳读≤2处"
+          - "追读欲不是无所谓"
+      - id: machine_gates
+        name: "机器门"
+        type: script
+        script: "python3 tools/check.py --modern text/卷X/第NNN章.md"
+        gate:
+          - "FAIL=0"
+
+  phase_4_revise:
+    name: "修订(条件执行)"
+    condition: "phase_3任一步FAIL"
+    steps:
+      - id: revise
+        name: "修订"
+        type: agent
+        skill: "根据FAIL类型选择: scene-rewrite/tighten/de-ai/dialogue-doctor/tone-shift"
+        inputs:
+          - "审改报告"
+          - "当前稿件"
+        outputs:
+          - "修订后的稿件"
+        loop: "回到phase_3重新审改,直到全部通过或迭代5次"
+
+  phase_5_finalize:
+    name: "归档"
+    steps:
+      - id: done
+        name: "验收"
+        type: script
+        script: "python3 tools/pipeline.py done {N}"
+        gate:
+          - "done返回✅"
+      - id: ledger
+        name: "台账盖章"
+        type: manual
+        skill: ledger-update
+        gate:
+          - "八账全部包含本章条目"
+      - id: memory
+        name: "记忆更新"
+        type: manual
+        skill: story-bible
+        gate:
+          - "章摘要已更新"
+          - "当前时刻卡已更新(下一章指向+上一章末拍)"
+      - id: commit
+        name: "提交"
+        type: script
+        script: "git add -A && git commit && git push"
+        gate:
+          - "pre-commit hook通过"
+          - "evals无回归"
