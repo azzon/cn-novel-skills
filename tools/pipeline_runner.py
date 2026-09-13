@@ -54,7 +54,11 @@ def step_check_card(n):
     if card is None:
         return False, "场景卡不存在"
     ct = card.read_text(encoding="utf-8")
-    required = ["情感目标", "冲突源", "代价", "赢法类型", "峰值场景", "峰后动作", "开场型", "阻碍"]
+    # 存量章(ch≤45)用旧标准: 场景型/价值/钩; 新章(ch≥46)用新标准
+    if n <= 45:
+        required = ["场景型", "价值", "钩"]
+    else:
+        required = ["场景型", "价值", "钩", "情感目标", "冲突源", "代价", "赢法类型", "峰值场景", "峰后动作", "开场型", "阻碍"]
     missing = [f for f in required if f not in ct]
     if missing:
         return False, f"场景卡缺字段: {missing}"
