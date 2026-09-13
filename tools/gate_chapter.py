@@ -216,11 +216,11 @@ def main():
         cn = cjk_len(body)
         if cn < 1500:
             if mode == "new":
-                problems.append(f"G1字数硬底线: 新章仅{cn}字(<1800硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写")
+                problems.append(f"G1字数硬底线: 新章仅{cn}字(<2500硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
             else:
-                warns.append(f"G1存量短章{cn}字(<1500)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
+                warns.append(f"G1存量短章{cn}字(<2000)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
         elif cn < 2000:
-            warns.append(f"G1字数{cn}(<2000,目标2500-3200)")
+            warns.append(f"G1字数{cn}(<3000,目标3500-5000)——章节短=场景浅,读者无沉浸感")
 
         # G2 章号重复门
         if n is not None and n in existing:

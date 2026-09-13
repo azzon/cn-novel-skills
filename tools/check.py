@@ -579,6 +579,15 @@ def check(fp: pathlib.Path):
 
     if n >= 1500 and not has_idle:
         pass  # 闲笔检查已在上方
+
+    # 51) 场景深度检测(大审计-28根因: 概述代替场景=读者无画面感)
+    # 统计具体动作动词密度(拆/拧/按/推/焊/擦/切/倒/塞/挂/抽/掰/踹/拽/搓/抹/摁/戳)
+    _action_verbs = ["拆","拧","按","推","焊","擦","切","倒","塞","挂","抽","掰","踹","拽","搓","抹","摁","戳","夹","舀","舖","搭","掰","拨"]
+    _action_count = sum(body.count(v) for v in _action_verbs)
+    action_per_k = round(_action_count / n * 1000, 1) if n > 0 else 0
+    metrics["action_per_k"] = action_per_k
+    if n >= 1500 and action_per_k < 5:
+        warns.append(f"场景深度不足: 动作动词密度{action_per_k}/千字(<5)——概述代替了场景,读者无画面感(大审计-28根因)")
     if n >= 1500 and not has_idle:
         warns.append("未检出闲笔段(≥50字含具体名词且不挂任务词)——每章≥1处过日子内容(audits/16 R2,热粥案条款)")
 
