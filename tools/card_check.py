@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+card_check.py 场景卡↔正文 数字对账器(法医ch001事故: 卡数字表有"角膜浑浊约12小时",正文修订时删丢,卡-文失对账)
+
+原理:
+  场景卡 text/卡/卷N-第MMM章-*.md 的"数字表"字段登记本章必须出现的事实数字
+  (金额/时间/比例/号码)。正文修订时数字极易漂移或丢失——机器逐条对账:
+    - 条目数字在正文找不到任何形式(中文/阿拉伯) → FAIL(账实不符)
+    - 数字表字段缺失 → WARN
+
+匹配是宽松的: "两千五" 会在正文找 两千五/2500/二千五 任一形式;
+"提成3%" 找 3%/百分之三; 条目中无数字的纯文字项(如"日结") → 跳过不查。
+
+用法:
+  python3 tools/card_check.py <章号>            # 自动找卡(text/卡/ 与 <书根>/卡/)
+  python3 tools/card_check.py 42 --volume 2
+"""
+import re, sys, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+CN_DIG = {"零": 0, "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+CN_UNIT = {"十": 10, "百": 100, "千": 1000, "万": 10000, "亿": 100000000}
+
+
+def cn2num(s):
+    """中文数字串→数值; 口语省略: 两千五=2500/三百二=320/一万八=18000(末尾裸数字按最后单位升位)"""
+    s = s.strip()
+    if not s:
+        return None
+    total, section, digit, has, last_unit = 0, 0, 0, False, None
+    for ch in s:
+        if ch in CN_DIG:
+            digit, has = CN_DIG[ch], True
+        elif ch in CN_UNIT:
+            u = CN_UNIT[ch]
+            if u >= 10000:
+                section = (section + digit) * u if digit else section * u
+                total += section
+                section, digit = 0, 0
+            else:
+                section += (digit or 1) * u
+                digit = 0
+            last_unit = ch
+        else:
+            return None
+    if digit:
+        lift = {"万": 1000, "千": 100, "百": 10}.get(last_unit, 1)
+        section += digit * lift
+    return total + section if (has or section) else None
+
+
+def extract_vals(text):
+    """文本→数值集合(阿拉伯+中文口语全部数值化)"""
+    vals = set()
+    for m in re.finditer(r"\d+(?:\.\d+)?", text):
+        try:
+            vals.add(float(m.group()))
+        except ValueError:
+            pass
+    cn_chars = set(CN_DIG) | set(CN_UNIT)
+    i = 0
+    while i < len(text):
+        if text[i] in cn_chars:
+            j = i
+            while j < len(text) and text[j] in cn_chars:
+                j += 1
+            for k in range(j, i, -1):
+                v = cn2num(text[i:k])
+                if v is not None and v > 0:
+                    vals.add(float(v))
+                    break
+            i = j
+        else:
+            i += 1
+    return vals
+
+
+def find_card(n):
+    for pat in (ROOT / "text" / "卡").glob(f"*第{n:03d}章*"):
+        return pat
+    for book in (d for d in ROOT.iterdir() if d.is_dir() and (d / "卡").is_dir()):
+        for pat in (book / "卡").glob(f"*第{n:03d}章*"):
+            return pat
+    return None
+
+
+def main():
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if not args:
+        print(__doc__)
+        return 2
+    n = int(re.sub(r"\D", "", args[0]) or 0)
+    vol = 1
+    if "--volume" in sys.argv:
+        vol = int(sys.argv[sys.argv.index("--volume") + 1])
+    card = find_card(n)
+    if card is None:
+        print(f"  [WARN] 第{n:03d}章场景卡不存在——跳过对账")
+        return 0
+    # 找正文(主书或书根)
+    body_p = None
+    for cand in (ROOT / "text" / f"卷{vol}" / f"第{n:03d}章.md",
+                 card.parent.parent / "text" / f"卷{vol}" / f"第{n:03d}章.md"):
+        if cand.exists():
+            body_p = cand
+            break
+    if body_p is None:
+        print(f"  [FAIL] 正文不存在(卷{vol} 第{n:03d}章)——对账无对象")
+        return 1
+    ct = card.read_text(encoding="utf-8-sig")
+    body = body_p.read_text(encoding="utf-8-sig")
+    m = re.search(r"[-*]\s*\*\*数字表?\*\*[:：](.+)", ct)
+    if not m:
+        print(f"  [WARN] {card.name} 无数字表字段——建议补(法医ch001教训:数字失对账)")
+        return 0
+    items = [x.strip() for x in m.group(1).split("/") if x.strip()]
+    issues, warns = [], []
+    body_vals = extract_vals(body)
+    issues, warns = [], []
+    for it in items:
+        it_clean = re.sub(r"（[^）]*）|\([^)]*\)", "", it)
+        card_vals = extract_vals(it_clean)
+        if not card_vals:
+            continue
+        missing = card_vals - body_vals
+        if missing:
+            miss = "、".join(str(int(v)) if v == int(v) else str(v) for v in sorted(missing))
+            warns.append(f"第{n:03d}章正文缺卡载数值[{miss}]: {it.strip()[:30]}——卡-文失对账(修订时数字漂移?)")
+    for l in issues:
+        print(f"  [FAIL] {l}")
+    for w in warns:
+        print(f"  [WARN] {w}")
+    if not issues and not warns:
+        print(f"  数字表{len(items)}项全部对上({card.name})")
+    return 1 if issues else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

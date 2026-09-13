@@ -10,14 +10,20 @@ N=$1
 SKIP_DRAFT=${2:-}
 NN=$(printf "%03d" $N)
 
+# 多书隔离(docs/多书隔离协议.md): BOOK_ROOT 环境变量指书根; 默认仓库根=主书
+# 用法: BOOK_ROOT=法医秦见微 bash tools/chapter_pipeline.sh 2
+BOOK_ROOT=${BOOK_ROOT:-.}
 # 找文件
 VOL=""
 for v in 卷1 卷2 卷3; do
-  if [ -f "text/$v/第${NN}章.md" ]; then VOL=$v; break; fi
+  if [ -f "$BOOK_ROOT/text/$v/第${NN}章.md" ]; then VOL=$v; break; fi
 done
-if [ -z "$VOL" ]; then echo "❌ 第${NN}章文件不存在"; exit 1; fi
-FILE="text/$VOL/第${NN}章.md"
-CARD=$(ls text/卡/*第${NN}章*.md 2>/dev/null | head -1)
+if [ -z "$VOL" ]; then echo "❌ 第${NN}章文件不存在($BOOK_ROOT/text/)"; exit 1; fi
+FILE="$BOOK_ROOT/text/$VOL/第${NN}章.md"
+CARD=$(ls $BOOK_ROOT/text/卡/*第${NN}章*.md $BOOK_ROOT/卡/*第${NN}章*.md 2>/dev/null | head -1)
+# 声口卡: 书根有则用书根的(多书隔离)
+VOICE_ARGS=""
+if [ -f "$BOOK_ROOT/声口卡.md" ] && [ "$BOOK_ROOT" != "." ]; then VOICE_ARGS="--card $BOOK_ROOT/声口卡.md"; fi
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  第${NN}章 生产流水线 (${VOL})"
@@ -50,6 +56,21 @@ if [ "$FAIL_COUNT" != "0" ] && [ -n "$FAIL_COUNT" ]; then
   echo "  → 修复后重新运行本脚本"
   exit 1
 fi
+
+# ── Step 3b: 声口卡禁词门 + 场景卡数字对账(法医ch001/主书ch007事故管线化) ──
+echo ""
+echo "▶ Step 3b: 声口门+数字对账"
+VOICE_OUT=$(python3 tools/voice_check.py "$FILE" $VOICE_ARGS 2>&1)
+if echo "$VOICE_OUT" | grep -q "FAIL]"; then
+  echo "  ❌ 声口门FAIL:"
+  echo "$VOICE_OUT" | grep "FAIL]" | head -4 | sed 's/^/     /'
+  exit 1
+fi
+echo "  ✅ 声口门PASS"
+CARD_NUM=$(echo "$CARD" | grep -o "第[0-9]*章" | grep -o "[0-9]*" | head -1)
+CARD_VOL=$(echo "$VOL" | grep -o "[0-9]*")
+CARD_OUT=$(python3 tools/card_check.py "${CARD_NUM:-$N}" --volume "${CARD_VOL:-1}" 2>&1 || true)
+echo "  $CARD_OUT" | grep -E "WARN|FAIL|对上" | head -3 | sed 's/^/     /'
 
 # ── Step 4: gate_chapter 韧性门 ──
 echo ""

@@ -645,8 +645,9 @@ def check(fp: pathlib.Path):
     # 56) 工程残渣门(法医ch001冷读事故: 18对反向弯引号+破句"嘴唇，，。"+单破折号残迹"角膜—,"
     # ——比文风问题更劝退,读者解读为"没人校过")
     _rq_lines = [l for l in raw.splitlines() if l.strip().startswith("\u201d")]
-    if _rq_lines:
-        issues.append(f"行首右引号{len(_rq_lines)}行(FAIL)——引号方向反了(事故形状:'”对话。‘'),运行 tools/fix_quotes.py 或人工修复")
+    _rq_mid = len(re.findall(r"[:：][\u201d]", raw))   # 段中 ':”' 冒号接右引号(ch042事故形状,正常应为:'“')
+    if _rq_lines or _rq_mid:
+        issues.append(f"引号方向违例(FAIL): 行首右引号{len(_rq_lines)}行+冒号接右引号{_rq_mid}处——运行 tools/fix_quotes.py 或人工修复")
     _brk = re.findall(r"[，。；：、]{2,}", body)
     _half_dash = re.findall(r"(?<!—)—(?!—)", body)
     metrics["broken_punct"] = len(_brk)
