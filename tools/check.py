@@ -806,8 +806,11 @@ def check(fp: pathlib.Path):
         s = s.strip()
         if not s:
             return None
-        total, section, digit, has, last_unit = 0, 0, 0, False, None
+        total, section, digit, has, last_unit, zero_pending = 0, 0, 0, False, None, False
         for ch in s:
+            if ch == "零":
+                zero_pending = True   # 两万零八=20008: 零后裸数字不升位(审计-32)
+                continue
             if ch in "零一二两三四五六七八九":
                 digit = {"零":0,"一":1,"二":2,"两":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9}[ch]
                 has = True
@@ -824,7 +827,7 @@ def check(fp: pathlib.Path):
             else:
                 return None
         if digit:
-            lift = {"万":1000, "千":100, "百":10}.get(last_unit, 1)
+            lift = 1 if zero_pending else {"万":1000, "千":100, "百":10}.get(last_unit, 1)
             section += digit * lift
         return total + section if (has or section) else None
 

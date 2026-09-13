@@ -25,11 +25,14 @@ CN_UNIT = {"十": 10, "百": 100, "千": 1000, "万": 10000, "亿": 100000000}
 
 def cn2num(s):
     """中文数字串→数值; 口语省略: 两千五=2500/三百二=320/一万八=18000(末尾裸数字按最后单位升位)"""
-    s = s.strip()
+    s = s.strip().rstrip("块元毛角分")
     if not s:
         return None
-    total, section, digit, has, last_unit = 0, 0, 0, False, None
+    total, section, digit, has, last_unit, zero_pending = 0, 0, 0, False, None, False
     for ch in s:
+        if ch == "零":
+            zero_pending = True   # 两万零八: 零=补位,其后裸数字是个位不升位
+            continue
         if ch in CN_DIG:
             digit, has = CN_DIG[ch], True
         elif ch in CN_UNIT:
@@ -45,7 +48,7 @@ def cn2num(s):
         else:
             return None
     if digit:
-        lift = {"万": 1000, "千": 100, "百": 10}.get(last_unit, 1)
+        lift = 1 if zero_pending else {"万": 1000, "千": 100, "百": 10}.get(last_unit, 1)
         section += digit * lift
     return total + section if (has or section) else None
 
@@ -58,6 +61,12 @@ def extract_vals(text):
             vals.add(float(m.group()))
         except ValueError:
             pass
+    # 口语小数: 一块五/两块八毛 = w.f 元(审计-32:纯整数解析器无法表达X块五)
+    for m in re.finditer(r"([零一二两三四五六七八九])块([零一二三四五六七八九])(毛)?(?![包盒根支条张个只台件号栋层间元块])", text):
+        # 后瞻排除量词: "两块一包"的"一"属量词不构成2.1(审计-32自我修正)
+        w = CN_DIG.get(m.group(1), 0)
+        f = CN_DIG.get(m.group(2), 0)
+        vals.add(round(w + f * 0.1, 2))
     cn_chars = set(CN_DIG) | set(CN_UNIT)
     i = 0
     while i < len(text):
@@ -67,7 +76,7 @@ def extract_vals(text):
                 j += 1
             for k in range(j, i, -1):
                 v = cn2num(text[i:k])
-                if v is not None and v > 0:
+                if v is not None and v >= 0:   # 0合法(卡载"流水0"),比对由negation规则兜底(审计-32: v>0过滤致0永远FAIL)
                     vals.add(float(v))
                     break
             i = j
@@ -123,7 +132,18 @@ def main():
         card_vals = extract_vals(it_clean)
         if not card_vals:
             continue
-        missing = card_vals - body_vals
+        # 小数口语变体: 卡载1.5 ↔ 正文"一块五/一块五毛"——把卡载小数展开成(整数部分,小数部分)整数对
+        expanded = set()
+        for v in set(card_vals):
+            if v != int(v):
+                w = int(v); frac = round((v - w) * 10)
+                expanded.add(float(w)); expanded.add(float(frac))
+                expanded.add(float(w * 10 + frac))   # 一块五毛→15角?取"一五"组合容错
+        card_vals_cmp = card_vals | expanded
+        body_cmp = body_vals | expanded
+        missing = card_vals_cmp - body_cmp - {v for v in card_vals_cmp if v == 0}
+        if card_vals_cmp and any(v == 0 for v in card_vals) and re.search(r"[没无]\s*(卖|收|开张)|分文未|一台没", body):
+            missing.discard(0.0)
         if missing:
             miss = "、".join(str(int(v)) if v == int(v) else str(v) for v in sorted(missing))
             issues.append(f"第{n:03d}章正文缺卡载数值[{miss}]: {it.strip()[:30]}——卡-文失对账(修订时数字漂移?)")

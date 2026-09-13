@@ -119,6 +119,10 @@ phases:
         outputs:
           - "修订后的稿件"
         loop: "回到phase_3重新审改,直到全部通过或迭代5次"
+        post_gates:   # 审计-32教训: 正文改动必须三联动,否则卡/台账静默失真
+          - "python3 tools/card_check.py <章号> --volume <卷>  # 正文数字改动→卡数字表同步"
+          - "正文涉及钱/时间/状态改动→同步 ledgers/时间线.md 与 人物状态.md"
+          - "G6时序WARN必须逐条处置(核对时间线),禁止静默放过"
 
   phase_5_finalize:
     name: "归档"
