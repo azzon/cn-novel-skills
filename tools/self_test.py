@@ -132,10 +132,25 @@ def test_n1_assembly():
         case(f"拼装疤:{name}→{want}", got == want, f"got={got}")
 
 
+def test_exit_and_timejump():
+    print("[9] #63离场者+#64时间跳跃")
+    import subprocess
+    cases = {
+        "离场者FAIL": ("老主顾摇摇头，还是走了。\n\n老主顾说：“那就这样吧。”", "离场者发言"),
+        "时间跳跃WARN": ("6月15日，摊子开张第一天。\n\n8月26日，学费交完的日子。", "时间跳跃"),
+    }
+    for name, (body, key) in cases.items():
+        f = pathlib.Path(tempfile.mkdtemp()) / "第99X章.md"
+        f.write_text(f"第99X章 测试\n\n{body}\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "check.py"), "--modern", str(f)],
+                           capture_output=True, text=True)
+        case(f"{name}", key in r.stdout, "未命中")
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
-             test_n1_assembly]
+             test_n1_assembly, test_exit_and_timejump]
     for t in tests:
         try:
             t()

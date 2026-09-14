@@ -20,7 +20,8 @@ import re, sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APHOR_PAT = re.compile(r"(不是[^。」』]{1,12}[，。]而是|这不是[^。」』]{1,10}[，。]?是|一种叫[^。」』]{1,6}的东西|这话叫|就是道理)")
 TW_PAT = re.compile(r"[吧呢啊嘛呗哦呀嘿啦呃嗯啦呀咧哩]")   # 与check.py主表对齐(含单字组)
-PSYCH_PAT = re.compile(r"(他想|她想|心想|暗想|心里|心中|心底|心知|他明白|她明白|他知道|她知道|意识到)")
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from check import PSYCH_V2 as PSYCH_PAT   # 与check.py同口径(审计-32第三批统一)
 
 
 def cjk(s):
