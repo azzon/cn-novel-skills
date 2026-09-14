@@ -499,8 +499,29 @@ def cmd_bundle(args):
 
 # ---------------- check ----------------
 def cmd_check(args):
+    card_only = "--card-only" in args
+    args = [a for a in args if a != "--card-only"]
+    if card_only:
+        # 审计-32 S2: 先卡后稿的工作流需要纯卡阶段检查(正文不存在时也可验)
+        worst = 0
+        for a in args:
+            n = int(re.sub(r"\D", "", a) or 0)
+            card = card_for(n)
+            if card is None:
+                print(f"[FAIL] 场景卡不存在(text/卡或书根卡 *第{n:03d}章*)——先走scene-card")
+                worst = 1
+                continue
+            ct = read_text(card)
+            need = ["场景型", "戏剧问题", "冲突源", "代价", "Forbid", "钩"]
+            miss = [k for k in need if k not in ct]
+            if miss:
+                print(f"[FAIL] 卡缺字段{miss}: {card.name}")
+                worst = 1
+            else:
+                print(f"✅ 卡检查通过({card.name})")
+        return worst
     if not args:
-        print("用法: pipeline.py check <file...>"); return 2
+        print("用法: pipeline.py check <file...> [--card-only]"); return 2
     worst = 0
     for fp in args:
         rc, out, _ = run_check_metrics(fp)

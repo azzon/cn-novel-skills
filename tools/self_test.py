@@ -72,11 +72,16 @@ def test_voice_check():
 
 
 def test_book_root():
-    print("[4] gate_chapter.book_root 多书根")
-    import gate_chapter as g
-    case("主书章→ROOT", g.book_root(ROOT / "text" / "卷1" / "第001章.md") == ROOT)
-    case("新书章→书根", g.book_root(ROOT / "法医秦见微" / "text" / "卷1" / "第001章.md") == ROOT / "法医秦见微")
-    case("非章路径→ROOT兜底", g.book_root(ROOT / "tools" / "x.md") == ROOT)
+    print("[4] gate_chapter.book_root 多书根(临时构造,不依赖真实文件)")
+    import gate_chapter as g, shutil
+    bk = ROOT / "_tmp_book_selftest"
+    (bk / "text" / "卷1").mkdir(parents=True, exist_ok=True)
+    try:
+        case("主书章→ROOT", g.book_root(ROOT / "text" / "卷1" / "第099章.md") == ROOT)
+        case("新书章→书根", g.book_root(bk / "text" / "卷1" / "第001章.md") == bk)
+        case("非章路径→ROOT兜底", g.book_root(ROOT / "tools" / "x.md") == ROOT)
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
 
 
 def test_card_check_nums():

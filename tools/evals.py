@@ -124,7 +124,10 @@ def collect(book_root=ROOT):
 
     # gate new模式冒烟: tmp新章走全部门,任何崩溃(Traceback/NameError)都算回归
     # (大审计-20 P0: G8参数错位曾致新章必崩,而evals不覆盖gate new故漏检)
-    tmp = ROOT / "text" / "卷1" / "第999章.md"
+    # 冒烟章写进存在的卷目录; 空库时目录也没了→mkdir(parents)兜底(空库清理后曾 FileNotFoundError)
+    smoke_dir = (ROOT / "text" / "卷1")
+    smoke_dir.mkdir(parents=True, exist_ok=True)
+    tmp = smoke_dir / "第999章.md"
     tmp.write_text("第九十九章 冒烟\n\n“马哥，早。”王大龙把车支好。\n\n他把货搬下来，一块一块码齐。\n", encoding="utf-8")
     try:
         g = run([sys.executable, "tools/gate_chapter.py", "new", str(tmp)])
