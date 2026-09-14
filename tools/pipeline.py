@@ -326,6 +326,13 @@ def cmd_next(args):
     if n < maxn + 1:
         print(f"[gap] 第{n}章小于next={maxn+1}——补章禁止直接写,走arc-restructure重排(防时序倒置)")
         return 2
+    # 磨刀十六批: 卷切换机器触发——expected_volume跳变(上一章属卷A,本章属卷B)即硬提示卷末流程,无人时不再靠人记
+    if maxn:
+        _prev_vol = G.expected_volume(maxn, vols)
+        if _prev_vol and exp and _prev_vol != exp:
+            print(f"[卷末触发] 第{maxn:03d}章为{_prev_vol}末章,第{n:03d}章开新卷{exp}——")
+            print(f"  先走periodic phase_volume_end(卷末复盘/一致性/人物审计/下卷纲红队),再开新章;")
+            print(f"  无下卷纲时bundle会缺章场景清单——先volume-outline,禁裸写")
     card = card_for(n)
     print(f"=== 第{n:03d}章 工作契约 ===")
     print(f"目标路径: text/{exp or '?'}/第{n:03d}章.md")
@@ -411,11 +418,11 @@ def cmd_bundle(args):
     add("6当前时刻卡", 1400, read_text(LEDGERS / "当前时刻卡.md"))  # 大审计-20: 934/500静默裁剪收口指令,P0
     # 7 圣经: 全书卡(修烂账:进度改由实扫)+卷摘要(不存在则用章摘要近窗,大审计-20)
     bible = read_text(BIBLE / "全书卡.md")
-    _volsum = BIBLE / f"卷摘要-{exp}.md"
+    _volsum = BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md" if exp and re.search(r'\d+', exp) else (BIBLE / "卷摘要.md")   # 磨刀十六批: 与story-bible技能产物名统一(原卷摘要-{vol}.md技能从不写)
     if _volsum.exists():
         bible += "\n" + read_text(_volsum)
     else:
-        _zq = BIBLE / "章摘要.md"
+        _zq = BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md" if exp and re.search(r'\d+', exp) else (BIBLE / "章摘要.md")
         if _zq.exists():
             bible += "\n" + read_text(_zq, -900)
     add("7圣经(全书卡+章摘要近窗)", 1500, bible)
@@ -504,13 +511,13 @@ def cmd_bundle(args):
         print("[FAIL] 注入包超硬上限10200字——先跑ledger_compact/伏笔归档再生成(磨刀十五批: 原超限仍return 0=注入静默截断)")
         return 1
     print()
+    print()
     print("===== BUNDLE-START (按序注入,顺序即优先级) =====")
     for name, used, cap, body in items:
         print(f"\n◀ {name} ▶\n{body}")
     print("\n===== BUNDLE-END =====")
-    return 0
     try:
-        bundle_log(n, len(out) if isinstance(out, str) else 0)
+        bundle_log(n, total)
     except Exception:
         pass
     return 0
@@ -699,7 +706,8 @@ def cmd_done(args):
             f"无技能执行记录({sp.name})——先跑: python3 tools/skill_protocol.py list {n} {(f'--book {BOOK.name}' if BOOK != ROOT else '')}".strip())
     # H4 章摘要(story-bible技能产物)
     _sb_tokens = (f"第{n:03d}章", f"第{n}章")
-    _sb_paths = [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md", BOOK / "ledgers" / "章摘要.md"]
+    _sb_paths = [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md",
+                 BOOK / "ledgers" / "章摘要.md", BOOK / "圣经" / "章摘要.md", BOOK / "圣经" / "卷1章摘要.md"]   # 磨刀十六批: 与bundle的BIBLE产物位对齐
     _sb_ok = any(p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens) for p2 in _sb_paths)
     if not _sb_ok:
         (warns if revise else problems).append(f"章摘要未含第{n:03d}章(story-bible技能memory步)——落盘: {BOOK.name if BOOK != ROOT else 'story/60-圣经/'}/故事圣经.md")
@@ -816,6 +824,10 @@ def cmd_scores(args):
             ch["drift_flags"] = ["below_target"]
     SCORES.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"\nscores.json已重算({len(cm)}章,head={head})。红灯章: {worst or '无'}")
+    try:
+        bundle_log(n, total)
+    except Exception:
+        pass
     return 0
 
 def main():

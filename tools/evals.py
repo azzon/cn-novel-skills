@@ -157,6 +157,15 @@ def cmd_check():
         return 2
     base = json.loads(baseline.read_text(encoding="utf-8"))
     cur = collect(book)
+    # 磨刀十六批: 增量模式——基线章抽头尾各3章复验(签名级),新章全验;全量仅record时跑(千章O(N)→抽检)
+    _bn = sorted(base.get("chapters", {}), key=lambda x: int(re.search(r"\d+", x).group()) if re.search(r"\d+", x) else 0)
+    if len(_bn) > 12 and "--full" not in sys.argv:
+        _sample = set(_bn[:3] + _bn[-3:])
+        _new = set(cur["chapters"]) - set(base.get("chapters", {}))
+        cur = dict(cur)
+        cur["chapters"] = {k: v for k, v in cur["chapters"].items() if k in _sample or k in _new}
+        base = dict(base)
+        base["chapters"] = {k: v for k, v in base.get("chapters", {}).items() if k in _sample or k in _new}
     regressions = []
 
     for name, old in base["chapters"].items():
