@@ -23,7 +23,7 @@ import gate_chapter as G  # noqa: E402  复用chapter_files/parse_num/scan_volum
 # 多书隔离(docs/多书隔离协议.md): --book <书根> 切换; 主书=ROOT(历史占用)
 BOOK = ROOT
 CARD_DIR = ROOT / "text" / "卡"
-AUDIT_DIR = ROOT / "story" / "audit"
+AUDIT_DIR = ROOT / "story" / "audit"   # 书根模式由set_book重定向(法医秦见微/audit)
 LEDGERS = ROOT / "ledgers"
 
 
@@ -36,6 +36,8 @@ def set_book(name):
     CARD_DIR = BOOK / "text" / "卡" if (BOOK / "text" / "卡").is_dir() else BOOK / "卡"
     LEDGERS = BOOK / "ledgers"
     PROGRESS = BOOK / ".progress.json"
+    global AUDIT_DIR
+    AUDIT_DIR = BOOK / "audit" if BOOK != ROOT else ROOT / "story" / "audit"
 BIBLE = ROOT / "story" / "60-圣经"
 PROGRESS = ROOT / ".progress.json"
 SCORES = ROOT / "scores.json"

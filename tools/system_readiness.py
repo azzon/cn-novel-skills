@@ -64,7 +64,12 @@ def main():
     # 卡文对账余量
     r = run(["tools/card_check.py", "001", "--volume", "1"])
     ledger = book / "ledgers" / "卡文对账清单.md"
-    card_note = f"{len(ledger.read_text(encoding='utf-8').splitlines()) - 6}条待清(修订期)" if ledger.exists() else "无清单"
+    if ledger.exists():
+        pending = sum(1 for l in ledger.read_text(encoding="utf-8").splitlines()
+                      if l.strip().startswith("- ch") and "✓" not in l and "⏸" not in l)
+        card_note = f"{pending}条待清(修订期)" if pending else "已清零"
+    else:
+        card_note = "无清单"
 
     # 汇总
     print(f"═══ 系统就绪度({tag}) ═══")

@@ -23,6 +23,19 @@ phases:
         inputs: ["近10章中评分最高的3段"]
         outputs: ["<书根>/story/50-风格包.md(范例段替换)"]
         gate: ["范例段≥3段且来自不同章"]
+      - id: ledger_audits
+        name: "四账审计(磨刀第六批:伏笔逾期/数字恒等式/期待链/就绪度)"
+        type: script
+        script: |
+          python3 tools/foreshadow_audit.py <书根>
+          python3 tools/number_audit.py <书根>
+          python3 tools/anticipation_audit.py <书根>
+          python3 tools/system_readiness.py <书根>
+        gate:
+          - "foreshadow/number 零FAIL(FAIL=账本崩,先修账)"
+          - "就绪度判定非'先修再产'"
+        on_fail: "账本崩→rebuild;提醒类→入修订期清单,不阻塞"
+
       - id: voice_check
         name: "角色声口复核"
         type: agent
