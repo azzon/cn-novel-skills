@@ -22,6 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 def parse_val(s):
     s = s.strip().lstrip("亏欠负损")   # 亏五百/欠四百: 前缀剥除(审计-32)
+    s = re.sub(r"(天|块|元|章|户|年|字|次|单|条|斤|台|个|米|厘米|%|点)$", "", s.strip())   # 磨刀十八批F5: 单位后缀致解析死(恒等式空转)
     if re.fullmatch(r"\d+", s):
         return float(s)
     v = cn2num(s)
@@ -44,13 +45,20 @@ def parse_ledger(path):
             m = re.match(r"(.+?)\s*=\s*(.+)", body)
             if m:
                 target = m.group(1).strip()
-                parts = [p.strip() for p in m.group(2).split("+")]
-                keys = []
-                for p in parts:
-                    mm = re.match(r"([^(]+)(?:\(([^)]*)\))?", p)
-                    if mm:
-                        keys.append((mm.group(1).strip(), (mm.group(2) or "").strip()))
-                eqs.append((target, keys, line))
+                # 磨刀十八批F5: 支持减法与常数项("A = B - 2"/"A = B + C - 3")
+                rhs = m.group(2).strip()
+                if rhs and rhs[0] not in "+-":
+                    rhs = "+" + rhs   # 首项无符号→补+(磨刀十八批: 首项被跳致恒等式只算减项)
+                terms = []
+                for tm in re.finditer(r"([+-])\s*([^+-]+)", rhs):
+                    sign = -1 if tm.group(1) == "-" else 1
+                    tok = tm.group(2).strip()
+                    if re.fullmatch(r"\d+(?:\.\d+)?", tok):
+                        terms.append((sign, ("__const__", tok)))          # 常数项
+                    else:
+                        mm = re.match(r"([^(]+?)(?:\(([^)]*)\))?$", tok)
+                        terms.append((sign, (mm.group(1).strip(), (mm.group(2) or "").strip())))
+                eqs.append((target, terms, line))
         else:
             parts = [p.strip() for p in body.split("|")]
             if len(parts) >= 4:
@@ -91,13 +99,16 @@ def main():
             warns.append(f"恒等式目标无账值: {raw[:60]}")
             continue
         total, ok = 0.0, True
-        for k in keys:
+        for sign, k in keys:
+            if k[0] == "__const__":
+                total += sign * float(k[1])
+                continue
             kv = seen.get(k)
             if kv is None:
                 warns.append(f"恒等式分项无账值: {k} in {raw[:50]}")
                 ok = False
                 break
-            total += kv[0]
+            total += sign * kv[0]
         if ok:
             if abs(total - t_val[0]) > 0.5:
                 issues.append(f"恒等式不平(FAIL): {target}={t_val[0]:.0f} 但分项和={total:.0f}——商账崩坏(ch37-39事故形状)")

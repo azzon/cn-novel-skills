@@ -165,6 +165,12 @@ def test_number_and_anticipation():
         r = subprocess.run([sys.executable, str(ROOT / "tools" / "number_audit.py"), str(book)],
                            capture_output=True, text=True)
         case("恒等式不平检出(9999≠2644)", "恒等式不平" in r.stdout, r.stdout[-80:])
+        # 磨刀十八批F5: 减法+常数+首项无符号
+        (book/"ledgers"/"数字账.md").write_text(
+            "# 数字账\n## 科目流水\n- 公示期|法定|15|ch1\n- 剩余|死线|13|ch1\n"
+            "## 恒等式\n- 剩余(死线) = 公示期(法定) - 2\n", encoding="utf-8")
+        r3 = subprocess.run([sys.executable, str(ROOT/"tools"/"number_audit.py"), str(book)], capture_output=True, text=True)
+        case("减法恒等式通过(15-2=13)", "验算通过" in r3.stdout and "FAIL" not in r3.stdout, r3.stdout[-80:])
         (book / "ledgers" / "钩分布.md").write_text(
             "- 第001章 [叙述收] 甲\n- 第002章 [叙述收] 乙\n- 第003章 [叙述收] 丙\n", encoding="utf-8")
         r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "anticipation_audit.py"), str(book)],
