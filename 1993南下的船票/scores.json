@@ -1,14 +1,14 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-14T23:34:26",
-  "head_commit": "5b131ae",
+  "generated_at": "2026-09-14T23:40:48",
+  "head_commit": "c5b8f6c",
   "chapters": {
     "1": {
       "path": "1993南下的船票/text/卷1/第001章.md",
       "committed": false,
-      "cjk": 1848,
-      "dia_char_pct": 37.5,
-      "psych_per_k": 2.71,
+      "cjk": 1938,
+      "dia_char_pct": 40.4,
+      "psych_per_k": 2.58,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -18,7 +18,7 @@
         2600,
         3200
       ],
-      "budget_delta_pct": -36.3,
+      "budget_delta_pct": -33.2,
       "cold_read": "冷读-第001章.md",
       "drift_flags": []
     }
