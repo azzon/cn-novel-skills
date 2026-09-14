@@ -44,10 +44,12 @@ fi
 
 # waiver登记制v4: 门级授权。格式: - chNNN: <门id>[;<门id>...] (日期)  门id∈{check,card,del,all}
 # 一行只豁免列出的门;无门id的旧行不生效。删除章必须del门;check.py全项=check门。
-waiver_registered() {  # $1=章号 $2=门id
-    [ -f ledgers/waivers.md ] || return 1
+waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
+    local LEDG="ledgers/waivers.md"
+    [ -n "$3" ] && [ -f "$3" ] && LEDG="$3"
+    [ -f "$LEDG" ] || return 1
     local line
-    line=$(grep -E "^- ch0?$1:" ledgers/waivers.md 2>/dev/null | tail -1)
+    line=$(grep -E "^- ch0?$1:" "$LEDG" 2>/dev/null | tail -1)
     [ -z "$line" ] && return 1
     echo "$line" | grep -qE "(^|[;:（([:space:]])($2|all)([;)）;:[:space:]]|$)"
 }
@@ -106,7 +108,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
 
     # ── D0. 引号三重修复(自动修+重新暂存)+声口门+卡文对账门(磨刀第七批集成:此前绕过chapter_pipeline.sh直提时三道门不生效) ──
     echo "$CHAPTER" | grep -q "\.md$" && python3 tools/fix_quotes.py "$CHAPTER" > /tmp/fq_out.txt 2>&1 && git add "$CHAPTER" 2>/dev/null
-    if [ -n "$CH_NUM" ] && ! waiver_registered "$CH_NUM" "card"; then
+    if [ -n "$CH_NUM" ] && ! waiver_registered "$CH_NUM" "card" "$(dirname "$(dirname "$(dirname "$CHAPTER")")")/ledgers/waivers.md"; then
       VOICE_ARGS=""
       BOOKROOT=$(echo "$CHAPTER" | grep -oE '^[^/]+/text/' | cut -d/ -f1)
       if [ -n "$BOOKROOT" ] && [ -f "$BOOKROOT/声口卡.md" ]; then VOICE_ARGS="--card $BOOKROOT/声口卡.md"; fi
@@ -117,7 +119,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         FAIL=1
       fi
       CARD_VOL=$(echo "$CHAPTER" | grep -oE '卷[0-9]+' | grep -o '[0-9]+')
-      CARD_OUT=$(python3 tools/card_check.py "${CH_NUM}" --volume "${CARD_VOL:-1}" 2>&1)
+      CARD_OUT=$(python3 tools/card_check.py "${CH_NUM}" --volume "${CARD_VOL:-1}" ${BOOKROOT:+--book $BOOKROOT} 2>&1)
       if echo "$CARD_OUT" | grep -q "FAIL]"; then
         echo -e "${RED}  [FAIL] 卡文对账(${CHAPTER}):${NC}"
         echo "$CARD_OUT" | grep "FAIL]" | head -3 | sed 's/^/    /'
@@ -127,7 +129,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
 
     # ── D1. 质量门: check.py(豁免需check门) ──
     CHECK_EXIT=$(python3 tools/check.py $MODERN_FLAG "$CHAPTER" > /tmp/check_out.txt 2>&1; echo $?)
-    if [ -n "$CH_NUM" ] && waiver_registered "$CH_NUM" "check"; then
+    if [ -n "$CH_NUM" ] && waiver_registered "$CH_NUM" "check" "$(dirname "$(dirname "$(dirname "$CHAPTER")")")/ledgers/waivers.md"; then
         echo -e "${YELLOW}  [WAIVER] check.py豁免(ch${CH_NUM}登记check门)${NC}"
     elif [ "$CHECK_EXIT" != "0" ]; then
         echo -e "${RED}  [FAIL] check.py未通过:${NC}"
@@ -146,7 +148,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
             CARD=$(ls text/卡/*第${CH_NUM}章*.md 2>/dev/null | head -1)
         fi
         if [ -z "$CARD" ]; then
-            if waiver_registered "$CH_NUM" "card"; then
+            if waiver_registered "$CH_NUM" "card" "$(dirname "$(dirname "$(dirname "$CHAPTER")")")/ledgers/waivers.md"; then
                 echo -e "${YELLOW}  [WAIVER] 无场景卡(ch${CH_NUM}登记card门)${NC}"
             else
                 echo -e "${RED}  [FAIL] 无场景卡(text/卡/*第${CH_NUM}章*)——先走scene-card${NC}"

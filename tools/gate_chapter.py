@@ -243,7 +243,21 @@ def main():
         cn = cjk_len(body)
         if cn < 1500:
             if mode == "new":
-                problems.append(f"G1字数硬底线: 新章仅{cn}字(<2500硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
+                # 磨刀十七批: 书根waivers支持(g1/check/all豁免焚稿存根等夹具场景)
+                _bk = book_root(p)
+                _wv = _bk / "ledgers" / "waivers.md"
+                _wv_ok = False
+                if _wv.exists():
+                    for _l in _wv.read_text(encoding="utf-8").splitlines():
+                        import re as _re
+                        if _re.match(rf"- ch0*{n}:", _l.strip()):
+                            if _re.search(r"(g1|check|all)", _l):
+                                _wv_ok = True
+                            break
+                if _wv_ok:
+                    warns.append(f"G1字数{cn}(<2500)——书根waivers豁免(焚稿存根/夹具)")
+                else:
+                    problems.append(f"G1字数硬底线: 新章仅{cn}字(<2500硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
             else:
                 warns.append(f"G1存量短章{cn}字(<2000)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
         elif cn < 2000:
