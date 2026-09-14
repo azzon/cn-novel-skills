@@ -61,6 +61,24 @@ def main():
     if pct > 40:
         warns.append(f"近{len(win)}章叙述收形式占比{pct:.0f}%(>40%)——若其中多为强钩(悬念/危机性质)可登记waivers豁免;连击段优先补事件钩")
 
+    # 回调资源审计(磨刀二十一批: 回调四式有研究无机器——梗闲置/爽点无回调计划双查)
+    geng = book / "ledgers" / "梗.md"
+    if geng.exists():
+        cur_n = entries[-1][0] if entries else 0
+        for line in geng.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"-\s*(.+?)\s*\|.*用[:：]\s*第?(\d+)(?:章[^|]*)?\s*\|\s*状态[:：]\s*(.+)", line.strip())
+            if not m:
+                continue
+            last, st = int(m.group(2)), m.group(3)
+            if "可续" in st and cur_n - last > 8:
+                warns.append(f"回调资源闲置: 「{m.group(1)[:14]}」末用于第{last}章,已{cur_n-last}章未回收(>8)——回调四式挑一式兑付或改'完结'")
+    pipe = book / "ledgers" / "爽点管道.md"
+    if pipe.exists():
+        _rows = [l for l in pipe.read_text(encoding="utf-8").splitlines() if l.startswith("| P") and "已兑" in l]
+        _nopl = [l.split("|")[1].strip() for l in _rows if ("利息" not in l or l.count("|") < 8 or not l.split("|")[6].strip())]
+        if _nopl:
+            warns.append(f"已兑爽点缺回调/利息计划: {', '.join(_nopl[:4])}——爽点是资产不是事件,大爽当场登记回调计划(cool-point六)")
+
     # 报表
     from collections import Counter
     dist = Counter(e[1] for e in entries)
