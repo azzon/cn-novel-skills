@@ -26,10 +26,15 @@ MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (
 DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2}')
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
+# 场景卡脚手架门(Python单点,磨刀十二批: shell嵌套条件是bug温床——指纹+骨架残留全查)
+if ! python3 tools/skill_protocol.py audit-cards >> /tmp/hook_cards.txt 2>&1; then
+    FAIL=1
+fi
 PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc -l)
 # text/下既非章节又非已知目录的新增文件(改名逃逸哨兵,audits/13攻击4)
 TEXT_ODD=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && $2 ~ /^text\// && tolower($2) !~ /第[0-9]+章\.(md)$/ && $2 !~ /^text\/卡\// {print $2}')
 
+CARDS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" || $1=="M" {if ($2 ~ /卡\/.*第[0-9]+章.*\.md$/ || $3 ~ /卡\/.*第[0-9]+章.*\.md$/) print $2}')
 if [ -z "$CHAPTERS" ] && [ -z "$SKILLS_STAGED" ] && [ "$PROGRESS_STAGED" -eq 0 ] && [ -z "$TEXT_ODD" ]; then
     echo -e "${GREEN}[PASS] 无章节/技能/进度变更，跳过。${NC}"
     exit 0
@@ -147,6 +152,12 @@ for CHAPTER in $NEW_CH $MOD_CH; do
             fi
         elif [ ! -s "$CARD" ] || ! grep -q "第${CH_NUM}章" "$CARD" || ! grep -qE "场景型|价值|钩" "$CARD"; then
             echo -e "${RED}  [FAIL] 空壳卡/缺关键字段(需含:第${CH_NUM}章+场景型|价值|钩): $CARD${NC}"
+            FAIL=1
+        elif grep -q "（填）" "$CARD"; then
+            echo -e "${RED}  [FAIL] 骨架卡残留（填）: $CARD——scene-draft对骨架卡拒工,逐字段填完(磨刀十二批: 技能编译脚手架,填空式作业)${NC}"
+            FAIL=1
+        elif ! grep -q "generated-by:skill_protocol" "$CARD"; then
+            echo -e "${RED}  [FAIL] 卡非脚手架产物(缺generated-by指纹): $CARD——从零手写=绕过scene-card技能;重跑: python3 tools/skill_protocol.py gen card ${CH_NUM}${NC}"
             FAIL=1
         elif echo "$NEW_CH" | grep -q "第${CH_NUM}章" && ! grep -qE "^[-*][[:space:]]*\*{0,2}开场型\*{0,2}[:：][[:space:]]*(对话直入|动作直入|异常直入|判断句)" "$CARD"; then
             # 大审计-08/11: 25章100%时间状语开场=同构固化;新章卡必须声明开场型且非时间状语
