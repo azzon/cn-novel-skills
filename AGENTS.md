@@ -9,6 +9,18 @@
 3. **type=script 步骤必须真实执行命令**,禁止"等效手写"脚本逻辑。
 4. **每章生产开单**:`pipeline.py --book <书根> done <N>` 会审计技能执行率,未全勾=problems 拦截。
 
+## 强制链全景(磨刀十三批H0-H7全堵后的完整闭环)
+
+```
+gen脚手架(卡/冷读) → 填空(残留（填）=提交层拦截) → 指纹(generated-by,从零手写=拦截)
+→ bundle注入落盘(ledgers/生成记录.md,无记录=done拦截) → 正文
+→ 四门(check/gate/voice/card) + pre-commit全链
+→ done验: 技能执行记录全勾(缺记录/未全勾=拦截) + 章摘要(story-bible) + 人物圣经演进层 + 生成记录 + 八账
+→ periodic四账审计(伏笔/数字/期待链/就绪度)
+```
+
+任何一环缺失,done或pre-commit会以FAIL阻断——不存在"靠自觉"的环节。
+
 ## 生成产物前的固定动作
 
 ```

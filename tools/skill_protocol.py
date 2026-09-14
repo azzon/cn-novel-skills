@@ -37,7 +37,7 @@ def steps():
     if yaml is None:
         print("需要PyYAML")
         sys.exit(2)
-    wf = yaml.safe_load(WF.read_text(encoding="utf-8"))
+    wf = yaml.safe_load(pathlib.Path(WF).read_text(encoding="utf-8"))
     out = []
     for ph in wf["phases"].values():
         for st in ph.get("steps", []):
@@ -45,7 +45,10 @@ def steps():
     return out
 
 
-def cmd_list(n, book):
+def cmd_list(n, book, wf_path=None):
+    global WF
+    if wf_path:
+        WF = pathlib.Path(wf_path)
     rec = book / "ledgers" / "技能执行记录.md"
     rows = ["# 技能执行记录（第%03d章）" % n, "",
             f"> 生成: {datetime.date.today()} 按workflows/chapter_production.yaml。铁律一: 没有被执行的技能等于不存在。",
@@ -53,7 +56,7 @@ def cmd_list(n, book):
     for sid, name, typ, skill in steps():
         f = skill_file(str(skill))
         if typ == "script":
-            rows.append(f"- [x] {sid}({name}) [script步骤:按script字段真实执行]")
+            rows.append(f"- [ ] {sid}({name}) [script步骤:真实执行命令后勾——预勾=审计失真(磨刀十三批H2)]")
         elif f:
             rows.append(f"- [ ] {sid}({name}) 技能: {skill} → {f.relative_to(ROOT)}")
         else:
@@ -121,7 +124,7 @@ NEXT-SKILL: write:scene-draft
 COLDREAD_SKELETON = """# 冷读-第{n:03d}章（标题）
 <!-- generated-by:skill_protocol gen-coldread —— 六项量规逐项引原文作证,禁空评 -->
 ## 锚定
-- 劣锚样张评分: 样张一(_) 样张二(_) 样张三(_) ——任一≥7分本轮作废
+- （填）劣锚样张评分: 样张一(_) 样张二(_) 样张三(_) ——任一≥7分本轮作废
 - 白金锚对照: （开篇章必答:一句话说出读者心里憋着的问题;说不出=追读≤4）
 
 ## 六项量规(拆双层)
@@ -129,7 +132,7 @@ COLDREAD_SKELETON = """# 冷读-第{n:03d}章（标题）
 - ② 跳读点: （引原句,标时长）
 - ③ 爽点兑现: 一句话说出本章"得到"什么;**兑现有人收货吗?**
 - ④ 追读欲双层: 推力=弃书点（引原句）;**拉力=读者憋着的问题:_（说不出=≤4分）**;钩强度_/10
-- ⑤ 对手威胁兑现: 近3章对手对主角的实际伤害:_;AI感硬特征逐项:_（原样重复/警句堆叠/段尾总结/情绪标注/解说笑点/隐形摄影机）
+- ⑤ 对手威胁兑现: 近3章对手对主角的实际伤害:（填）;AI感硬特征逐项:_（原样重复/警句堆叠/段尾总结/情绪标注/解说笑点/隐形摄影机）
 - ⑦ 成对比较: 与上一章比更想读哪章,为什么
 
 ## 判定
@@ -165,23 +168,24 @@ def cmd_audit_cards():
     for line in r.stdout.splitlines():
         parts = line.split("\t")
         for path in parts[1:]:
-            if re.search(r"卡/.*第\d+章.*\.md$", path):
+            if re.search(r"卡/.*第\d+章.*\.md$", path) or re.search(r"冷读-第\d+章.*\.md$", path):
                 cards.append(path)
     for c in cards:
         fp = ROOT / c
         if not fp.exists():
             continue
         txt = fp.read_text(encoding="utf-8-sig")
+        kind = "冷读报告" if "冷读-" in c else "场景卡"
         if "（填）" in txt:
-            print(f"  [FAIL] 骨架卡残留（填）: {c}——逐字段填完(填空式作业)")
+            print(f"  [FAIL] {kind}骨架残留（填）: {c}——逐字段填完(填空式作业)")
             bad += 1
         elif "generated-by:skill_protocol" not in txt:
-            print(f"  [FAIL] 卡非脚手架产物(缺generated-by指纹): {c}——从零手写=绕过scene-card技能;重跑: python3 tools/skill_protocol.py gen card <章号> --book <书根>")
+            print(f"  [FAIL] {kind}非脚手架产物(缺generated-by指纹): {c}——从零手写=绕过技能;重跑: python3 tools/skill_protocol.py gen {'coldread' if '冷读-' in c else 'card'} <章号> --book <书根>")
             bad += 1
     if cards and not bad:
-        print(f"  ✓ 脚手架卡检查通过({len(cards)}张: 指纹+无残留)")
+        print(f"  ✓ 脚手架产物检查通过({len(cards)}件: 指纹+无残留)")
     elif not cards:
-        print("  (无staged卡)")
+        print("  (无staged脚手架产物)")
     return 1 if bad else 0
 
 
@@ -200,11 +204,13 @@ def main():
         print(__doc__)
         return 2
     mode = args[0]
-    n = int(re.sub(r"\D", "", args[1]) or 0)
+    rest = args[1:]
+    n = int(re.sub(r"\D", "", rest[0]) or 0) if rest else 0
     book = ROOT
     if "--book" in args:
         book = ROOT / args[args.index("--book") + 1]
-    return cmd_list(n, book) if mode == "list" else cmd_audit(n, book)
+    wf = args[args.index("--wf") + 1] if "--wf" in args else None
+    return cmd_list(n, book, wf) if mode == "list" else cmd_audit(n, book)
 
 
 if __name__ == "__main__":

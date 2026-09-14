@@ -172,10 +172,33 @@ def test_number_and_anticipation():
         case("平淡收连击检出", "平淡收连击" in r2.stdout, r2.stdout[-80:])
 
 
+def test_scaffold_gate():
+    print("[11] 脚手架门(卡+冷读指纹/残留,H0吞失败修复)")
+    import subprocess, shutil
+    bk = ROOT / "_tmp_sg_selftest"
+    (bk / "卡").mkdir(parents=True, exist_ok=True)
+    (bk / "audit").mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "gen", "card", "9", "--book", bk.name], capture_output=True)
+        subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "gen", "coldread", "9", "--book", bk.name], capture_output=True)
+        subprocess.run(["git", "add", str(bk)], capture_output=True, cwd=ROOT)
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "audit-cards"], capture_output=True, text=True, cwd=ROOT)
+        case("骨架卡+骨架冷读被拦", "场景卡骨架残留" in r.stdout and "冷读报告骨架残留" in r.stdout and r.returncode == 1, r.stdout[-60:])
+        # 填空后应放行: 替换（填）并保留指纹
+        for f in bk.rglob("*.md"):
+            f.write_text(f.read_text(encoding="utf-8").replace("（填）", "已填"), encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "audit-cards"], capture_output=True, text=True, cwd=ROOT)
+        case("填空+指纹放行", r2.returncode == 0 and "通过" in r2.stdout, r2.stdout[-60:])
+    finally:
+        subprocess.run(["git", "restore", "--staged", str(bk)], capture_output=True, cwd=ROOT)
+        shutil.rmtree(bk, ignore_errors=True)
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
-             test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation]
+             test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation,
+             test_scaffold_gate]
     for t in tests:
         try:
             t()

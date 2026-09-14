@@ -26,9 +26,11 @@ MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (
 DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2}')
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
-# 场景卡脚手架门(Python单点,磨刀十二批: shell嵌套条件是bug温床——指纹+骨架残留全查)
-if ! python3 tools/skill_protocol.py audit-cards >> /tmp/hook_cards.txt 2>&1; then
-    FAIL=1
+# 脚手架门(Python单点;磨刀十三批H0修复: 失败立即exit——此前只置FAIL会被'无变更跳过'分支exit 0吞掉)
+if ! python3 tools/skill_protocol.py audit-cards > /tmp/hook_scaffold.txt 2>&1; then
+    cat /tmp/hook_scaffold.txt
+    echo -e "${RED}  ❌ 脚手架门未过(骨架残留/缺指纹)${NC}"
+    exit 1
 fi
 PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc -l)
 # text/下既非章节又非已知目录的新增文件(改名逃逸哨兵,audits/13攻击4)

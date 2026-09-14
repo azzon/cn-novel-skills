@@ -301,6 +301,7 @@ def cmd_status():
     else:
         print(f"素材库余量: {mat_left}条(约{est}章)")
     print(f"下一动作: pipeline.py next {nxt}")
+    bundle_log(n, len(out) if isinstance(out, str) else 0)
     return 0
 
 # ---------------- next ----------------
@@ -497,6 +498,19 @@ def cmd_bundle(args):
     print("\n===== BUNDLE-END =====")
     return 0
 
+# ---------------- bundle落盘(磨刀十三批H6: 注入过程痕迹,done验第NNN章在档) ----------------
+def bundle_log(n, size):
+    import datetime
+    gr = LEDGERS / "生成记录.md"
+    head = "# 生成记录(bundle注入落盘——正文生成前必跑pipeline.py bundle N,此账=过程证据链)\n"
+    if not gr.exists():
+        gr.write_text(head, encoding="utf-8")
+    line = f"- 第{n:03d}章 | {datetime.date.today()} | bundle注入包{size}字(PREFIX/锚/时刻卡/伏笔在档)\n"
+    txt = gr.read_text(encoding="utf-8")
+    if f"第{n:03d}章 |" not in txt:
+        gr.write_text(txt.rstrip() + "\n" + line, encoding="utf-8")
+
+
 # ---------------- check ----------------
 def cmd_check(args):
     card_only = "--card-only" in args
@@ -655,7 +669,7 @@ def cmd_done(args):
     if n % 10 == 0 and not (_drift_dir / f"漂移审计-第{n // 10}期.md").exists():
         warns.append(f"第{n // 10}期漂移审计未落盘({_drift_dir})——满10章强制项[硬提醒]")
 
-    # 6.95 技能执行率(磨刀十二批: ch002实战技能执行率33%的根治——done时机器可查)
+    # 6.95 技能执行率+四产物存在性(磨刀十三批H3-H6: 删记录即绕过/章摘要/人物圣经演进层/bundle生成记录全堵)
     sp = BOOK / "ledgers" / "技能执行记录.md"
     if sp.exists():
         _tot = len([l for l in read_text(sp).splitlines() if l.strip().startswith("- [")])
@@ -664,7 +678,27 @@ def cmd_done(args):
             (warns if revise else problems).append(
                 f"技能执行记录未全勾({_done}/{_tot})——跳过的步骤产物按SKILL_PROTOCOL无效;漏项见{sp.name}")
     else:
-        warns.append(f"无技能执行记录({sp.name})——先跑: python3 tools/skill_protocol.py list {n}")
+        (warns if revise else problems).append(
+            f"无技能执行记录({sp.name})——先跑: python3 tools/skill_protocol.py list {n} {(f'--book {BOOK.name}' if BOOK != ROOT else '')}".strip())
+    # H4 章摘要(story-bible技能产物)
+    _sb_tokens = (f"第{n:03d}章", f"第{n}章")
+    _sb_paths = [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md", BOOK / "ledgers" / "章摘要.md"]
+    _sb_ok = any(p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens) for p2 in _sb_paths)
+    if not _sb_ok:
+        (warns if revise else problems).append(f"章摘要未含第{n:03d}章(story-bible技能memory步)——落盘: {BOOK.name if BOOK != ROOT else 'story/60-圣经/'}/故事圣经.md")
+    # H5 人物圣经演进层盖章(活文档协议)
+    if BOOK != ROOT:
+        _bible = BOOK / "人物圣经.md"
+        if _bible.exists():
+            _bt = _bible.read_text(encoding="utf-8")
+            if "演进层" in _bt and not any(tk in _bt for tk in _sb_tokens):
+                (warns if revise else problems).append(f"人物圣经演进层未含第{n:03d}章——活文档协议: 每章归档同步当前状态/关系位移/披露进度")
+        else:
+            warns.append("书根缺人物圣经.md(设计完整性红灯项,system_readiness会拦)")
+    # H6 生成记录(bundle过程痕迹——正文绕过PREFIX注入的直接证据链)
+    _gr = BOOK / "ledgers" / "生成记录.md"
+    if not (_gr.exists() and any(tk in _gr.read_text(encoding="utf-8") for tk in _sb_tokens)):
+        (warns if revise else problems).append(f"生成记录未含第{n:03d}章(bundle注入无落盘)——先跑: pipeline.py bundle {n} 再生成正文")
 
     # 7 八账盖章
     stamped = ledger_stamped(n)
