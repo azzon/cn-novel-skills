@@ -147,10 +147,30 @@ def test_exit_and_timejump():
         case(f"{name}", key in r.stdout, "未命中")
 
 
+def test_number_and_anticipation():
+    print("[10] number_audit恒等式+anticipation连击")
+    import subprocess, tempfile
+    with tempfile.TemporaryDirectory() as d:
+        book = pathlib.Path(d) / "测试书"
+        (book / "ledgers").mkdir(parents=True)
+        (book / "text" / "卷1").mkdir(parents=True)
+        (book / "ledgers" / "数字账.md").write_text(
+            "# 数字账\n## 科目流水\n- 净利|九月|1533|ch20\n- 净利|十月|1112|ch20\n- 基金|截至十一月|9999|ch20\n"
+            "## 恒等式\n- 基金(截至十一月) = 净利(九月) + 净利(十月)\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "number_audit.py"), str(book)],
+                           capture_output=True, text=True)
+        case("恒等式不平检出(9999≠2644)", "恒等式不平" in r.stdout, r.stdout[-80:])
+        (book / "ledgers" / "钩分布.md").write_text(
+            "- 第001章 [叙述收] 甲\n- 第002章 [叙述收] 乙\n- 第003章 [叙述收] 丙\n", encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "anticipation_audit.py"), str(book)],
+                            capture_output=True, text=True)
+        case("平淡收连击检出", "平淡收连击" in r2.stdout, r2.stdout[-80:])
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
-             test_n1_assembly, test_exit_and_timejump]
+             test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation]
     for t in tests:
         try:
             t()

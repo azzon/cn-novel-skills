@@ -76,7 +76,10 @@ def collect(book_root=ROOT):
         total += m.get("cjk", 0)
     data["total_cjk"] = total
 
-    sc = run([sys.executable, "tools/structure_check.py"])
+    sc_cmd = [sys.executable, "tools/structure_check.py"]
+    if book_root != ROOT:
+        sc_cmd.append(str(book_root / "text"))
+    sc = run(sc_cmd)   # 书根模式传书根text(审计-32:新书基线结构分布曾错读主书)
     dist = {}
     for line in sc.stdout.splitlines():
         mm = re.match(r"\s+(\S+): (\d+)章 \((\d+)%\)", line)
