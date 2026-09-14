@@ -38,11 +38,21 @@ def set_book(name):
     CARD_DIR = _tc if _tc.is_dir() and _g.glob(str(_tc / "*.md")) else BOOK / "卡"   # 空目录视为不存在(审计-32 S4:残留空text/卡致寻卡指向空)
     LEDGERS = BOOK / "ledgers"
     PROGRESS = BOOK / ".progress.json"
-    global AUDIT_DIR
+    global AUDIT_DIR, BIBLE, STYLE, VOICE_TABLE, MATERIAL, SCORES
     AUDIT_DIR = BOOK / "audit" if BOOK != ROOT else ROOT / "story" / "audit"
-BIBLE = ROOT / "story" / "60-圣经"
+    # 磨刀十五批(端到端推演#7): set_book此前只切四路径——圣经/风格包/声纹表/素材库/scores全是ROOT全局,
+    # 非主书bundle会注入主书圣经,scores.json按章号互相覆盖(千章级多书污染)
+    BIBLE = (BOOK / "圣经") if (BOOK / "圣经").is_dir() else (ROOT / "story" / "60-圣经")
+    STYLE = (BOOK / "风格包.md") if (BOOK / "风格包.md").exists() else (STYLE)
+    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else (VOICE_TABLE)
+    MATERIAL = (BOOK / "素材库.md") if (BOOK / "素材库.md").exists() else (MATERIAL)
+    SCORES = BOOK / "scores.json" if BOOK != ROOT else ROOT / "scores.json"
+BIBLE = ROOT / "story" / "60-圣经"   # 目录(全书卡/卷摘要/章摘要);set_book按书根重定向
+STYLE = ROOT / "story" / "50-风格包.md"
+VOICE_TABLE = ROOT / "story" / "20-人物" / "声纹表.md"
+MATERIAL = ROOT / "story" / "素材库.md"
 PROGRESS = ROOT / ".progress.json"
-SCORES = ROOT / "scores.json"
+SCORES = ROOT / "scores.json"   # set_book会按书根重定向
 LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "线弦", "时间线", "数字账"]   # 审计-32 N2: 数字入账为第八账
 
 PREFIX = (
@@ -196,7 +206,7 @@ def leak_check(fp):
     """注入物泄漏门(audits/21-Fix2): 正文与范例段/场景卡成句重叠>=10字=FAIL。"""
     body = re.sub(r"\s+", "", read_text(fp))
     sources = []
-    sp = ROOT / "story" / "50-风格包.md"
+    sp = STYLE
     if sp.exists():
         m = re.search(r"^## 范例段.*?(?=^## |\Z)", read_text(sp), re.M | re.S)
         if m:
@@ -293,15 +303,14 @@ def cmd_status():
         missing = [x for x in LEDGER_NAMES if x not in stamped]
         if missing:
             print(f"第{maxn:03d}章盖章缺: {missing} → ledger-update")
-    mat_left = len([l for l in read_text(ROOT / "story" / "素材库.md").splitlines()
-                    if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if (ROOT / "story" / "素材库.md").exists() else 0
+    mat_left = len([l for l in read_text(MATERIAL).splitlines()
+                    if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if MATERIAL.exists() else 0
     est = mat_left // 3 if mat_left else 0
     if mat_left < 30:
         print(f"[红灯] 素材库仅剩{mat_left}条(约{est}章耗尽)——立即扩容(world-economy/行业经营库)")
     else:
         print(f"素材库余量: {mat_left}条(约{est}章)")
     print(f"下一动作: pipeline.py next {nxt}")
-    bundle_log(n, len(out) if isinstance(out, str) else 0)
     return 0
 
 # ---------------- next ----------------
@@ -354,10 +363,10 @@ def cmd_bundle(args):
     missing = []
     if card is None:
         missing.append(f"场景卡 text/卡/*第{n:03d}章*(先走scene-card)")
-    sp = ROOT / "story" / "50-风格包.md"
+    sp = STYLE
     if not sp.exists():
         missing.append("story/50-风格包.md")
-    voice = ROOT / "story" / "20-人物" / "声纹表.md"
+    voice = VOICE_TABLE
     if not voice.exists():
         missing.append("story/20-人物/声纹表.md")
     if missing:
@@ -424,7 +433,7 @@ def cmd_bundle(args):
 
     # 10 生活素材(audits/21-Fix1): cast从声纹表派生(禁硬编码),按卡面提及打分,
     #    按地点分区加权,J区语言恒带2条;素材须变形入文(数字保留,表述重造)
-    mat_path = ROOT / "story" / "素材库.md"
+    mat_path = MATERIAL
     mat_raw = read_text(mat_path)
     # 当前section标记
     sec = ""
@@ -491,11 +500,19 @@ def cmd_bundle(args):
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
     print(f"  合计: {total}字 (硬上限10200" + (",超限!" if total > 9000 else ",OK") + ")")
+    if total > 10200:
+        print("[FAIL] 注入包超硬上限10200字——先跑ledger_compact/伏笔归档再生成(磨刀十五批: 原超限仍return 0=注入静默截断)")
+        return 1
     print()
     print("===== BUNDLE-START (按序注入,顺序即优先级) =====")
     for name, used, cap, body in items:
         print(f"\n◀ {name} ▶\n{body}")
     print("\n===== BUNDLE-END =====")
+    return 0
+    try:
+        bundle_log(n, len(out) if isinstance(out, str) else 0)
+    except Exception:
+        pass
     return 0
 
 # ---------------- bundle落盘(磨刀十三批H6: 注入过程痕迹,done验第NNN章在档) ----------------

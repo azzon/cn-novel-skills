@@ -45,7 +45,7 @@ def load_yaml_simple(path):
             current_step = None
         elif ls.startswith("  name:") and current_phase:
             wf["phases"][current_phase]["name"] = ls.split(":", 1)[1].strip()
-        elif ls.startswith("      - id:") and current_phase:
+        elif ls.startswith("- id:") and current_phase:   # 磨刀十五批: 原比对"      - id:"但ls已strip永不匹配——解析器空转,步骤全丢失
             sid = ls.replace("- id:", "").strip()
             wf["phases"][current_phase]["steps"].append({"id": sid, "gate": []})
             current_step = len(wf["phases"][current_phase]["steps"]) - 1

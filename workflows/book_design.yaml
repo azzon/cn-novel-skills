@@ -245,6 +245,28 @@ phases:
           - "死局在第一章成立"
           - "前300字得分≥7/10"
 
+  phase_7_business:
+    name: "商业定义(磨刀十五批: 立项即锁'卖给谁/写多少/写多久')"
+    steps:
+      - id: reader_persona
+        name: "读者画像"
+        type: agent
+        skill: reader-persona
+        outputs:
+          - "<书根>/story/10-世界/读者画像.md"
+        gate:
+          - "付费人群画像完整(年龄/职业/消费场景/在读什么/为什么付钱/在哪弃书)"
+          - "与premise-fit受众维交叉验证一致"
+      - id: book_plan
+        name: "单本商业计划"
+        type: agent
+        skill: book-plan
+        outputs:
+          - "<书根>/story/10-世界/商业计划.md"
+        gate:
+          - "目标平台/总字数/完本周期/日更承诺/存稿计划五项锁定"
+          - "产能核算: 日更承诺 × 本书流程成本(生成记录实测) 可持续"
+
   final_gate:
     name: "设计阶段终门"
     description: "所有设计文档完成后,最终检查"
@@ -257,5 +279,7 @@ phases:
       - "卷一纲通过红队"
       - "风格包范例段校准"
       - "首章前300字得分≥7"
+      - "试写三章过trial-write(含干净代理冷读——磨刀十五批: 此前'最后一关'未接入流程,零成本断点修复)"
+      - "读者画像+商业计划在档(phase_7)"
     on_pass: "进入章节生产阶段"
     on_fail: "列出未通过项,退回对应phase修补"

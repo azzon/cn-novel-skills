@@ -8,7 +8,7 @@ version: "2.0"
 # <书根>/ledgers/ 同样按书隔离: 主书=仓库根<书根>/ledgers/, 非主书=<书根>/<书根>/ledgers/。
 
 phases:
-  every_10:
+  phase_every_10:
     name: "每10章审计"
     trigger: "章号 % 10 == 0"
     steps:
@@ -38,6 +38,20 @@ phases:
         gate:
           - "每个弃书点有处置(修订排期或理由)"
           - "爽点管道按反馈校准"
+      - id: ledger_compact
+        name: "账本压缩(百万字韧性: 已收伏笔归档/时间线钩分布保尾60/生成记录保尾120)"
+        type: script
+        script: "python3 tools/ledger_compact.py <书根>"
+        gate:
+          - "压缩幂等(归档区存在则跳过)"
+          - "recompute/gate 时序取末条不受影响"
+      - id: material_refill
+        name: "素材库扩容(阈值<40条≈13章时强制)"
+        type: agent
+        skill: world-economy
+        condition: "素材库余量<40条"
+        gate:
+          - "扩容≥60条且过年代锚核查(2005不存在的事物禁入)"
       - id: ledger_audits
         name: "四账审计(磨刀第六批:伏笔逾期/数字恒等式/期待链/就绪度)"
         type: script
@@ -67,7 +81,7 @@ phases:
         type: script
         script: "python3 tools/evals.py record"
 
-  volume_end:
+  phase_volume_end:
     name: "卷末审计"
     trigger: "卷最后一章done通过"
     steps:

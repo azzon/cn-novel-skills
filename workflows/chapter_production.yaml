@@ -86,6 +86,7 @@ phases:
           - "峰后禁释令合规"
           - "对白声口合规"
       - id: cold_read
+        retry_protocol: "失败/超时重试2次;非硬门章(非5倍数/非卷首)降级为'拉力判据+致命问题'二项快评;硬门章失败=保留HALT入人审队列"
         name: "冷读"
         type: agent
         skill: reader-proxy
@@ -131,7 +132,7 @@ phases:
         escalation:   # 磨刀十四批: 5次上限后不许静默放行
           - "≤2次: 按处方修(line-polish/tighten/beat-expand/de-ai/dialogue-doctor/tone-shift)"
           - "3-5次: scene-rewrite 整场重写(禁字符串补丁)"
-          - ">5次仍不过: HALT上报书主决策(卡/纲/人物引擎可能有问题——回book_design对应phase)"
+          - ">5次仍不过: 自动降级——alt-takes盲评重写→仍不过→登记waivers+入修订期清单+断点标记,流水线不停摆(磨刀十五批: HALT永久挂起=无人值守死锁);每日人审队列清空一次(半自动模式B)"
         peak_rule: "章级:峰章 → alt-takes 多方案必走(2-3版盲评选优)"
         post_gates:   # 审计-32教训: 正文改动必须三联动,否则卡/台账静默失真
           - "python3 tools/card_check.py <章号> --volume <卷>  # 正文数字改动→卡数字表同步"

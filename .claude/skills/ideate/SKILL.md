@@ -1,6 +1,7 @@
 ---
 name: ideate
 description: 构思域入口与编排器——从一句话想法到可开写的立项,路由并调度25个子技能(标准序列24叶+naming按需),守总闸门,卷首跑ideate-complete门。Use when 用户说"构思新故事/立项/重启构思/接着上次的构思"。.
+- 商业双叶(磨刀十五批): reader-persona(读者画像·卖给谁)→book-plan(商业计划·写多少写多久)——phase_7,creative序列之后
 ---
 
 # ideate:构思域编排器
@@ -61,7 +62,7 @@ description: 构思域入口与编排器——从一句话想法到可开写的�
 
 **4.5 机器门**
 
-序列走完先跑 `python3 tools/gate_chapter.py ideate-complete`(缺件即拦,清单即续跑路线)。
+序列走完对照book_design.yaml final_gate清单自检(缺件即拦,清单即续跑路线;磨刀十五批: 原引gate_chapter ideate-complete子命令不存在,悬空引用已除)。
 
 **5 总闸(与ideate-audit共担)**
 
