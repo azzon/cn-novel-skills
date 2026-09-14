@@ -655,7 +655,18 @@ def cmd_done(args):
     if n % 10 == 0 and not (_drift_dir / f"漂移审计-第{n // 10}期.md").exists():
         warns.append(f"第{n // 10}期漂移审计未落盘({_drift_dir})——满10章强制项[硬提醒]")
 
-    # 7 七账盖章
+    # 6.95 技能执行率(磨刀十二批: ch002实战技能执行率33%的根治——done时机器可查)
+    sp = BOOK / "ledgers" / "技能执行记录.md"
+    if sp.exists():
+        _tot = len([l for l in read_text(sp).splitlines() if l.strip().startswith("- [")])
+        _done = len([l for l in read_text(sp).splitlines() if l.strip().startswith("- [x]")])
+        if _tot and _done < _tot:
+            (warns if revise else problems).append(
+                f"技能执行记录未全勾({_done}/{_tot})——跳过的步骤产物按SKILL_PROTOCOL无效;漏项见{sp.name}")
+    else:
+        warns.append(f"无技能执行记录({sp.name})——先跑: python3 tools/skill_protocol.py list {n}")
+
+    # 7 八账盖章
     stamped = ledger_stamped(n)
     missing = [x for x in LEDGER_NAMES if x not in stamped]
     if missing:
