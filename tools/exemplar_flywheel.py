@@ -17,6 +17,8 @@ TYPES = {"对话": r"对话|对白|台词", "动作": r"动作|画面|白描", "
 
 
 def classify(q):
+    if re.search(r"[饭菜品摊烟钱票布碗盆摊秤]|块|毛|角", q) and not re.search(r"“", q[:5]):
+        return "生活"
     if re.search(r"“", q):
         return "对话"
     if re.search(r"收|末|钩", q[:6]):
@@ -37,9 +39,11 @@ def harvest(book):
         text = f.read_text(encoding="utf-8")
         # 冷读骨架的"最强段落摘录"栏(磨刀十八批新增)+行内引文「」/“”圈的高光句
         for line in text.splitlines():
-            mm = re.match(r"-\s*最强段落摘录.*?[:：]\s*(.+)", line.strip())   # 摘录(说明): 内容——说明段不定长
-            if mm and "（填）" not in mm.group(1):
-                entries.append((ch, classify(mm.group(1)), mm.group(1).strip()))
+            if re.match(r"-\s*(最强段落摘录|生活气摘录)", line.strip()):   # 双收割源;取最后一个"）： "或": "之后(栏说明含冒号)
+                seg = re.split(r"[:：]\s*", line.strip(), maxsplit=1)[-1] if ": " in line or "：" in line else ""
+                seg = re.split(r"\)\s*[:：]\s*", line.strip())[-1]   # 优先"）: "分界
+                if seg and "（填）" not in seg:
+                    entries.append((ch, classify(seg), seg.strip()))
         for q in re.findall(r"[「“]([^」”]{12,120})[」”]", text):
             if any(k in text[max(0, text.find(q) - 40):text.find(q)] for k in ("最强", "白金", "手感", "最好")):
                 entries.append((ch, classify(q), q))
@@ -67,7 +71,7 @@ def harvest(book):
         seen.add(key)
         added += 1
     out = ["# 风格包范例段库(冷读高光收割·飞轮)", "> tools/exemplar_flywheel.py 自动维护;每型保最新3段;bundle按场景型注入2段", ""]
-    for tp in ("对话", "动作", "情感", "收尾"):
+    for tp in ("对话", "动作", "情感", "收尾", "生活"):
         out.append(f"## {tp}型")
         out.extend(byt.get(tp, [])[-3:])
         out.append("")
