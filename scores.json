@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-13T23:38:34",
-  "head_commit": "26b04a4",
+  "generated_at": "2026-09-14T18:40:48",
+  "head_commit": "ce309c5",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
@@ -21,22 +21,21 @@
       "drift_flags": []
     },
     "2": {
-      "path": "text/卷1/第002章.md",
+      "path": "法医秦见微/text/卷1/第002章.md",
       "volume": "卷1",
-      "cjk": 1859,
-      "dia_char_pct": 27.3,
-      "psych_per_k": 2.69,
-      "hook_signals": 1,
+      "cjk": 1885,
+      "dia_char_pct": 40.2,
+      "psych_per_k": 2.65,
+      "hook_signals": 4,
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "hook_level_from_card": "中",
-      "card_budget": [
-        2500,
-        2900
-      ],
+      "hook_level_from_card": null,
+      "card_budget": null,
       "budget_delta_pct": -31.1,
-      "cold_read": "冷读-第002章.md"
+      "cold_read": "冷读-第002章.md",
+      "committed": false,
+      "drift_flags": []
     },
     "3": {
       "path": "text/卷1/第003章.md",

@@ -33,7 +33,9 @@ def set_book(name):
     BOOK = ROOT if not name else ROOT / name
     if not BOOK.is_dir():
         raise SystemExit(f"[exit 2] 书根不存在: {BOOK}")
-    CARD_DIR = BOOK / "text" / "卡" if (BOOK / "text" / "卡").is_dir() else BOOK / "卡"
+    import glob as _g
+    _tc = BOOK / "text" / "卡"
+    CARD_DIR = _tc if _tc.is_dir() and _g.glob(str(_tc / "*.md")) else BOOK / "卡"   # 空目录视为不存在(审计-32 S4:残留空text/卡致寻卡指向空)
     LEDGERS = BOOK / "ledgers"
     PROGRESS = BOOK / ".progress.json"
     global AUDIT_DIR
@@ -628,8 +630,9 @@ def cmd_done(args):
         pass
 
     # 6.9 漂移审计触发器(技能-检测对齐表#2): 每10章硬提醒
-    if n % 10 == 0 and not (ROOT / "story" / "audit" / f"漂移审计-第{n // 10}期.md").exists():
-        warns.append(f"第{n // 10}期漂移审计未落盘(story/audit/漂移审计-第{n // 10}期.md)——满10章强制项[硬提醒]")
+    _drift_dir = AUDIT_DIR if BOOK != ROOT else ROOT / "story" / "audit"
+    if n % 10 == 0 and not (_drift_dir / f"漂移审计-第{n // 10}期.md").exists():
+        warns.append(f"第{n // 10}期漂移审计未落盘({_drift_dir})——满10章强制项[硬提醒]")
 
     # 7 七账盖章
     stamped = ledger_stamped(n)

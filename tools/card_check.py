@@ -61,6 +61,11 @@ def extract_vals(text):
             vals.add(float(m.group()))
         except ValueError:
             pass
+    # 口语小数2: 零点八/三点五 = d.f(审计-32: "点"字小数,用于厘米/公斤类度量)
+    for m in re.finditer(r"([零一二两三四五六七八九])点([零一二三四五六七八九]+)", text):
+        d = CN_DIG.get(m.group(1), 0)
+        f = "".join(str(CN_DIG.get(c, 0)) for c in m.group(2))
+        vals.add(round(d + float("0." + f), 3))
     # 口语小数: 一块五/两块八毛 = w.f 元(审计-32:纯整数解析器无法表达X块五)
     for m in re.finditer(r"([零一二两三四五六七八九])块([零一二三四五六七八九])(毛)?(?![包盒根支条张个只台件号栋层间元块])", text):
         # 后瞻排除量词: "两块一包"的"一"属量词不构成2.1(审计-32自我修正)
@@ -85,12 +90,14 @@ def extract_vals(text):
     return vals
 
 
-def find_card(n):
-    for pat in (ROOT / "text" / "卡").glob(f"*第{n:03d}章*"):
-        return pat
-    for book in (d for d in ROOT.iterdir() if d.is_dir() and (d / "卡").is_dir()):
-        for pat in (book / "卡").glob(f"*第{n:03d}章*"):
-            return pat
+def find_card(n, book=None):
+    """寻卡: 显式书根优先(审计-32 S3: 章号在双书都存在时,无书根寻址会错对主书的卡)"""
+    roots = [pathlib.Path(book)] if book else [ROOT] + [d for d in ROOT.iterdir() if d.is_dir()]
+    for root in roots:
+        for cdir in (root / "text" / "卡", root / "卡"):
+            if cdir.is_dir():
+                for pat in sorted(cdir.glob(f"*第{n:03d}章*")):
+                    return pat
     return None
 
 
@@ -103,14 +110,20 @@ def main():
     vol = 1
     if "--volume" in sys.argv:
         vol = int(sys.argv[sys.argv.index("--volume") + 1])
-    card = find_card(n)
+    book = None
+    if "--book" in sys.argv:
+        book = pathlib.Path(sys.argv[sys.argv.index("--book") + 1])
+    card = find_card(n, book)
     if card is None:
         print(f"  [WARN] 第{n:03d}章场景卡不存在——跳过对账")
         return 0
     # 找正文(主书或书根)
     body_p = None
-    for cand in (ROOT / "text" / f"卷{vol}" / f"第{n:03d}章.md",
-                 card.parent.parent / "text" / f"卷{vol}" / f"第{n:03d}章.md"):
+    _cands = [card.parent.parent / "text" / f"卷{vol}" / f"第{n:03d}章.md",
+              ROOT / "text" / f"卷{vol}" / f"第{n:03d}章.md"]
+    if book:   # --book 显式指定时书根正文绝对优先(审计-32 S3: 章号双书歧义)
+        _cands.insert(0, book / "text" / f"卷{vol}" / f"第{n:03d}章.md")
+    for cand in _cands:
         if cand.exists():
             body_p = cand
             break

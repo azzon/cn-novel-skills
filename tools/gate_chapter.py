@@ -175,7 +175,10 @@ def main():
         return 2
     book = roots.pop()
 
-    files = [p for p in chapter_files() if book_root(p) == book]
+    if book == ROOT:
+        files = chapter_files()
+    else:
+        files = sorted(book.glob("text/卷*/第*.md"))   # 书根存量独立扫描(审计-32 S5: chapter_files只扫主书,书根G2/G2b/G4全错)
     existing = {}   # num -> path (工作区现状, 不含本次staged路径)
     staged_paths = {str(p.resolve()) for p in staged}
     for p in files:
