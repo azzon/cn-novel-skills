@@ -61,6 +61,24 @@ def main():
     r = run(["tools/evals.py", "check"] + ([str(book)] if book != ROOT else []))
     blocks.append(("回归基线(evals)", "PASS" if "无回归" in r.stdout else "WARN", r.stdout.strip().splitlines()[-1][:50]))
 
+    # 设计完整性(拉力审计教训: 法医书立项漏人物圣经,欲望引擎从未设计,正文"技术合格没兴趣")
+    if book != ROOT:
+        missing_design = []
+        bible = None
+        for cand in ["人物圣经.md", "story/20-人物/人物圣经.md", "声口卡.md"]:
+            if (book / cand).exists():
+                bible = book / cand
+                break
+        if bible is None:
+            missing_design.append("人物圣经")
+        elif bible and "ghost" not in bible.read_text(encoding="utf-8").lower() and "欲望" not in bible.read_text(encoding="utf-8") and "want" not in bible.read_text(encoding="utf-8").lower():
+            missing_design.append("人物圣经缺ghost/want引擎字段")
+        xianxian = book / "ledgers" / "线弦.md"
+        if xianxian.exists() and "欲望线" not in xianxian.read_text(encoding="utf-8"):
+            missing_design.append("线弦账无'欲望线'条目(主角私人欲望未登记)")
+        blocks.append(("设计完整性(人物引擎)", "FAIL" if missing_design else "PASS",
+                       "缺: " + "; ".join(missing_design) if missing_design else "人物引擎在位"))
+
     # 卡文对账余量
     r = run(["tools/card_check.py", "001", "--volume", "1"])
     ledger = book / "ledgers" / "卡文对账清单.md"
