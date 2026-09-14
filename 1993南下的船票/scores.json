@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-14T23:40:48",
-  "head_commit": "c5b8f6c",
+  "generated_at": "2026-09-15T00:27:29",
+  "head_commit": "ccdb370",
   "chapters": {
     "1": {
       "path": "1993南下的船票/text/卷1/第001章.md",
@@ -20,6 +20,25 @@
       ],
       "budget_delta_pct": -33.2,
       "cold_read": "冷读-第001章.md",
+      "drift_flags": []
+    },
+    "3": {
+      "path": "1993南下的船票/text/卷1/第003章.md",
+      "committed": false,
+      "cjk": 1817,
+      "dia_char_pct": 37.5,
+      "psych_per_k": 1.65,
+      "hook_signals": 2,
+      "dup18": 0,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2500,
+        2600
+      ],
+      "budget_delta_pct": -28.7,
+      "cold_read": null,
       "drift_flags": []
     }
   }
