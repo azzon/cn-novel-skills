@@ -97,6 +97,27 @@ for CHAPTER in $NEW_CH $MOD_CH; do
     MODERN_FLAG=""
     [ -f "text/.modern" ] && MODERN_FLAG="--modern"
 
+    # ── D0. 引号三重修复(自动修+重新暂存)+声口门+卡文对账门(磨刀第七批集成:此前绕过chapter_pipeline.sh直提时三道门不生效) ──
+    echo "$CHAPTER" | grep -q "\.md$" && python3 tools/fix_quotes.py "$CHAPTER" > /tmp/fq_out.txt 2>&1 && git add "$CHAPTER" 2>/dev/null
+    if [ -n "$CH_NUM" ] && ! waiver_registered "$CH_NUM" "card"; then
+      VOICE_ARGS=""
+      BOOKROOT=$(echo "$CHAPTER" | grep -oE '^[^/]+/text/' | cut -d/ -f1)
+      if [ -n "$BOOKROOT" ] && [ -f "$BOOKROOT/声口卡.md" ]; then VOICE_ARGS="--card $BOOKROOT/声口卡.md"; fi
+      VOICE_OUT=$(python3 tools/voice_check.py "$CHAPTER" $VOICE_ARGS 2>&1)
+      if echo "$VOICE_OUT" | grep -q "FAIL]"; then
+        echo -e "${RED}  [FAIL] 声口门(${CHAPTER}):${NC}"
+        echo "$VOICE_OUT" | grep "FAIL]" | head -3 | sed 's/^/    /'
+        FAIL=1
+      fi
+      CARD_VOL=$(echo "$CHAPTER" | grep -oE '卷[0-9]+' | grep -o '[0-9]+')
+      CARD_OUT=$(python3 tools/card_check.py "${CH_NUM}" --volume "${CARD_VOL:-1}" 2>&1)
+      if echo "$CARD_OUT" | grep -q "FAIL]"; then
+        echo -e "${RED}  [FAIL] 卡文对账(${CHAPTER}):${NC}"
+        echo "$CARD_OUT" | grep "FAIL]" | head -3 | sed 's/^/    /'
+        FAIL=1
+      fi
+    fi
+
     # ── D1. 质量门: check.py(豁免需check门) ──
     CHECK_EXIT=$(python3 tools/check.py $MODERN_FLAG "$CHAPTER" > /tmp/check_out.txt 2>&1; echo $?)
     if [ -n "$CH_NUM" ] && waiver_registered "$CH_NUM" "check"; then
@@ -151,6 +172,14 @@ fi
 if [ -n "$SKILLS_STAGED" ]; then
     echo ""
     echo "── 技能库一致性门 ──"
+    # 工具/技能变更→跑自测套件(磨刀第七批: 工具坏了基线即红,提交层先拦)
+    if git diff --cached --name-only | grep -qE "^tools/.*\.py$"; then
+      if ! python3 tools/self_test.py > /tmp/st_out.txt 2>&1; then
+        echo -e "${RED}  [FAIL] 工具自测(self_test)未过——tools/*.py变更触发:${NC}"
+        grep "✗" /tmp/st_out.txt | head -3 | sed 's/^/    /'
+        FAIL=1
+      fi
+    fi
     if python3 tools/skills_check.py > /tmp/sc_out.txt 2>&1; then
         echo -e "${GREEN}  [PASS] skills_check${NC}"
     else

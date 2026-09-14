@@ -41,7 +41,7 @@ def set_book(name):
 BIBLE = ROOT / "story" / "60-圣经"
 PROGRESS = ROOT / ".progress.json"
 SCORES = ROOT / "scores.json"
-LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "线弦", "时间线"]
+LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "线弦", "时间线", "数字账"]   # 审计-32 N2: 数字入账为第八账
 
 PREFIX = (
     "【生成纪律】单位=一个场景,目标3500-5000字。对话40-60%,心理>=3处/千字。"

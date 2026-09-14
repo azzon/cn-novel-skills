@@ -3,7 +3,7 @@
 # 合规格式示例: 第080章《长风号》定稿(0FAIL):... / ch080: ...
 MSG_FILE="$1"
 cd "$(git rev-parse --show-toplevel)" || exit 1
-NUMS=$(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^text/卷[^/]+/第[0-9]+章\.md$' | grep -o '第[0-9]*章' | grep -o '[0-9]*')
+NUMS=$(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '(^|/)text/卷[^/]+/第[0-9]+章\.md$' | grep -o '第[0-9]*章' | grep -o '[0-9]*')
 [ -z "$NUMS" ] && exit 0   # 非章节提交不约束
 MSG=$(cat "$MSG_FILE")
 for N in $NUMS; do

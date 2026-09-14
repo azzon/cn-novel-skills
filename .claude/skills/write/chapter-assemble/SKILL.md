@@ -43,7 +43,9 @@ python3 tools/check.py --modern <章文件>                             # 61项�
 python3 tools/gate_chapter.py <章文件>                               # 韧性门G1-G9
 python3 tools/voice_check.py <章文件> [--card <书根>/声口卡.md]      # 声口卡禁词门
 python3 tools/card_check.py <章号> --volume <卷>                     # 卡-文数字对账门
-python3 tools/self_test.py                                           # 工具自测(改工具后必跑)
+python3 tools/number_audit.py <书根>                                 # 数字账恒等式验算(入账后必跑)
+python3 tools/foreshadow_audit.py <书根>                             # 伏笔逾期(FAIL=账本崩)
+python3 tools/system_readiness.py <书根>                             # 就绪度总览(周期性,归档时看一眼)
 ```
 
 ## evals

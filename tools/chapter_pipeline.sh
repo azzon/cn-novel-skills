@@ -72,6 +72,12 @@ CARD_VOL=$(echo "$VOL" | grep -o "[0-9]*")
 CARD_OUT=$(python3 tools/card_check.py "${CARD_NUM:-$N}" --volume "${CARD_VOL:-1}" 2>&1 || true)
 echo "  $CARD_OUT" | grep -E "WARN|FAIL|对上" | head -3 | sed 's/^/     /'
 
+# ── Step 3c: 伏笔账+数字账单章审计(磨刀第七批: 入账即验,不等周期审计) ──
+echo ""
+echo "▶ Step 3c: 伏笔账+数字账"
+python3 tools/foreshadow_audit.py "${BOOK_ROOT}" 2>&1 | grep -E "FAIL|PASS" | head -2 | sed 's/^/  /'
+python3 tools/number_audit.py "${BOOK_ROOT}" 2>&1 | grep -E "FAIL|PASS|恒等式" | head -3 | sed 's/^/  /'
+
 # ── Step 4: gate_chapter 韧性门 ──
 echo ""
 echo "▶ Step 4: gate_chapter 韧性门"
