@@ -139,8 +139,8 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         echo -e "${GREEN}  [PASS] check.py质量门${NC}"
     fi
 
-    # ── D2. 场景卡门(v4: 存在性+最小内容;磨刀审计S8: 卡寻址书根感知,法医章不再错对主书卡) ──
-    if [ -n "$CH_NUM" ]; then
+    # ── D2. 场景卡门(v4;磨刀十八批收口: 仅当本章节文件本身staged时才查卡——设计层提交(无正文staged)不应被工作区未填卡阻断) ──
+    if [ -n "$CH_NUM" ] && echo "$CHAPTER" | grep -qE "(^|/)text/"; then
         BOOKROOT=$(echo "$CHAPTER" | grep -oE '^[^/]+/text/' | cut -d/ -f1)
         if [ -n "$BOOKROOT" ]; then
             CARD=$(ls $BOOKROOT/text/卡/*第${CH_NUM}章*.md $BOOKROOT/卡/*第${CH_NUM}章*.md 2>/dev/null | head -1)
