@@ -127,7 +127,12 @@ phases:
           - "当前稿件"
         outputs:
           - "修订后的稿件"
-        loop: "回到phase_3重新审改,直到全部通过或迭代5次"
+        loop: "回到phase_3重新审改,最多5次"
+        escalation:   # 磨刀十四批: 5次上限后不许静默放行
+          - "≤2次: 按处方修(line-polish/tighten/beat-expand/de-ai/dialogue-doctor/tone-shift)"
+          - "3-5次: scene-rewrite 整场重写(禁字符串补丁)"
+          - ">5次仍不过: HALT上报书主决策(卡/纲/人物引擎可能有问题——回book_design对应phase)"
+        peak_rule: "章级:峰章 → alt-takes 多方案必走(2-3版盲评选优)"
         post_gates:   # 审计-32教训: 正文改动必须三联动,否则卡/台账静默失真
           - "python3 tools/card_check.py <章号> --volume <卷>  # 正文数字改动→卡数字表同步"
           - "正文涉及钱/时间/状态改动→同步 ledgers/时间线.md 与 人物状态.md"

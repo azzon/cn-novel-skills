@@ -89,6 +89,17 @@ def main():
     else:
         card_note = "无清单"
 
+    # 商业闭环(磨刀十四批: 发布工作流/反馈账/商业质量线三件在位性)
+    biz = []
+    if not (ROOT / "workflows" / "publish.yaml").exists():
+        biz.append("publish.yaml")
+    if not (book / "ledgers" / "读者反馈账.md").exists():
+        biz.append("读者反馈账")
+    if not (ROOT / "docs" / "商业质量线.md").exists():
+        biz.append("商业质量线文档")
+    blocks.append(("商业闭环(发布/反馈)", "WARN" if biz else "PASS",
+                   "缺: " + ";".join(biz) + "(商用必需)" if biz else "发布链+反馈回路在位"))
+
     # 汇总
     print(f"═══ 系统就绪度({tag}) ═══")
     hard_fail = 0

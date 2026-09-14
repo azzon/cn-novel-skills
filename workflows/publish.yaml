@@ -1,0 +1,80 @@
+# publish.yaml 发布与运营工作流（商用闭环·此前完全缺失）
+workflow: publish
+version: "1.0"
+description: "从完稿到赚钱: 存稿→上架材料→付费卡点→发布→读者反馈→修订回调。配合 docs/商业质量线.md。"
+
+phases:
+  phase_1_stockpile:
+    name: "存稿期(上架前)"
+    steps:
+      - id: stockpile_check
+        name: "存稿盘点"
+        type: script
+        script: "python3 tools/pipeline.py status   # 章数≥30 为上架缓冲线"
+        gate:
+          - "存稿≥30章(日更30天缓冲)"
+          - "全部章节过 docs/商业质量线.md 单章发布线"
+      - id: golden3_recheck
+        name: "黄金三章复验"
+        type: agent
+        skill: opening-arc
+        gate:
+          - "冷读均≥8 且 死局/金手指首付/爽点首付三件套全过"
+      - id: king_chapter
+        name: "章王在位检查"
+        type: agent
+        skill: set-piece
+        gate:
+          - "上架前5章内≥1章冷读≥8.5(付费转化点有硬货)"
+          - "不足→alt-takes 重做该章"
+
+  phase_2_launch_materials:
+    name: "上架材料"
+    steps:
+      - id: positioning_final
+        name: "书名简介终审"
+        type: agent
+        skill: positioning
+        gate:
+          - "书名记忆度自查(一夜后还记得住吗)"
+          - "简介含卖点句+钩(80字内)"
+      - id: publish_prep
+        name: "发布检查单"
+        type: agent
+        skill: publish-prep
+        gate:
+          - "存稿量/签约入库节奏/上架时机/日更产能 四项过单"
+
+  phase_3_feedback:
+    name: "发布后运营(循环)"
+    steps:
+      - id: feedback_ledger
+        name: "读者反馈入账"
+        type: agent
+        skill: idea-inbox
+        inputs:
+          - "评论区/催更/弃书评论原文"
+        outputs:
+          - "ledgers/读者反馈账.md(章号+原文+分类:追读点/弃书点/催更主题)"
+        gate:
+          - "弃书点评论 48h 内入账"
+      - id: weekly_retro
+        name: "周复盘→修订排期"
+        type: agent
+        skill: revise
+        gate:
+          - "每个弃书点有处置: 修订排期 or 记录不改的理由"
+          - "爽点管道按读者反馈校准(要的爽没给/给的爽没人要)"
+      - id: monthly_rescan
+        name: "月度市场复扫"
+        type: agent
+        skill: market-scan
+        gate:
+          - "对标漂移检查: 本书卖点是否仍在赛道"
+          - "重大偏移→上报书主决策(调性与否)"
+
+  final_gate:
+    checks:
+      - "上架线全过(商业质量线.md 上架线节)"
+      - "反馈账在更新(发布后每周)"
+    on_fail: "退回对应phase;上架材料问题优先级最高"

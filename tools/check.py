@@ -66,7 +66,22 @@ PSYCH_V2 = re.compile(r"""(?:
     )""", re.VERBOSE)
 
 
-DASH_LIMIT = 3          # 破折号 ——
+DASH_LIMIT = 3
+
+# 题材阈值覆盖(磨刀十四批S7: 冷峻题材被市井阈值误伤——法医书冷读8/10但质量分表面指标吃亏)
+# <书根>/题材配置.md 存在则覆盖默认: - 对话下限: 30 / 语气词下限: 3 / 心理下限: 2.0
+import json as _json
+def _load_profile(fp):
+    prof = {}
+    try:
+        for line in pathlib.Path(fp).parent.joinpath("题材配置.md").read_text(encoding="utf-8").splitlines():
+            m = re.match(r"-\s*(对话下限|语气词下限|心理下限|质量线)\s*[:：]\s*([\d.]+)", line.strip())
+            if m:
+                prof[m.group(1)] = float(m.group(2))
+    except OSError:
+        pass
+    return prof
+          # 破折号 ——
 SIMILE_LIMIT = 3        # 明喻
 SYSTEM_LINE_LIMIT = 4   # 【系统台词行
 NAME = ""
@@ -97,6 +112,8 @@ def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
 def check(fp: pathlib.Path):
+    global _PROFILE
+    _PROFILE = _load_profile(fp)
     raw = fp.read_text(encoding="utf-8-sig")
     # 卡派生字数带与峰章(audits/21-Fix6): 卡带=唯一权威
     _m = re.search(r"第(\d+)章", fp.name)
@@ -288,8 +305,9 @@ def check(fp: pathlib.Path):
     if n > 500:
         dpct = dialog_chars / n * 100
         metrics["dia_char_pct"] = round(dpct, 1)
-        if dpct < 35:
-            issues.append(f"对话字数占比{dpct:.0f}%(<35%,严重不足:角色必须开口说话!)")
+        _dia_fail = _PROFILE.get("对话下限", 35)
+        if dpct < _dia_fail:
+            issues.append(f"对话字数占比{dpct:.0f}%(<{_dia_fail:.0f}%,严重不足:角色必须开口说话!)")
         elif dpct < 40:
             warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
 
@@ -302,9 +320,10 @@ def check(fp: pathlib.Path):
     if n > 800:
         psych_per_k = psych_count / n * 1000
         metrics["psych_per_k"] = round(psych_per_k, 2)
+        _psy_warn = _PROFILE.get("心理下限", 2.0)
         if psych_per_k < 0.5:
             issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重缺失:白金作家≥2/千字)")
-        elif psych_per_k < 2.0:
+        elif psych_per_k < _psy_warn:
             warns.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<2.0/千字,偏少)")
 
     # 18) 对话场景数(≥2个独立对话场景)
@@ -557,7 +576,8 @@ def check(fp: pathlib.Path):
     if _dl > 200:
         tl_per_k = round(_tl_count / _dl * 1000, 1)
         metrics["tl_per_k"] = tl_per_k
-        if tl_per_k < 3:
+        _tl_floor = _PROFILE.get("语气词下限", 3)
+        if tl_per_k < _tl_floor:
             issues.append(f"对白语气词密度{tl_per_k}/千字(<3=严重不足:机器对白)——每段对话至少一个啊/呗/嘛/那啥(dialogue-voice)")
         elif tl_per_k < 8:
             warns.append(f"对白语气词密度{tl_per_k}/千字(<8)——对白偏干净,多加语气词/口头禅(dialogue-voice)")

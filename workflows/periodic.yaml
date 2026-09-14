@@ -23,6 +23,21 @@ phases:
         inputs: ["近10章中评分最高的3段"]
         outputs: ["<书根>/story/50-风格包.md(范例段替换)"]
         gate: ["范例段≥3段且来自不同章"]
+      - id: anchor_recal
+        name: "冷读裁判再校准(商用: LLM裁判会漂——劣锚重打分,任一≥7=冷读体系失准)"
+        type: agent
+        skill: reader-proxy
+        gate:
+          - "劣锚三张重打分均<7(锚定有效)"
+          - "失准→重读锚样本+复冷读最近2章,偏差入反馈"
+      - id: feedback_loop
+        name: "读者反馈回路(发布后;未发布则跳过)"
+        type: agent
+        skill: revise
+        condition: "ledgers/读者反馈账.md 有新增条目"
+        gate:
+          - "每个弃书点有处置(修订排期或理由)"
+          - "爽点管道按反馈校准"
       - id: ledger_audits
         name: "四账审计(磨刀第六批:伏笔逾期/数字恒等式/期待链/就绪度)"
         type: script
