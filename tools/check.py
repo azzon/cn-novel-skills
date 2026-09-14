@@ -72,14 +72,20 @@ DASH_LIMIT = 3
 # <书根>/题材配置.md 存在则覆盖默认: - 对话下限: 30 / 语气词下限: 3 / 心理下限: 2.0
 import json as _json
 def _load_profile(fp):
+    """沿目录向上搜题材配置(磨刀十八批S7: 书根配置须对书根内任意章节生效,不限text/一级)"""
     prof = {}
-    try:
-        for line in pathlib.Path(fp).parent.joinpath("题材配置.md").read_text(encoding="utf-8").splitlines():
-            m = re.match(r"-\s*(对话下限|语气词下限|心理下限|质量线)\s*[:：]\s*([\d.]+)", line.strip())
-            if m:
-                prof[m.group(1)] = float(m.group(2))
-    except OSError:
-        pass
+    cur = pathlib.Path(fp).resolve().parent
+    for _ in range(5):
+        cfg = cur / "题材配置.md"
+        if cfg.exists():
+            for line in cfg.read_text(encoding="utf-8").splitlines():
+                m = re.match(r"-\s*(对话下限|语气词下限|心理下限|质量线)\s*[:：]\s*([\d.]+)", line.strip())
+                if m:
+                    prof[m.group(1)] = float(m.group(2))
+            break
+        cur = cur.parent
+        if cur == cur.parent:
+            break
     return prof
           # 破折号 ——
 SIMILE_LIMIT = 3        # 明喻
