@@ -21,9 +21,9 @@ if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff
 fi
 
 # 重命名(R)按新路径判定: text/→archive/的归档移动自然豁免(audit修正)
-NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1=="A" {print $2}')
-MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1=="M" {print $2} tolower($3) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1 ~ /^R/ {print $3}')
-DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /^text\/卷[^\/]+\/第[0-9]+章\.md$/ && $1=="D" {print $2}')
+NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="A" {print $2}')
+MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="M" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (substr($3,1,5)=="text/" || index($3,"/text/")>0) && $1 ~ /^R/ {print $3}')
+DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2}')
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
 PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc -l)
