@@ -99,6 +99,17 @@ phases:
           - "判定不是REWRITE/HOOK_FAIL"
           - "跳读≤2处"
           - "追读欲不是无所谓"
+      - id: elevation_loop
+        name: "升格环(磨刀十八批提上限: 过门≠结束——冷读<9.0触发定向润色一轮再评,上限≤1轮)"
+        type: agent
+        skill: line-polish
+        condition: "冷读总分<9.0且无致命问题(致命走revise)"
+        prescription: "只攻冷读最弱两项量规(轴制: 声音/节奏/钩/陈词),禁无差别通改;润后复冷读,分不升即回滚"
+      - id: heartbeat_takes
+        name: "心跳拍多方案(关键beat两版盲选——焦点行含'心跳/峰值'或章级=峰章时必走)"
+        type: agent
+        skill: alt-takes
+        condition: "场景卡焦点行含 心跳|峰值 或 章级:峰章"
       - id: machine_gates
         name: "机器门"
         type: script

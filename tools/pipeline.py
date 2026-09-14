@@ -384,6 +384,20 @@ def cmd_bundle(args):
     def add(name, cap, text):
         text = (text or "").strip()
         items.append((name, len(text), cap, crop(text, cap, name)))
+    # 范例段飞轮(磨刀十八批提上限: 冷读高光自喂——注入2段匹配场景型的本书最佳文字)
+    _lib = BOOK / "风格包范例段库.md"
+    if _lib.exists() and card:
+        _card_t = read_text(card)
+        _want = "对话" if _card_t.count("“") > 6 else ("收尾" if "钩" in _card_t else "情感")
+        _segs, _cur = [], None
+        for _l in read_text(_lib).splitlines():
+            m = re.match(r"## (\w+)型", _l)
+            if m: _cur = m.group(1)
+            elif _l.startswith("- 第") and _cur in (_want, "动作") and len(_segs) < 2:
+                _segs.append(_l)
+        if _segs:
+            add("0范例段(本书最佳·模仿其质感非内容)", 500, "\n".join(_segs))
+
 
     add("1固定指令前缀", 650, PREFIX)
     add("2场景卡(全文)", 1600, read_text(card))  # 大审计-20: 收口卡700被裁
@@ -741,6 +755,9 @@ def cmd_done(args):
         return 1
     recalc_progress()
     scores_update(n, p, met, committed)
+    # 范例段飞轮收割(done后自动——冷读高光回落风格包范例段库,喂给后续章)
+    import subprocess as _sp
+    _sp.run([sys.executable, "tools/exemplar_flywheel.py", "harvest", str(BOOK)], capture_output=True, cwd=ROOT)
     print(f"✅ 第{n:03d}章验收通过: progress+scores已重算")
     for x in warns:
         print(f"  [WARN] {x}")
