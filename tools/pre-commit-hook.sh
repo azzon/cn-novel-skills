@@ -58,7 +58,7 @@ fi
 # 一行只豁免列出的门;无门id的旧行不生效。删除章必须del门;check.py全项=check门。
 waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
     local LEDG="ledgers/waivers.md"
-    [ -n "$3" ] && [ -f "$3" ] && LEDG="$3"
+    [ -n "${3:-}" ] && [ -f "$3" ] && LEDG="$3"   # 清盘bug修复: set -u下$3未传参崩溃
     [ -f "$LEDG" ] || return 1
     local line
     line=$(grep -E "^- ch0?$1:" "$LEDG" 2>/dev/null | tail -1)

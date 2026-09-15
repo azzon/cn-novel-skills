@@ -1,14 +1,4 @@
 {
- "chapters": {},
- "structure": {},
- "skills": "OK",
- "total_cjk": 0,
- "structure_raw": "未找到章节文件\n",
- "quality_scores": {},
- "quality_avg": null,
- "self_test": "FAIL:对白\n[8] N1拼装疤门三态\n  ✓ 拼装疤:真事故100%→FAIL\n  ✓ 拼装疤:动作框架87%→WARN\n[9] #63离场者+#64时间跳跃\n  ✓ 离场者FAIL\n  ✓ 时间跳跃WARN\n[10] number_audit恒等式+anticipation连击\n  ✓ 恒等式不平检出(9999≠2644)\n  ✓ 平淡收连击检出\n\n失败 1 项: 10 组\n  - 新书章→书根: \n",
- "syntax": "OK",
- "recompute": "[progress] max=0 next=1 volumes={}",
- "gate_new_smoke": "OK",
- "bundle_cropped": 0
+  "_comment": "基线:python3 tools/evals.py record 重录",
+  "chapters": {}
 }
