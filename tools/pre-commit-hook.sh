@@ -104,7 +104,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
     echo "── $CHAPTER ──"
     CH_NUM=$(echo "$CHAPTER" | grep -o '第[0-9]*章' | grep -o '[0-9]*')
     MODERN_FLAG=""
-    BDIR=$(dirname "$(dirname "$CHAPTER")")   # 书根(text的上级)或"."
+    BDIR=$(dirname "$(dirname "$(dirname "$CHAPTER")")")   # 文件→卷→text→书根(主书时=".")"
     [ -f "$BDIR/text/.modern" ] && MODERN_FLAG="--modern"
 
     # ── D0.5 新章流程硬门(1993ch031事故: 正文可裸提,记账/记忆/填卡全跳过无拦截) ──
@@ -127,6 +127,15 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         PROC_MISS="$PROC_MISS 场景卡"
       elif grep -qE "（填）|（四选一|（本章全部数字事实" "$CARD_FILE"; then
         PROC_MISS="$PROC_MISS 卡未填"
+      fi
+      # 冷读硬门: 逢5的倍数或卷首章,新章commit必须带冷读报告(done的同款硬门,hook级前移)
+      CH_NUM_INT=$((10#$CH_NUM))
+      VOL_DIR=$(dirname "$CHAPTER")
+      IS_VOLFIRST=0
+      [ "$(ls "$VOL_DIR"/第*.md 2>/dev/null | wc -l)" = "1" ] && IS_VOLFIRST=1
+      if [ $((CH_NUM_INT % 5)) -eq 0 ] || [ "$IS_VOLFIRST" = "1" ]; then
+        CR_FILE=$(ls "$BROOT"/audit/冷读-第${CH_NUM}章.md "$BROOT"/audit/冷读-第${CH_NUM_INT}章.md 2>/dev/null | head -1)
+        { [ -z "$CR_FILE" ] || ! grep -qs "总分" "$CR_FILE"; } && PROC_MISS="$PROC_MISS 冷读报告(硬门章)"
       fi
       if [ -n "$PROC_MISS" ] && ! waiver_registered "$CH_NUM" "card" "$BROOT/ledgers/waivers.md"; then
         echo -e "${RED}  [FAIL] 新章流程硬门缺:$PROC_MISS ——记账/章摘要/填卡是commit前置件,不得事后补(1993ch031事故)${NC}"

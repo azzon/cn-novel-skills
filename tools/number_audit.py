@@ -22,8 +22,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 def parse_val(s):
     s = s.strip().lstrip("亏欠负损")   # 亏五百/欠四百: 前缀剥除(审计-32)
-    s = re.sub(r"(天|块|元|章|户|年|字|次|单|条|斤|台|个|米|厘米|%|点)$", "", s.strip())   # 磨刀十八批F5: 单位后缀致解析死(恒等式空转)
-    if re.fullmatch(r"\d+", s):
+    s = re.sub(r"(/(天|月|年|单|台|次))?(天|块|元|章|户|年|字|次|单|条|斤|台|个|米|厘米|%|点)?$", "", s.strip())   # 1993审计: "3000/天"斜杠费率   # 磨刀十八批F5: 单位后缀致解析死(恒等式空转)
+    s = re.sub(r"^[正±]负?", "", s)   # 1993审计: 公差"正负0.015"类
+    if re.fullmatch(r"\d+(?:\.\d+)?", s):
         return float(s)
     v = cn2num(s)
     return float(v) if v is not None else None

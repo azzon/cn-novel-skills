@@ -128,6 +128,11 @@ def zh_num_variants(x):
         # 口语截断: 九百五十→九百五/两千四百→两千四(末位为零时吞最后一个单位字)
         if ge == 0 and len(parts) >= 2:
             out.add(full[:-1])
+        # 两/二口语: 二千八→两千八(1993审计: 正文口语用"两",变体缺失致数字表验证假阴)
+        if "二千" in full:
+            out.add(full.replace("二千", "两千"))
+        if full.startswith("二百"):
+            out.add("两百" + full[2:])
     s = "".join(parts) if parts else "零"
     out.add(s)
     # 口语省略: 4500→四千五; 250→二百五
@@ -751,6 +756,20 @@ def cmd_done(args):
     _gr = BOOK / "ledgers" / "生成记录.md"
     if not (_gr.exists() and any(tk in _gr.read_text(encoding="utf-8") for tk in _sb_tokens)):
         (warns if revise else problems).append(f"生成记录未含第{n:03d}章(bundle注入无落盘)——先跑: pipeline.py bundle {n} 再生成正文")
+
+    # 6.96 卷末章义务(1993审计: 卷一完结时arc-review/卷末快照全跳过,"平淡"拖到卷二才暴露)
+    if vols and exp in vols and n == vols[exp][1]:
+        _va = None
+        for _cand in sorted((BOOK / "audit").glob(f"*连读审查*")) if (BOOK / "audit").is_dir() else []:
+            _va = _cand
+            break
+        if _va is None:
+            (warns if (revise or post) else problems).append(
+                f"第{n:03d}章为卷{exp}末章,缺卷级连读审查(audit/*连读审查*.md)——arc-review是卷末强制项")
+        _bt2 = (BOOK / "人物圣经.md").read_text(encoding="utf-8") if (BOOK / "人物圣经.md").exists() else ""
+        if "卷末快照" in _bt2 and f"卷{exp}末" not in _bt2 and f"卷{exp}·末" not in _bt2:
+            (warns if (revise or post) else problems).append(
+                f"人物圣经缺卷{exp}末快照——活文档协议卷末义务")
 
     # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)

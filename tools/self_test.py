@@ -41,7 +41,7 @@ def test_cn2num():
 
 def test_fix_quotes():
     print("[2] fix_quotes 三态")
-    import subprocess
+    import shutil, subprocess
     with tempfile.TemporaryDirectory() as d:
         f = pathlib.Path(d) / "t.md"
         f.write_text("”反向开头的对话。“他说。\n\n“正常。”\n\n”奇数结尾\n", encoding="utf-8")
@@ -201,11 +201,32 @@ def test_scaffold_gate():
         shutil.rmtree(bk, ignore_errors=True)
 
 
+def test_canary_and_new_knives():
+    """第12组: 金丝雀(带已知缺陷的文必须被抓)+#65编辑残渣+#66时序(1993全量审计)"""
+    import shutil, subprocess
+    tmp = ROOT / "_tmp_canary"
+    tmp.mkdir(exist_ok=True)
+    try:
+        f = tmp / "第001章.md"
+        content = (
+            "第一章 测试\n\n"
+            "他看着那个“哦”——不对，那个动静。"
+            "初十那天他来了。初七那天他也来了。\n\n完。"
+        )
+        f.write_text(content, encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "check.py"), "--modern", "--scene", str(f)],
+                           capture_output=True, text=True, cwd=ROOT)
+        case("金丝雀:编辑残渣被抓", "编辑残渣" in r.stdout, r.stdout[-70:])
+        case("金丝雀:时序乱序被抓", "时序词疑似乱序" in r.stdout, "")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
              test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation,
-             test_scaffold_gate]
+             test_scaffold_gate,
+            test_canary_and_new_knives]
     for t in tests:
         try:
             t()

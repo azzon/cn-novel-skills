@@ -950,6 +950,28 @@ def check(fp: pathlib.Path):
     metrics["status"] = status
     metrics["fails"] = len(issues)
     metrics["warns"] = len(warns)
+
+    # 65) 编辑残渣(1993ch032事故: "那个'哦'——不对，那个算盘声"——作者自我更正句流入正文,
+    # 付费读者回翻找不到"哦"直接判定校稿失职)
+    _scars = re.findall(r"——不对[，,]|（不对[，,）]|[〔\[]原文[〕\]]|——应为|（原文如此）", body)
+    if _scars:
+        issues.append(f"编辑残渣{len(_scars)}处(「{_scars[0][:8]}…」)——自我更正句流入正文,按最终稿改写")
+
+    # 66) 日期顺序(1993ch032事故: 初九段落排在初七之前)——同族时序词乱序WARN,近处有回忆标记则豁免
+    _time_toks = [(mm.start(), mm.group(1)) for mm in re.finditer(r"初([一二三四五六七八九十\d])", body)]
+    def _cn_day(x):
+        _m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
+        return _m.get(x, int(x) if x.isdigit() else None)
+    _vals = [(pos, _cn_day(x)) for pos, x in _time_toks]
+    _vals = [(pos, v) for pos, v in _vals if v]
+    _inversions = 0
+    for _i in range(1, len(_vals)):
+        _pos, _v = _vals[_i]
+        _prevs = [pv for pp, pv in _vals[:_i] if pv > _v]
+        if _prevs and not re.search(r"(想起|记得|回忆|那是|当时|回到)$", body[max(0, _pos-8):_pos]):
+            _inversions += 1
+    if _inversions:
+        warns.append(f"时序词疑似乱序{_inversions}处(后文'初N'小于前文)——核对叙事时间线或补回忆标记")
     return fp, n, status, issues, warns, metrics
 
 

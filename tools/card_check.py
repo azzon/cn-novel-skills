@@ -146,7 +146,7 @@ def main():
     # 空表拦截: 占位/无数字条目=数字表未实填(唯一合法空表=明写"无")
     items_real = [x for x in items if extract_vals(re.sub(r"（[^）]*）|\([^)]*\)", "", x))]
     if not items_real:
-        if any(x in ("无", "无数字", "本章无数字事实") for x in items):
+        if any(x == "无" or x.startswith("无(") or x.startswith("无（") or x in ("无数字", "本章无数字事实") for x in items):
             print(f"  数字表明写无数字事实({card.name})——对账跳过")
             return 0
         print(f"  [FAIL] {card.name} 数字表无有效条目(全占位或无数字)——数字表是冷读验算依据,必须实填")

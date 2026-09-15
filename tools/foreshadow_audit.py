@@ -27,7 +27,7 @@ def parse_ledger(path):
         if not line.startswith("- ") or "|" not in line:
             continue
         head = line[2:]
-        mid = re.match(r"(A-\d+|F-\d+)\s+(.+?)\s*\|\s*(.+)", head)
+        mid = re.match(r"\[?(A-\d+|F-\d+)\]?\s*(.+?)\s*\|\s*(.+)", head)   # 1993审计: 账内实际用[F-1]方括号格式,原式永不匹配→恒报"0条健康"
         if not mid:
             continue
         fid, desc, rest = mid.group(1), mid.group(2), mid.group(3)
@@ -86,6 +86,9 @@ def main():
             warns.append(f"{fid} [{desc[:20]}] 无埋设章号——登记不完整,无法追踪")
 
     print(f"伏笔账: {ledger.relative_to(book)} | 当前章: ch{cur:03d} | 条目: {len(items)}")
+    if not items:
+        print("  [FAIL] 伏笔账解析0条——账本为空或格式漂移(30章书0伏笔=必然漏报),人审账本格式")
+        return 1
     for l in fails:
         print(f"  [FAIL] {l}")
     for w in warns:
