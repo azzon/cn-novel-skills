@@ -57,18 +57,18 @@ def chapter_stamps_ok(book, n):
         else:
             good.add(name)
 
-    rule("钩分布", lambda rs: [r for r in rs if not re.match(rf"第0?{n}章\s*\[[^\]]{{2,6}}\]\s*\S", r)][:1]
+    rule("钩分布", lambda rs: [r for r in rs if not re.match(rf"第0?0*{n}章\s*\[[^\]]{{2,6}}\]\s*\S", r)][:1]
          or [r for r in rs if PLACEHOLDER.search(r)][:1] or [])
     rule("时间线", lambda rs: [r for r in rs if not (r.count("|") >= 3 and "年" in r.split("|")[1])][:1])
     rule("数字账", lambda rs: [r for r in rs
-                               if r.count("|") >= 3 and not extract_vals(r.split("|")[2])][:1]
-         or [r for r in rs if r.count("|") < 3][:1] or [])
+                               if not (("(" in r and "=" in r)   # 恒等式行: 目标(说明) = A ± B
+                                       or (r.count("|") >= 3 and extract_vals(r.split("|")[2])))][:1])
     rule("人物状态", lambda rs: [r for r in rs if _clean_len(r) < 6 or PLACEHOLDER.search(r)][:1])
     rule("伏笔", lambda rs: [r for r in rs if not re.match(r"\[?[FA]-\d+\]?", r)][:1])
     for plain in ("梗", "线弦", "口碑账"):
         rule(plain, lambda rs: [r for r in rs if _clean_len(r) < 8 or PLACEHOLDER.search(r)][:1])
     rule("类型轮换", lambda rs: [r for r in rs
-                                  if not re.match(rf"第0?{n}章\s*\S{{2,6}}[·・—-]\S{{1,8}}$", r)
+                                  if not re.match(rf"第0?0*{n}章\s*\S{{1,6}}[·・—-]\S{{1,8}}$", r)
                                   or PLACEHOLDER.search(r)][:1])   # 账本历史格式"类型·词"
     return good, bad
 

@@ -1,0 +1,26 @@
+{
+  "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
+  "generated_at": "2026-09-15T23:34:30",
+  "head_commit": "5908c22",
+  "chapters": {
+    "1": {
+      "path": "1998租碟店/text/卷1/第001章.md",
+      "committed": false,
+      "cjk": 2553,
+      "dia_char_pct": 59.1,
+      "psych_per_k": 3.53,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2860,
+        3520
+      ],
+      "budget_delta_pct": -20.0,
+      "cold_read": "冷读-第001章.md",
+      "drift_flags": []
+    }
+  }
+}

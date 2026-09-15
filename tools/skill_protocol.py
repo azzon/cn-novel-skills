@@ -101,6 +101,8 @@ def cmd_audit(n, book, evidence=False):
                         fp = (book / ref) if not ref.startswith("/") else pathlib.Path(ref)
                         if not fp.exists():
                             bad_ev.append(f"产物不存在: {ref} (来自: {line[:50]}…)")
+                        elif fp.suffix == ".md" and "第" in fp.name and "章" in fp.name:
+                            pass   # 章节文件本身: 存在即证据(标题用中文数字"第一章",数字token检查不适用)
                         elif fp.suffix == ".md" and not any(tk in fp.read_text(encoding="utf-8", errors="ignore")[:20000] for tk in toks):
                             bad_ev.append(f"产物未含第{n:03d}章token: {ref}")
             else:

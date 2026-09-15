@@ -36,7 +36,7 @@ PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc 
 # text/下既非章节又非已知目录的新增文件(改名逃逸哨兵,audits/13攻击4)
 # 红队git绕过#5: 路径逃逸——章文件必须活在某书根text/下;text/内非章节文件也拦
 TEXT_ODD=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && $2 ~ /(^|\/)text\// && tolower($2) !~ /第[0-9]+章\.(md)$/ && $2 !~ /\/卡\// {print $2}')
-STRAY_CH=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && tolower($2) ~ /第[0-9]+章\.md$/ && $2 !~ /(^|\/)text\// {print $2}')
+STRAY_CH=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && tolower($2) ~ /(^|\/)第[0-9]+章\.md$/ && $2 !~ /(^|\/)text\// {print $2}')   # 红队试产修复: 锚定basename开头,否则"冷读-第001章.md"误伤
 
 CARDS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" || $1=="M" {if ($2 ~ /卡\/.*第[0-9]+章.*\.md$/ || $3 ~ /卡\/.*第[0-9]+章.*\.md$/) print $2}')
 # 红队git绕过#1: 门自身文件被staged=hook自免攻击面——须waivers登记hookself(人审)
