@@ -1,11 +1,11 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-16T01:02:42",
-  "head_commit": "a956607",
+  "generated_at": "2026-09-16T04:56:40",
+  "head_commit": "28a753e",
   "chapters": {
     "1": {
       "path": "无声作证/text/卷1/第001章.md",
-      "committed": false,
+      "committed": true,
       "cjk": 2445,
       "dia_char_pct": 43.2,
       "psych_per_k": 2.04,

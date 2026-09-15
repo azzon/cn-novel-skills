@@ -40,7 +40,8 @@ def main():
         genre = None
     else:
         genre = m.group(1).strip()
-        main_g = next((k for k in KNOWN if k in genre), None)
+        matched = [k for k in KNOWN if k in genre]
+        main_g = matched[0] if matched else None
         if main_g is None:
             bucket.append(f"流派「{genre}」不在genre-playbook档案库(已知: {'/'.join(KNOWN)})——先补档案再立项,或改用已收录流派")
 
@@ -68,9 +69,16 @@ def main():
     if genre and "系统流" in genre:
         if not re.search(r"系统规则|系统面板|任务|积分|商城", premise):
             warns.append("系统流: 前提未见系统规则/任务/积分类声明——系统规则有限性须入设计层")
+        if re.search(r"寿元|寿命|消耗生命", premise) and not (book / "ledgers" / "寿元账.md").exists():
+            issues.append("系统流以寿元为代价但缺ledgers/寿元账.md——代价货币必须入账(数字账联动)")
     if genre and "杀伐流" in genre:
         if not re.search(r"底线|不滥|原则", premise):
             warns.append("杀伐流: 底线人设(狠而不滥)未声明——滥杀失共情是头号死因")
+    if genre and "苟道流" in genre:
+        if not re.search(r"露锋芒|作死对照|避险|苦一爽一|稳", premise):
+            warns.append("苟道流: 节奏三件套未声明(露锋芒排期/作死对照组/苦爽蓄压比)——苟成懦夫或从不爆发是双头死因(genre-playbook)")
+    if genre and "系统流" in genre and (b := book) is not None:
+        pass
 
     for x in issues:
         print(f"  [FAIL] {x}")
