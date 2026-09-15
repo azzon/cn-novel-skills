@@ -77,9 +77,12 @@ def main():
     # 5 docs/NN引用文件存在性(软)
     docs_dir = ROOT / "docs"
     for f in files:
-        for dm in re.finditer(r"docs/(\d+)", f.read_text(encoding="utf-8-sig")):
-            if docs_dir.exists() and not list(docs_dir.glob(f"{dm.group(1)}-*.md")):
-                warnings.append(f"docs引用: {f.parent.name} 引用docs/{dm.group(1)} 无对应文件")
+        _body = f.read_text(encoding="utf-8-sig")
+        # 红队docs一致性: 无前缀简写(NN合规/NN红队/NN迭代史)曾系统性绕过死引用检测
+        for dm in re.finditer(r"docs/(\d+)|(?:^|[\s·/])(\d{2})(?=合规|红队|迭代|规格|对齐表)", _body):
+            _num = dm.group(1) or dm.group(2)
+            if docs_dir.exists() and not list(docs_dir.glob(f"{_num}-*.md")):
+                warnings.append(f"docs引用: {f.parent.name} 引用docs/{_num} 无对应文件")
                 break
 
     # 6 三树一致性v3(硬,全量: 叶+域入口;audits/13攻击6b/6c)

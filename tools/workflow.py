@@ -6,7 +6,6 @@ workflow.py 确定性工作流执行器
 用法:
   python3 tools/workflow.py status              # 查看当前工作流状态
   python3 tools/workflow.py next                # 查看下一步该做什么
-  python3 tools/workflow.py check-phase <name>  # 检查某phase的gate是否通过
   python3 tools/workflow.py list                # 列出所有可用workflow
 
 Phase类型:

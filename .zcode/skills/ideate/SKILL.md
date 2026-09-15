@@ -1,6 +1,6 @@
 ---
 name: ideate
-description: 构思域入口与编排器——从一句话想法到可开写的立项,路由并调度25个子技能(标准序列24叶+naming按需),守总闸门,卷首跑ideate-complete门。Use when 用户说"构思新故事/立项/重启构思/接着上次的构思"。.
+description: 构思域入口与编排器——从一句话想法到可开写的立项,路由并调度35个子技能(标准序列+naming按需),守总闸门(序列走完对照book_design final_gate清单自检)。Use when 用户说"构思新故事/立项/重启构思/接着上次的构思"。.
 - 商业双叶(磨刀十五批): reader-persona(读者画像·卖给谁)→book-plan(商业计划·写多少写多久)——phase_7,creative序列之后
 ---
 

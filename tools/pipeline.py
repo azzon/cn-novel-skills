@@ -45,7 +45,9 @@ def set_book(name):
     # 红队20260915: 书根缺资产时禁回退主书(跨书污染实锤: 1993书bundle曾注入主书电子城素材+风格包)——缺=空+done报警
     BIBLE = (BOOK / "圣经") if (BOOK / "圣经").is_dir() else ((ROOT / "story" / "60-圣经") if BOOK == ROOT else None)
     STYLE = (BOOK / "风格包.md") if (BOOK / "风格包.md").exists() else ((ROOT / "story" / "50-风格包.md") if BOOK == ROOT else None)
-    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else ((ROOT / "story" / "20-人物" / "声纹表.md") if BOOK == ROOT else None)
+    # 红队技能库: 声口资产三分天下——统一单源: 书根声口卡.md优先,主书用story/60-圣经/声口卡.md(与voice_check同源)
+    _root_card = ROOT / "story" / "60-圣经" / "声口卡.md"
+    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else (_root_card if BOOK == ROOT and _root_card.exists() else None)
     MATERIAL = (BOOK / "素材库.md") if (BOOK / "素材库.md").exists() else ((ROOT / "story" / "素材库.md") if BOOK == ROOT else None)
     SCORES = BOOK / "scores.json" if BOOK != ROOT else ROOT / "scores.json"
 BIBLE = ROOT / "story" / "60-圣经"   # 目录(全书卡/卷摘要/章摘要);set_book按书根重定向
@@ -57,11 +59,11 @@ SCORES = ROOT / "scores.json"   # set_book会按书根重定向
 LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "线弦", "时间线", "数字账"]   # 审计-32 N2: 数字入账为第八账
 
 PREFIX = (
-    "【生成纪律】单位=一个场景,目标3500-5000字。对话40-60%,心理>=3/千字。"
+    "【生成纪律】单位=一个场景,目标字数按卡带(2400-5000)。对话40-55%,心理>=2/千字(少而准,与风格卡一致)。"
     "禁工程词;情绪禁告知;明喻<=3,破折号<=3,警句<=1/场景;首句禁时间状语开场(与前两章错型)。"
     "【生活气正向(上限定式)】每章1个本书专属物件(可复现道具);钱过手写面额与谁的钱;"
-    "对话跑题一次;季节落在具体物上(风掀榜纸,非'天气热');称呼带关系史(韩叔非全称)。"
-    "季节落在具体物上(风掀榜纸/汗浸票据),禁写'天气很热';称呼带关系史(韩叔/崔姨,不是姓名全称)。"
+    "对话跑题一次;季节落在具体物上(风掀榜纸,非'天气热');称呼带关系史(用本书声口卡人名与关系称谓)。"
+    "季节落在具体物上(风掀榜纸/汗浸票据),禁写'天气很热';称呼带关系史(以'叔/姨/哥'带关系相称,不写姓名全称——用本书声口卡里的人)。"
     "【生活气硬指标】金额>=2(1处参与情绪运算),感官>=3通道,闲笔>=1(>=60字),每章1轮家常对话。"
     "【情绪纪律】高情感拍减速到秒级三连微拍,单拍<=15字。"
     "【段落形态】段均<=30字;长段>=110字全章<=3;每场景3个<=15字短段。"
@@ -174,8 +176,27 @@ def read_text(p, limit=None):
         return t
     return t[limit:] if limit < 0 else t[:limit]  # 负数=取末尾N字
 
+def _atomic_write(path, text):
+    """红队中断恢复: JSON/状态写入tmp+os.replace——半截JSON会静默重置scores历史(E1实测)"""
+    import os
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def _load_json_warn(path, default):
+    """红队中断恢复: 损坏显式告警,不再静默吞成默认值"""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[WARN] {path.name}损坏({e})——用默认值续跑;修复后跑: pipeline.py scores --recompute")
+        return default
+
+
 def run_check_metrics(fp):
-    flag = ["--modern"] if (ROOT / "text" / ".modern").exists() else []
+    _bd = pathlib.Path(fp).resolve()
+    _flagpath = next((_bd.parents[i] / "text" / ".modern" for i in range(3) if (_bd.parents[i] / "text" / ".modern").exists()), None)
+    flag = ["--modern"] if _flagpath else []   # 红队冷读可信: 原只认ROOT,多书仓里1993书会假FAIL
     r = subprocess.run(["python3", "tools/check.py", *flag, "--metrics", str(fp)],
                        cwd=ROOT, capture_output=True, text=True)
     m = None
@@ -409,16 +430,31 @@ def cmd_bundle(args):
         text = (text or "").strip()
         items.append((name, len(text), cap, crop(text, cap, name)))
     # 范例段飞轮(磨刀十八批提上限: 冷读高光自喂——注入2段匹配场景型的本书最佳文字)
+    # 红队20260915: 原条件 `A and B if C else D` 按Python优先级解析成 `(A and B) if C else D`
+    # → 非生活卡时"匹配型+动作型"全部注入且无2段上限(031/032事故: 动作型3条垃圾全量进槽);
+    # 改为显式分池+总数封顶2段+按章号轮换取段(防每章恒喂同2段→风格近亲繁殖)
     _lib = BOOK / "风格包范例段库.md"
     if _lib.exists() and card:
         _card_t = read_text(card)
         _want = "生活" if _card_t.count("细节") + _card_t.count("钱面") >= 2 else ("对话" if _card_t.count("“") > 6 else ("收尾" if "钩" in _card_t else "情感"))
-        _segs, _cur = [], None
+        _pool, _cur, _last = {}, None, None
         for _l in read_text(_lib).splitlines():
             m = re.match(r"## (\w+)型", _l)
-            if m: _cur = m.group(1)
-            elif _l.startswith("- 第") and _cur in (_want, "动作") if _want != "生活" else _cur == "生活" and len(_segs) < 2:
-                _segs.append(_l)
+            if m:
+                _cur = m.group(1)
+                _pool.setdefault(_cur, [])
+                _last = None
+                continue
+            if _l.startswith("- 第") and _cur:
+                _pool[_cur].append(_l)
+                _last = _pool[_cur][-1]
+            elif _l.strip() and _last is not None and _cur:
+                _pool[_cur][-1] += "\n" + _l   # 多行范例(冷读引用块)续行并入同一条目
+        _segs = []
+        for _t in ((_want, "动作") if _want != "生活" else ("生活",)):
+            _es = _pool.get(_t, [])
+            while _es and len(_segs) < 2:
+                _segs.append(_es.pop((n + len(_segs)) % len(_es)))   # 按章轮换
         if _segs:
             add("0范例段(本书最佳·模仿其质感非内容)", 500, "\n".join(_segs))
 
@@ -439,6 +475,23 @@ def cmd_bundle(args):
         return cell
     present = [l for l in voice_lines
                if row_name(l) and (row_name(l) in card_text or row_name(l) in cast)]
+    # 红队注入质量: 声口卡(##人名节式)整节注入——表格不存在时槽3曾恒空,声口禁词从未进包
+    _vs = read_text(voice)
+    if "|" not in _vs:
+        _sec_name, _sec_buf = None, []
+        _secs = []
+        for l in _vs.splitlines():
+            m2 = re.match(r"^##\s+([^#\n]+)\s*$", l)
+            if m2:
+                if _sec_name:
+                    _secs.append((_sec_name, "\n".join(_sec_buf)))
+                _nm = re.sub(r"[（(].*?[）)]", "", m2.group(1)).strip()
+                _sec_name, _sec_buf = _nm, [l]
+            elif _sec_name:
+                _sec_buf.append(l)
+        if _sec_name:
+            _secs.append((_sec_name, "\n".join(_sec_buf)))
+        present += [body for nm, body in _secs if nm in card_text or nm in cast]
     add("3声纹行(出场者)", 400, "\n".join(present))
     # 4 风格包: 风格卡+范例段(按节标记定位——修复断供P0: 旧实现取头部1000字,
     #    风格卡在offset≈3679/范例段在≈3943,79章从未注入正样本,audits/19病灶④)
@@ -499,7 +552,9 @@ def cmd_bundle(args):
             if cell and cell not in ("人", "—") and len(cell) <= 4:
                 cast.append(cell)
     if not cast:
-        cast = [m.group(1).strip() for m in re.finditer(r"^##\s+([^#\n]{2,6})\s*$", read_text(voice), re.M)]
+        cast = [re.sub(r"[（(].*?[）)]", "", m.group(1)).strip()
+                for m in re.finditer(r"^##\s+([^#\n]{2,20})\s*$", read_text(voice), re.M)]
+        cast = [c for c in cast if 2 <= len(c) <= 4]   # 红队注入质量: "## 陈长贵(主角)"括号注记曾致槽3恒空
     # 地点→素材分区加权表
     place_sec = {"夜市": ["吃食", "B."], "早市": ["吃食", "街巷", "B.", "C."], "家": ["吃食", "器物", "B.", "E."],
                  "家属院": ["街巷", "C."], "电子城": ["电子城", "手艺", "行话", "C.", "D.", "F."],
@@ -560,22 +615,30 @@ def cmd_bundle(args):
         print(f"\n◀ {name} ▶\n{body}")
     print("\n===== BUNDLE-END =====")
     try:
-        bundle_log(n, total)
+        bundle_log(n, total, card=card_for(n))
     except Exception:
         pass
     return 0
 
 # ---------------- bundle落盘(磨刀十三批H6: 注入过程痕迹,done验第NNN章在档) ----------------
-def bundle_log(n, size):
-    import datetime
+def bundle_log(n, size, card=None):
+    import datetime, hashlib
     gr = LEDGERS / "生成记录.md"
     head = "# 生成记录(bundle注入落盘——正文生成前必跑pipeline.py bundle N,此账=过程证据链)\n"
     if not gr.exists():
         gr.write_text(head, encoding="utf-8")
-    line = f"- 第{n:03d}章 | {datetime.date.today()} | bundle注入包{size}字(PREFIX/锚/时刻卡/伏笔在档)\n"
+    # 红队20260915指纹链: 正文必须生成于这版注入物之下;done重算比对,事后改卡/改时刻卡而不重bundle=可检出
+    def _sha(p):
+        return hashlib.sha1(p.read_bytes()).hexdigest()[:12] if p and p.exists() else "缺"
+    mom = LEDGERS / "当前时刻卡.md"
+    fp = f" 指纹[卡:{_sha(card)} 时刻卡:{_sha(mom)}]"
+    line = f"- 第{n:03d}章 | {datetime.date.today()} | bundle注入包{size}字(PREFIX/锚/时刻卡/伏笔在档){fp}\n"
     txt = gr.read_text(encoding="utf-8")
     if f"第{n:03d}章 |" not in txt:
         gr.write_text(txt.rstrip() + "\n" + line, encoding="utf-8")
+    elif fp not in txt:
+        # 已有记录但指纹变了→追加重bundle记录(不覆盖历史,过程链完整)
+        gr.write_text(txt.rstrip() + "\n" + f"- 第{n:03d}章 | {datetime.date.today()} | 重bundle(注入物变更){fp}\n", encoding="utf-8")
 
 
 # ---------------- check ----------------
@@ -699,6 +762,15 @@ def cmd_done(args):
         if _fail:
             (warns if (revise or post) else problems).append(
                 f"{_fail}——打回重写(reader-proxy),豁免走waivers[{'硬门' if hard_cold else '软门'}]")
+        else:
+            # 红队冷读可信度: 摘录verbatim绑定——报告引文/块引必须多数真在正文(防伪造报告/复制旧报告改号)
+            _ch = re.sub(r"[\s\u201c\u201d\"]+", "", p.read_text(encoding="utf-8", errors="ignore"))
+            _qs = re.findall(r"\u300c([^\u300c\u300d]{12,})\u300d", _crt) + [m for m in re.findall(r'"([^"\n]{16,})', _crt)]
+            _qs += [l.strip()[1:].strip() for l in _crt.splitlines() if l.strip().startswith(">") and len(l.strip()) > 14]
+            _hits = sum(1 for q in _qs if re.sub(r"[\s\u201c\u201d\"]+", "", q) in _ch)
+            if len(_qs) >= 6 and _hits == 0:
+                (warns if (revise or post) else problems).append(
+                    f"冷读摘录0/{len(_qs)}命中正文——疑似伪造报告或复制旧报告改号(红队冷读可信度)")
 
     # 6 卡字数预算 vs 实测
     cjk = (met or {}).get("cjk", 0)
@@ -798,6 +870,19 @@ def cmd_done(args):
     _gr = BOOK / "ledgers" / "生成记录.md"
     if not (_gr.exists() and any(tk in _gr.read_text(encoding="utf-8") for tk in _sb_tokens)):
         (warns if revise else problems).append(f"生成记录未含第{n:03d}章(bundle注入无落盘)——先跑: pipeline.py bundle {n} 再生成正文")
+    else:
+        # 红队20260915指纹比对: 卡/时刻卡当前sha1 vs bundle时记录——事后偷改注入物可检出
+        import hashlib as _hl
+        _grt = _gr.read_text(encoding="utf-8")
+        _row = [l for l in _grt.splitlines() if f"第{n:03d}章 |" in l and "指纹" in l]
+        if _row:
+            def _sha_now(pp):
+                return _hl.sha1(pp.read_bytes()).hexdigest()[:12] if pp and pp.exists() else "缺"
+            _card = card_for(n)
+            _want = f"卡:{_sha_now(_card)} 时刻卡:{_sha_now(LEDGERS / '当前时刻卡.md')}"
+            if _want not in _row[-1]:
+                (warns if (revise or post) else problems).append(
+                    f"注入物指纹不匹配(当前[{_want}] vs 记录{_row[-1][-46:]})——卡/时刻卡在bundle后被改过,重跑bundle或回滚改动")
 
     # 6.96 卷末章义务(1993审计: 卷一完结时arc-review/卷末快照全跳过,"平淡"拖到卷二才暴露)
     _decl = G.volume_decl(BOOK if BOOK != ROOT else ROOT)
@@ -827,6 +912,15 @@ def cmd_done(args):
     if missing:
         _msg = f"八账未盖章: {missing}——ledger-update补记(禁无章号记账)"
         (warns if (revise or post) else problems).append(_msg)
+    # 7.5 盖章格式schema(红队流水线: "- 第N章 空话"式token盖章可骗;ledger_schema按账最小schema验)
+    try:
+        from ledger_schema import chapter_stamps_ok
+        _g, _b = chapter_stamps_ok(BOOK, n)
+        if _b:
+            _det = "; ".join(f"{nm}:{err[:40]}" for nm, errs in _b for err in errs)
+            (warns if (revise or post) else problems).append(f"盖章行格式不合规: {_det}——见tools/ledger_schema.py各账schema")
+    except ImportError:
+        pass
 
     print()
     if problems:
@@ -853,7 +947,7 @@ def scores_update(n, p, met, committed):
             "generated_at": "", "head_commit": "", "chapters": {}}
     if SCORES.exists():
         try:
-            data = json.loads(SCORES.read_text(encoding="utf-8"))
+            data = _load_json_warn(SCORES, {"chapters": {}, "_comment": "重建(scores损坏)"})
         except Exception:
             pass
     _, head, _ = git("rev-parse", "--short", "HEAD")
@@ -883,7 +977,7 @@ def scores_update(n, p, met, committed):
     if (ch.get("dia_char_pct") or 0) and ch["dia_char_pct"] < 25:
         flags.append("dialogue_starved")
     ch["drift_flags"] = flags
-    SCORES.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _atomic_write(SCORES, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
 
 def cmd_scores(args):
     import check as CHK  # noqa: E402
@@ -922,10 +1016,10 @@ def cmd_scores(args):
                    "budget_delta_pct": delta, "cold_read": (cold_read_for(n).name if cold_read_for(n) else None)})
         if met["status"] == "FAIL" or (delta is not None and delta < -40):
             ch["drift_flags"] = ["below_target"]
-    SCORES.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _atomic_write(SCORES, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     print(f"\nscores.json已重算({len(cm)}章,head={head})。红灯章: {worst or '无'}")
     try:
-        bundle_log(n, total)
+        bundle_log(n, total, card=card_for(n))
     except Exception:
         pass
     return 0

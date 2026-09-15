@@ -10,7 +10,7 @@
 │ L6 手稿层  text/卷*/第*.md + text/卡/                │  唯一权威事实(手稿是唯一权威)
 ├─────────────────────────────────────────────────────┤
 │ L5 状态层  .progress.json(hook重算) + scores.json    │  派生缓存,禁手写
-│            ledgers/七账 + 时间线 + 当前时刻卡(手维护) │
+│            ledgers/八账(重生书+矿产账=九账) + 时间线 + 当前时刻卡(手维护) │
 ├─────────────────────────────────────────────────────┤
 │ L4 执行层  tools/pipeline.py(可执行流水线状态机)      │  强制编排
 │            gate_chapter.py + check.py + pre-commit   │  强制质量
@@ -32,7 +32,7 @@
    → 因此编排必须是可执行的（pipeline.py），质量必须是机器门（gate_chapter/check.py），
    技能文本只承担"怎么做得好"，不承担"必须做"。
 2. **状态只能派生，不能手写。** .progress.json/scores.json由工具从L6实扫重算；手写状态必腐烂
-   （.pipeline_state.json坏账事故，audits/05/06）。手维护的只有叙事性账本（ledgers七账/圣经）。
+   （.pipeline_state.json坏账事故，audits/05/06）。手维护的只有叙事性账本（ledgers八账(重生书+矿产账=九账)/圣经）。
 3. **恢复靠机器坐标，不靠叙述。** 跨会话恢复先读.progress.json+当前时刻卡，做"机器三问"
    （写到哪/下一章几号/上一章讲什么），对不上先rebuild禁写（audits/10）。
 
@@ -45,12 +45,12 @@
 | 卷归属(存量实扫,吞并/影子卷/间隙全拦) | 硬 | gate_chapter G4(v4去自洽) |
 | 时序回退(新章≤账面末章须插叙标记) | 硬 | gate_chapter G6(v4解析时间线) |
 | 新章字数≥1500 | 硬 | gate_chapter G1(new) |
-| check.py 48项(含全角引号＂) | 硬 | pre-commit(豁免仅限waivers.md check门) |
+| check.py 65项(含全角引号＂) | 硬 | pre-commit(豁免仅限waivers.md check门) |
 | 章节删除 | 硬 | pre-commit v4删除门(del门授权) |
 | 提交信息含章号 | 硬 | commit-msg hook |
 | 三树技能一致(全量含域入口) | 硬 | skills_check v3 |
 | 读者冷读 | 软+节奏 | pipeline done按cadence(5的倍数/卷首硬,其余软) |
-| 七账盖章 | 软 | pipeline done提示(禁无章号记账) |
+| 八账(重生书+矿产账=九账)盖章 | 软 | pipeline done提示(禁无章号记账) |
 | 漂移审计每10章 | 软+提醒 | pipeline status + hook REMIND |
 | .progress.json | 自愈 | hook对staged版本强制实扫重算覆盖(篡改无效) |
 

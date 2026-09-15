@@ -120,6 +120,15 @@ def main():
     # 骨架卡拦截: 占位符残留=卡未填,数字表必空转(1993ch031事故vacuous pass根因)
     # 注: generated-by指纹是audit-cards要求的合法标记,只判（填）残留
     ct0 = card.read_text(encoding="utf-8-sig")
+    issues, warns = [], []
+    # 工艺行非占位(红队技能库: scene-discipline/cool-point挂载盲区——卡上钩/爽点/生活层/焦点四行是工艺挂载的落点,占位=挂载空转)
+    for _fld in ("钩", "爽点", "生活层", "焦点"):
+        _m = re.search(rf"[-*]\s*\*\*{_fld}\*\*[:：]\s*(.\S*)", ct0)
+        _v = _m.group(1).strip() if _m else ""
+        if not _v or _v.startswith("（"):
+            _msg = f"卡上「{_fld}」行未实填(占位/缺失)——工艺挂载(scene-discipline/cool-point)的落点,填了才算挂载过"
+            (warns if "补录卡" in ct0 else issues).append(_msg)   # 补录卡=legacy_cards诚实欠账,降WARN;新卡FAIL
+
     if any(m in ct0 for m in ("（填）", "（四选一", "（本章全部数字事实")):
         print(f"  [FAIL] {card.name} 骨架卡未填(（填）残留)——先走scene-card填卡再写正文")
         return 1
@@ -151,9 +160,7 @@ def main():
             return 0
         print(f"  [FAIL] {card.name} 数字表无有效条目(全占位或无数字)——数字表是冷读验算依据,必须实填")
         return 1
-    issues, warns = [], []
     body_vals = extract_vals(body)
-    issues, warns = [], []
     for it in items:
         it_clean = re.sub(r"（[^）]*）|\([^)]*\)", "", it)
         card_vals = extract_vals(it_clean)

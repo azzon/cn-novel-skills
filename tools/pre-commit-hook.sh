@@ -34,10 +34,22 @@ if ! python3 tools/skill_protocol.py audit-cards > /tmp/hook_scaffold.txt 2>&1; 
 fi
 PROGRESS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 == ".progress.json"' | wc -l)
 # text/下既非章节又非已知目录的新增文件(改名逃逸哨兵,audits/13攻击4)
-TEXT_ODD=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && $2 ~ /^text\// && tolower($2) !~ /第[0-9]+章\.(md)$/ && $2 !~ /^text\/卡\// {print $2}')
+# 红队git绕过#5: 路径逃逸——章文件必须活在某书根text/下;text/内非章节文件也拦
+TEXT_ODD=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && $2 ~ /(^|\/)text\// && tolower($2) !~ /第[0-9]+章\.(md)$/ && $2 !~ /\/卡\// {print $2}')
+STRAY_CH=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && tolower($2) ~ /第[0-9]+章\.md$/ && $2 !~ /(^|\/)text\// {print $2}')
 
 CARDS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" || $1=="M" {if ($2 ~ /卡\/.*第[0-9]+章.*\.md$/ || $3 ~ /卡\/.*第[0-9]+章.*\.md$/) print $2}')
-if [ -z "$CHAPTERS" ] && [ -z "$SKILLS_STAGED" ] && [ "$PROGRESS_STAGED" -eq 0 ] && [ -z "$TEXT_ODD" ]; then
+# 红队git绕过#1: 门自身文件被staged=hook自免攻击面——须waivers登记hookself(人审)
+HOOK_SELF=$(echo "$STATUS_OUT" | awk -F'\t' '$1 ~ /^[AM]/ && ($2 ~ /^tools\/pre-commit-hook.sh$/ || $2 ~ /^\.githooks\// || $2 ~ /^tools\/(skill_protocol|check|gate_chapter|card_check|voice_check|pipeline)\.py$/) {print $2}')
+HOOKSELF_OK=0
+    grep -qsE "^- hookself:.*hookself.*20[0-9]{2}-[0-9]{2}-[0-9]{2}" ledgers/waivers.md && HOOKSELF_OK=1
+    if [ -n "$HOOK_SELF" ] && [ "$HOOKSELF_OK" != "1" ]; then
+    echo -e "${RED}  [FAIL] 门自身文件被修改且staged: $HOOK_SELF${NC}"
+    echo -e "${RED}  ——hook自免=最高危攻击面;人工复核后ledgers/waivers.md登记 '- hookself: hookself (批准:人名 日期)' 同批提交${NC}"
+    exit 1
+fi
+
+if [ -z "$CHAPTERS" ] && [ -z "$SKILLS_STAGED" ] && [ "$PROGRESS_STAGED" -eq 0 ] && [ -z "$TEXT_ODD" ] && [ -z "$HOOK_SELF" ]; then
     echo -e "${GREEN}[PASS] 无章节/技能/进度变更，跳过。${NC}"
     exit 0
 fi
@@ -53,6 +65,7 @@ waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
     [ -z "$line" ] && return 1
     # 红队20260915: waiver永不过期=后门;90天自动失效,需复验日期重登记
     WDATE=$(echo "$line" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | tail -1)
+    [ -z "$WDATE" ] && return 1   # 红队git绕过#4: 无日期=永生后门,一律失效重登记
     if [ -n "$WDATE" ]; then
       if [ "$WDATE" \< "$(date -d '90 days ago' +%F 2>/dev/null || echo 0000-00-00)" ]; then
         return 1
@@ -82,6 +95,12 @@ if [ -n "$NEW_CH" ] || [ -n "$MOD_CH" ]; then
         echo -e "${GREEN}  [PASS] staged全部章节通过${NC}"
         grep '\[WARN\]' /tmp/gate_ch_out.txt | sort | uniq -c | sed 's/^/    /'
     fi
+fi
+
+# ── B0. 游离章门(红队git绕过#5: 草稿/第040章.md类零门入库)
+if [ -n "$STRAY_CH" ]; then
+    echo -e "${RED}  [FAIL] 章节文件逃逸text/目录: $STRAY_CH ——正文必须活在书根text/卷N/下,移入或删除${NC}"
+    FAIL=1
 fi
 
 # ── B. 章节删除门(新,v4): 删章=结构性变更,必须del门或走arc-restructure记录 ──
@@ -119,21 +138,24 @@ for CHAPTER in $NEW_CH $MOD_CH; do
     if [ -n "$CH_NUM" ] && git diff --cached --name-status -- "$CHAPTER" 2>/dev/null | grep -q "^A"; then
       BROOT=$(dirname "$(dirname "$(dirname "$CHAPTER")")")   # 文件→卷→text→书根(主书时=".")
       PROC_MISS=""
+      # 红队git绕过#3: 流程门查staged版(index)——工作区装饰骗门根除;账/卡未staged=孤儿章
+      stgrep() { git show ":$1" 2>/dev/null | grep -qs -- "$2"; }
       for led in 钩分布 时间线 数字账 人物状态; do
-        grep -qs "第${CH_NUM}章" "$BROOT/ledgers/${led}.md" || PROC_MISS="$PROC_MISS $led"
+        stgrep "${BROOT}/ledgers/${led}.md" "第${CH_NUM}章" || PROC_MISS="$PROC_MISS $led"
       done
-      grep -qs "第${CH_NUM}章" "$BROOT/ledgers/技能执行记录.md" || PROC_MISS="$PROC_MISS 技能执行记录"
-      grep -qs "第${CH_NUM}章" "$BROOT/ledgers/生成记录.md" || PROC_MISS="$PROC_MISS 生成记录"
+      stgrep "${BROOT}/ledgers/技能执行记录.md" "第${CH_NUM}章" || PROC_MISS="$PROC_MISS 技能执行记录"
+      stgrep "${BROOT}/ledgers/生成记录.md" "第${CH_NUM}章" || PROC_MISS="$PROC_MISS 生成记录"
       SB_OK=0
-      for sb in "$BROOT"/圣经/*章摘要.md "$BROOT"/ledgers/章摘要.md "$BROOT"/故事圣经.md "$BROOT"/圣经/章摘要.md; do
-        [ -f "$sb" ] && grep -qs "第${CH_NUM}章" "$sb" && SB_OK=1
+      for sb in "${BROOT}"/圣经/*章摘要.md "${BROOT}"/ledgers/章摘要.md "${BROOT}"/故事圣经.md; do
+        stgrep "${sb#./}" "第${CH_NUM}章" && SB_OK=1
       done
       [ "$SB_OK" = "0" ] && PROC_MISS="$PROC_MISS 章摘要"
-      CARD_FILE=$(ls "$BROOT"/卡/*第${CH_NUM}章*.md "$BROOT"/text/卡/*第${CH_NUM}章*.md 2>/dev/null | head -1)
+      CARD_FILE=$(ls "$BROOT"/卡/*第${CH_NUM}章*.md 2>/dev/null | head -1)
       if [ -z "$CARD_FILE" ]; then
         PROC_MISS="$PROC_MISS 场景卡"
-      elif grep -qE "（填）|（四选一|（本章全部数字事实" "$CARD_FILE"; then
-        PROC_MISS="$PROC_MISS 卡未填"
+      else
+        git show ":${CARD_FILE#./}" 2>/dev/null | grep -qE "（填）|（四选一|（本章全部数字事实" && PROC_MISS="$PROC_MISS 卡未填"
+        git diff --cached --name-only | grep -qs -- "$CARD_FILE" || PROC_MISS="$PROC_MISS 卡未staged(孤儿章)"
       fi
       # 冷读硬门: 逢5的倍数或卷首章,新章commit必须带冷读报告(done的同款硬门,hook级前移)
       CH_NUM_INT=$((10#$CH_NUM))
@@ -286,13 +308,20 @@ if [ "$FAIL" -eq 1 ]; then
 else
     echo -e "${GREEN}  ✅ 质量+流程+韧性门通过${NC}"
     # 长跑回归闸(advisory,大审计-11 evals可执行化): 基线存在时跑diff
-    if [ -f evals_baseline.json ]; then
-        EV=$(python3 tools/evals.py check 2>&1 | tail -1)
+    # 红队冷读可信: 原只查主书基线=1993书基线从未被自动检查——按staged书根逐书检查
+    for EVB in "$@" ; do :; done
+    EV_BOOKS=""
+    for BK in $(echo "$STATUS_OUT" | awk -F'\t' '{print $2}' | cut -d/ -f1 | sort -u); do
+        [ -f "$BK/evals_baseline.json" ] && EV_BOOKS="$EV_BOOKS $BK"
+    done
+    [ -f evals_baseline.json ] && EV_BOOKS="$EV_BOOKS ."
+    for BK in $EV_BOOKS; do
+        EV=$(python3 tools/evals.py check $BK 2>&1 | tail -1)
         case "$EV" in
-            无回归*) echo -e "${GREEN}  [PASS] evals回归: ${EV}${NC}" ;;
-            *) echo -e "${YELLOW}  [WARN] evals回归: ${EV}${NC}" ;;
+            无回归*) echo -e "${GREEN}  [PASS] evals回归(${BK}): ${EV}${NC}" ;;
+            *) echo -e "${YELLOW}  [WARN] evals回归(${BK}): ${EV}${NC}" ;;
         esac
-    fi
+    done
 fi
 echo "═══════════════════════════════════════════"
 exit 0

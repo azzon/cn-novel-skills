@@ -18,7 +18,7 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 
 ## 前置条件
 
-卷纲在册;风格包在册;上一场已归档(六账齐)。缺→先调 continuation 重建状态。
+卷纲在册;风格包在册;上一场已归档(八账齐)。缺→先调 continuation 重建状态。
 
 ## 流程
 
@@ -29,7 +29,7 @@ description: 章级流水编排器——串起一场的全部工序(scene-card�
 **1.5 机器硬门(每步前跑)**
 - 生成前:`python3 tools/pipeline.py bundle <章号>`(缺卡/缺风格包/缺声纹表即拦,兼产注入包);
 - 拼章前:对章文件跑 `python3 tools/pipeline.py check <文件>`;
-- 归档前:`python3 tools/pipeline.py done <章号>`(韧性门/冷读节奏/七账盖章在此核);
+- 归档前:`python3 tools/pipeline.py done <章号>`(韧性门/冷读节奏/八账盖章在此核);
 - 硬门FAIL=当场停线,回到对应技能,**禁止绕过**(韧性门=gate_chapter.py,与pre-commit hook同一实现——磨刀十六批: '退役'声明与工具实况相反,已纠)。
 
 **2 标准工序(串行,闸间不放行)**

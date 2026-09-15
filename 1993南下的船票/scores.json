@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-15T20:07:45",
-  "head_commit": "f820d49",
+  "generated_at": "2026-09-15T20:21:40",
+  "head_commit": "63f8889",
   "chapters": {
     "1": {
       "path": "1993南下的船票/text/卷1/第001章.md",

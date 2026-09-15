@@ -76,7 +76,7 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 | 脚本 | 用途 |
 |---|---|
 | `tools/pipeline.py` | **可执行流水线状态机(架构v2核心)**:status/next/bundle(上下文装配器)/check/done/scores |
-| `tools/check.py` | 章节机检35项(禁词/装饰修辞/重复段/工程词泄漏/引号族/对话占比/心理密度)+METRICS机器输出 |
+| `tools/check.py` | 章节机检65项(禁词/装饰修辞/重复段/工程词泄漏/引号族/对话占比/心理密度)+METRICS机器输出 |
 | `tools/gate_chapter.py` | 章级韧性门v4(章号/跳章/标题/跨章查重/卷归属去自洽/时序门/字数硬底线)+`.progress.json`重算 |
 | `archive/tools-deprecated/gates.py` | 旧硬门(已退役,由pipeline bundle/done收编) |
 | `tools/skills_check.py` | 技能库体检v3(结构/路由/死引用/三树全量比对;缺树=硬FAIL) |
@@ -106,7 +106,7 @@ cn-novel-skills/
 ├── .zcode/skills/   # ZCode运行时技能副本(装出物)
 ├── story/           # 你的小说项目数据(设定/大纲/风格包/圣经/审计报告)
 ├── text/            # 正文+场景卡(text/卡/)
-├── ledgers/         # 七账+时间线+当前时刻卡+waivers+发布检查单
+├── ledgers/         # 八账(重生书+矿产账=九账)+时间线+当前时刻卡+waivers+发布检查单
 ├── audits/          # 系统审计报告(红队产出)
 └── .progress.json   # 进度指针(hook自动重算)
 ```
