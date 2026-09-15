@@ -89,9 +89,11 @@ def scan_volumes(files):
     order = sorted(vols, key=lambda v: int(re.search(r"\d+", v).group()))
     return {v: list(vols[v]) for v in order}
 
-def volume_decl():
+def volume_decl(book=None):
     """卷册声明(story/30-情节/卷册表.md): `卷N: 起章-止章` 每行一条;新卷开写时在此登记,门按声明判归属"""
-    f = ROOT / "story" / "30-情节" / "卷册表.md"
+    f = (book or ROOT) / "story" / "30-情节" / "卷册表.md"
+    if not f.exists() and book:
+        f = book / "卷册表.md"
     out = {}
     if f.exists():
         for l in f.read_text(encoding="utf-8").splitlines():
@@ -334,9 +336,9 @@ def main():
                 m = re.match(r"-\s*第(\d+)章\|", l.strip())
                 if m:
                     mm = int(m.group(1))
-                    # 只统计早于本章的记录——账本若先盖了本章/后续章的章,不应让新章误判(audits/22后实测缺陷)
-                    if mm < n:
-                        tl_max = max(tl_max, mm)
+                    # 红队20260915: 原"if mm < n"使下方n<tl_max恒假=死门;语义应为:
+                    # 时间线存在比本章新的记录→在写旧章(时序回退),插叙标记豁免
+                    tl_max = max(tl_max, mm)
             head = "\n".join(raw.splitlines()[:5])
             if tl_max and mode == "new" and n < tl_max:
                 if "插叙:" not in head and "插叙：" not in head:

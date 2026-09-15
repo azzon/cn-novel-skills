@@ -74,7 +74,8 @@ phases:
       - id: conflict_check
         name: "冲突升级检查"
         type: script
-        script: "检查冲突升级追踪表是否需要更新"
+        # 红队20260915: 原为中文句子伪script步骤
+        review: "检查冲突升级追踪表是否需要更新(人工审)"
         gate: ["冲突规模比上期大"]
       - id: evals_rebaseline
         name: "evals基线重录"
@@ -120,3 +121,15 @@ phases:
         inputs: ["卷N复盘+当前时刻卡+下一卷冲突升级要求"]
         outputs: ["<书根>/story/30-情节/卷(N+1)纲.md"]
         gate: ["红队通过"]
+
+  phase_3_redteam:
+    name: "系统红队(每卷末或每30章,大审计-35制度化)"
+    steps:
+      - id: redteam_fanout
+        name: "六路红队代理攻击"
+        type: manual
+        review: |
+          并行派6个干净代理: 技能库/流水线工具/工作流执行性/读者位(追读连读)/长跑稳定性/预验尸。
+          报告落story/audit/红队-<域>-<日期>.md;P0当批修复并加self_test金丝雀;结论入大审计-N。
+          纪律: 攻击位≠建造位——读者位代理只读成品判追读,不读设计文档辩护。
+

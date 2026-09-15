@@ -46,6 +46,12 @@ def main():
     blocks.append(check_block("伏笔账(foreshadow_audit)", ["tools/foreshadow_audit.py", str(book)]))
     blocks.append(check_block("数字账(number_audit)", ["tools/number_audit.py", str(book)]))
     blocks.append(check_block("期待链(anticipation_audit)", ["tools/anticipation_audit.py", str(book)]))
+    # 流派契约+矿产(红队20260915: book_design全软步骤,genre门必须仪表盘强制)
+    blocks.append(check_block("流派契约(genre_contract)", ["tools/genre_contract.py", str(book)]))
+    if book != ROOT:
+        blocks.append(check_block("矿产账(goldmine_audit)", ["tools/goldmine_audit.py", str(book)]))
+    else:
+        blocks.append(check_block("矿产账(goldmine_audit)", ["tools/goldmine_audit.py", "story"]))
 
     # check.py 全量(主书45章按卷扫;书根同)
     fails, total = 0, 0

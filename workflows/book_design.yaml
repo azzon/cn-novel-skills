@@ -50,7 +50,7 @@ phases:
         gate:
           - "goldmine_audit.py过(无账=FAIL)"
           - "限制器≥1条已写入00-前提.md"
-          - "第一桶金来源在主角能力圈内
+          - "第一桶金来源在主角能力圈内"
   phase_1_market:
     name: "市场调研"
     description: "调研目标平台的当前标准、热门赛道、读者偏好"

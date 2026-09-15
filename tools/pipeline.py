@@ -42,10 +42,11 @@ def set_book(name):
     AUDIT_DIR = BOOK / "audit" if BOOK != ROOT else ROOT / "story" / "audit"
     # 磨刀十五批(端到端推演#7): set_book此前只切四路径——圣经/风格包/声纹表/素材库/scores全是ROOT全局,
     # 非主书bundle会注入主书圣经,scores.json按章号互相覆盖(千章级多书污染)
-    BIBLE = (BOOK / "圣经") if (BOOK / "圣经").is_dir() else (ROOT / "story" / "60-圣经")
-    STYLE = (BOOK / "风格包.md") if (BOOK / "风格包.md").exists() else (STYLE)
-    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else (VOICE_TABLE)
-    MATERIAL = (BOOK / "素材库.md") if (BOOK / "素材库.md").exists() else (MATERIAL)
+    # 红队20260915: 书根缺资产时禁回退主书(跨书污染实锤: 1993书bundle曾注入主书电子城素材+风格包)——缺=空+done报警
+    BIBLE = (BOOK / "圣经") if (BOOK / "圣经").is_dir() else ((ROOT / "story" / "60-圣经") if BOOK == ROOT else None)
+    STYLE = (BOOK / "风格包.md") if (BOOK / "风格包.md").exists() else ((ROOT / "story" / "50-风格包.md") if BOOK == ROOT else None)
+    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else ((ROOT / "story" / "20-人物" / "声纹表.md") if BOOK == ROOT else None)
+    MATERIAL = (BOOK / "素材库.md") if (BOOK / "素材库.md").exists() else ((ROOT / "story" / "素材库.md") if BOOK == ROOT else None)
     SCORES = BOOK / "scores.json" if BOOK != ROOT else ROOT / "scores.json"
 BIBLE = ROOT / "story" / "60-圣经"   # 目录(全书卡/卷摘要/章摘要);set_book按书根重定向
 STYLE = ROOT / "story" / "50-风格包.md"
@@ -147,13 +148,22 @@ def zh_num_variants(x):
     return sorted(out)
 
 def ledger_stamped(n):
+    """盖章=账内存在以"- "开头的条目行且含本章号(红队20260915: 任意位置token=垃圾文本可骗;
+    占位行(待记/TODO/占位)不算)"""
     toks = (f"第{n}章", f"第{n:03d}章")
     stamped = []
     for f in sorted(LEDGERS.glob("*.md")):
         if f.name == "waivers.md":
             continue
-        if any(t in f.read_text(encoding="utf-8") for t in toks):
-            stamped.append(f.stem)
+        for line in f.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if not s.startswith("- "):
+                continue
+            if re.search(r"待记|TODO|占位|待补", s):
+                continue
+            if any(t in s for t in toks):
+                stamped.append(f.stem)
+                break
     return stamped
 
 def read_text(p, limit=None):
@@ -217,7 +227,7 @@ def leak_check(fp):
     body = re.sub(r"\s+", "", read_text(fp))
     sources = []
     sp = STYLE
-    if sp.exists():
+    if sp and sp.exists():
         m = re.search(r"^## 范例段.*?(?=^## |\Z)", read_text(sp), re.M | re.S)
         if m:
             sources.append(("风格包范例段", m.group(0)))
@@ -381,9 +391,13 @@ def cmd_bundle(args):
     if card is None:
         missing.append(f"场景卡 text/卡/*第{n:03d}章*(先走scene-card)")
     sp = STYLE
-    if not sp.exists():
+    if sp is None:
+        missing.append("书根风格包.md(多书隔离禁回退主书;走style-compiler)")
+    elif not sp.exists():
         missing.append("story/50-风格包.md")
     voice = VOICE_TABLE
+    if voice is None and BOOK != ROOT:
+        print('[红灯] 书根缺声口卡.md——voice_check与bundle将空转;立声口卡(char-voice)')
     if not voice.exists():
         missing.append("story/20-人物/声纹表.md")
     if missing:
@@ -441,18 +455,19 @@ def cmd_bundle(args):
     # 6 当前时刻卡(全文,唯一整读账本)
     add("6当前时刻卡", 1400, read_text(LEDGERS / "当前时刻卡.md"))  # 大审计-20: 934/500静默裁剪收口指令,P0
     # 7 圣经: 全书卡(修烂账:进度改由实扫)+卷摘要(不存在则用章摘要近窗,大审计-20)
-    bible = read_text(BIBLE / "全书卡.md")
-    _volsum = BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md" if exp and re.search(r'\d+', exp) else (BIBLE / "卷摘要.md")   # 磨刀十六批: 与story-bible技能产物名统一(原卷摘要-{vol}.md技能从不写)
-    if _volsum.exists():
-        bible += "\n" + read_text(_volsum)
+    bible = read_text(BIBLE / "全书卡.md") if BIBLE else "(缺圣经目录——书根建圣经/,断点恢复与跨卷记忆靠它)"
+    _volsum = (BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md") if (BIBLE and exp and re.search(r'\d+', exp)) else ((BIBLE / "卷摘要.md") if BIBLE else None)   # 磨刀十六批: 产物名统一;红队20260915: BIBLE可为None(书根隔离禁回退)
+    if _volsum and _volsum.exists():
+        _vs = read_text(_volsum)
+        bible += "\n" + (_vs if len(_vs) <= 1500 else "…(头部压缩)…" + _vs[-1450:])   # 红队20260915: 卷摘要超限保尾弃头(最新章摘要在尾部)
     else:
-        _zq = BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md" if exp and re.search(r'\d+', exp) else (BIBLE / "章摘要.md")
-        if _zq.exists():
+        _zq = (BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md") if (BIBLE and exp and re.search(r'\d+', exp)) else ((BIBLE / "章摘要.md") if BIBLE else None)
+        if _zq and _zq.exists():
             bible += "\n" + read_text(_zq, -900)
     add("7圣经(全书卡+章摘要近窗)", 1500, bible)
     # 8 伏笔账在跑项
     fb = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
-          if re.search(r"状态.*(养|悬空|待回收)", l)]
+          if re.search(r"状态.*(养|悬空|待回收|充能|引信|排期|大压|悬)", l)]
     add("8伏笔在跑项", 2600, "\n".join(fb))  # 随章数增长,季度性归档已兑项可回撤  # 大审计-20: 1435/600静默裁剪,P0
     # 9 钩分布/类型轮换近窗
     hooks = read_text(LEDGERS / "钩分布.md", -250)
@@ -465,7 +480,9 @@ def cmd_bundle(args):
     # 10 生活素材(audits/21-Fix1): cast从声纹表派生(禁硬编码),按卡面提及打分,
     #    按地点分区加权,J区语言恒带2条;素材须变形入文(数字保留,表述重造)
     mat_path = MATERIAL
-    mat_raw = read_text(mat_path)
+    mat_raw = read_text(mat_path) if mat_path else ""
+    if BOOK != ROOT and mat_path is None:
+        print("[红灯] 书根缺素材库.md——多书隔离禁回退主书素材(红队20260915跨书污染);走world-economy建本书素材库")
     # 当前section标记
     sec = ""
     mat_items = []  # (section, line)
@@ -474,13 +491,15 @@ def cmd_bundle(args):
             sec = l[3:].strip()[:8]
         elif l.strip().startswith(("- ", "  - ")) and "已用:" not in l and not l.strip().startswith("- 202"):
             mat_items.append((sec, l.strip()))
-    # cast从声纹表表格首列派生
+    # cast从声纹表表格首列派生;声口卡(##人名头)格式兼容(红队20260915: 1993书表格不存在→cast恒空)
     cast = []
     for l in read_text(voice).splitlines():
         if l.strip().startswith("|") and not re.search(r"^\|[-\s|:]+\|?$", l.strip()):
             cell = l.strip().strip("|").split("|")[0].strip("*# 【】[]")
             if cell and cell not in ("人", "—") and len(cell) <= 4:
                 cast.append(cell)
+    if not cast:
+        cast = [m.group(1).strip() for m in re.finditer(r"^##\s+([^#\n]{2,6})\s*$", read_text(voice), re.M)]
     # 地点→素材分区加权表
     place_sec = {"夜市": ["吃食", "B."], "早市": ["吃食", "街巷", "B.", "C."], "家": ["吃食", "器物", "B.", "E."],
                  "家属院": ["街巷", "C."], "电子城": ["电子城", "手艺", "行话", "C.", "D.", "F."],
@@ -664,6 +683,22 @@ def cmd_done(args):
     if cr is None:
         msg = "无冷读记录(story/audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
         (problems if hard_cold else warns).append(msg + ("[硬门]" if hard_cold else "[软门]"))
+    else:
+        # 红队20260915: 冷读内容门——一行文伪造/低分/不会翻必须拦(新章FAIL,后验WARN)
+        _crt = cr.read_text(encoding="utf-8", errors="ignore")
+        _sc = re.search(r"总分[:：]\s*([0-9](?:\.[0-9])?)", _crt)
+        _fail = None
+        if len(_crt) < 600:
+            _fail = "冷读报告过薄(<600B,疑似一行文)"
+        elif not _sc:
+            _fail = "冷读无总分数字"
+        elif float(_sc.group(1)) < 7:
+            _fail = f"冷读{_sc.group(1)}分(<7)"
+        elif re.search(r"追读判定[:：]\s*不会翻", _crt):
+            _fail = "冷读判定不会翻"
+        if _fail:
+            (warns if (revise or post) else problems).append(
+                f"{_fail}——打回重写(reader-proxy),豁免走waivers[{'硬门' if hard_cold else '软门'}]")
 
     # 6 卡字数预算 vs 实测
     cjk = (met or {}).get("cjk", 0)
@@ -723,6 +758,13 @@ def cmd_done(args):
     if sp.exists():
         _tot = len([l for l in _spt.splitlines() if l.strip().startswith("- [")])
         _done = len([l for l in _spt.splitlines() if l.strip().startswith("- [x]")])
+        if _spt:
+            import subprocess as _sp
+            rc_ev = _sp.run([sys.executable, "tools/skill_protocol.py", "audit", str(n), "--book", str(BOOK), "--evidence"],
+                            capture_output=True, text=True, cwd=ROOT)
+            if rc_ev.returncode != 0:
+                (warns if (revise or post) else problems).append(
+                    "技能执行记录证据链不过(打勾无产物引用/引用断裂)——红队20260915: 自证打勾=可偷懒,新章必须带'→ 产物: 路径'")
         if _tot and _done < _tot:
             (warns if revise else problems).append(
                 f"技能执行记录未全勾({_done}/{_tot})——跳过的步骤产物按SKILL_PROTOCOL无效;漏项见{sp.name}")
@@ -758,7 +800,15 @@ def cmd_done(args):
         (warns if revise else problems).append(f"生成记录未含第{n:03d}章(bundle注入无落盘)——先跑: pipeline.py bundle {n} 再生成正文")
 
     # 6.96 卷末章义务(1993审计: 卷一完结时arc-review/卷末快照全跳过,"平淡"拖到卷二才暴露)
-    if vols and exp in vols and n == vols[exp][1]:
+    _decl = G.volume_decl(BOOK if BOOK != ROOT else ROOT)
+    _expno = int(re.search(r"\d+", exp).group()) if exp and re.search(r"\d+", exp) else None
+    if _decl and _expno in {int(re.search(r"\d+", k).group()) for k in _decl}:
+        _is_volend = bool(_expno in {int(re.search(r"\d+", k).group()) for k in _decl} and _decl.get(f"卷{_expno}", (0, -1))[1] == n)
+    else:
+        _is_volend = False
+        if not _decl and n == max(cm):
+            warns.append("缺卷册表(story/30-情节/卷册表.md)——卷末义务门无法判卷边界,建表后生效")
+    if _is_volend:
         _va = None
         for _cand in sorted((BOOK / "audit").glob(f"*连读审查*")) if (BOOK / "audit").is_dir() else []:
             _va = _cand
@@ -767,7 +817,7 @@ def cmd_done(args):
             (warns if (revise or post) else problems).append(
                 f"第{n:03d}章为卷{exp}末章,缺卷级连读审查(audit/*连读审查*.md)——arc-review是卷末强制项")
         _bt2 = (BOOK / "人物圣经.md").read_text(encoding="utf-8") if (BOOK / "人物圣经.md").exists() else ""
-        if "卷末快照" in _bt2 and f"卷{exp}末" not in _bt2 and f"卷{exp}·末" not in _bt2:
+        if "卷末快照" in _bt2 and f"卷{_expno}末" not in _bt2 if "_expno" in dir() else False:
             (warns if (revise or post) else problems).append(
                 f"人物圣经缺卷{exp}末快照——活文档协议卷末义务")
 

@@ -136,7 +136,9 @@ def collect(book_root=ROOT):
         tmp.unlink(missing_ok=True)
 
     # bundle冒烟: 注入项不得出现"已裁剪"(注入预算健康)
-    b = run([sys.executable, "tools/pipeline.py", "bundle", "2"])
+    _ch = sorted((ROOT.glob("text/卷*/第*.md")), key=lambda x: x.stat().st_mtime)
+    _n = max((int(m.group(1)) for f in _ch for m in [__import__("re").search(r"第(\d+)章", f.name)] if m), default=2)
+    b = run([sys.executable, "tools/pipeline.py", "bundle", str(_n)])   # 红队20260915: 死写2=永远测开卷注入
     data["bundle_cropped"] = len(re.findall(r"已裁剪", b.stdout))
     return data
 

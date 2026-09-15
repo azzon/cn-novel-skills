@@ -51,6 +51,13 @@ waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
     local line
     line=$(grep -E "^- ch0?$1:" "$LEDG" 2>/dev/null | tail -1)
     [ -z "$line" ] && return 1
+    # 红队20260915: waiver永不过期=后门;90天自动失效,需复验日期重登记
+    WDATE=$(echo "$line" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | tail -1)
+    if [ -n "$WDATE" ]; then
+      if [ "$WDATE" \< "$(date -d '90 days ago' +%F 2>/dev/null || echo 0000-00-00)" ]; then
+        return 1
+      fi
+    fi
     echo "$line" | grep -qE "(^|[;:（([:space:]])($2|all)([;)）;:[:space:]]|$)"
 }
 
@@ -135,7 +142,21 @@ for CHAPTER in $NEW_CH $MOD_CH; do
       [ "$(ls "$VOL_DIR"/第*.md 2>/dev/null | wc -l)" = "1" ] && IS_VOLFIRST=1
       if [ $((CH_NUM_INT % 5)) -eq 0 ] || [ "$IS_VOLFIRST" = "1" ]; then
         CR_FILE=$(ls "$BROOT"/audit/冷读-第${CH_NUM}章.md "$BROOT"/audit/冷读-第${CH_NUM_INT}章.md 2>/dev/null | head -1)
-        { [ -z "$CR_FILE" ] || ! grep -qs "总分" "$CR_FILE"; } && PROC_MISS="$PROC_MISS 冷读报告(硬门章)"
+        # 红队20260915: 一行文"总分:9"可伪造——三查: 存在+体量≥600B+分数≥7且非"不会翻"
+        if [ -z "$CR_FILE" ]; then
+          PROC_MISS="$PROC_MISS 冷读报告(硬门章)"
+        elif [ "$(stat -c%s "$CR_FILE" 2>/dev/null || echo 0)" -lt 600 ]; then
+          PROC_MISS="$PROC_MISS 冷读报告过薄(<600B,疑似一行文伪造)"
+        else
+          CR_SCORE=$(grep -oE "总分[:：][[:space:]]*[0-9]+(\.[0-9])?" "$CR_FILE" | grep -oE "[0-9]+(\.[0-9])?" | head -1)
+          if [ -z "$CR_SCORE" ]; then
+            PROC_MISS="$PROC_MISS 冷读无总分数字"
+          elif awk "BEGIN{exit !($CR_SCORE < 7)}"; then
+            PROC_MISS="$PROC_MISS 冷读${CR_SCORE}分(<7,打回重写非放行)"
+          elif grep -q "追读判定:[[:space:]]*不会翻" "$CR_FILE"; then
+            PROC_MISS="$PROC_MISS 冷读判定不会翻"
+          fi
+        fi
       fi
       if [ -n "$PROC_MISS" ] && ! waiver_registered "$CH_NUM" "card" "$BROOT/ledgers/waivers.md"; then
         echo -e "${RED}  [FAIL] 新章流程硬门缺:$PROC_MISS ——记账/章摘要/填卡是commit前置件,不得事后补(1993ch031事故)${NC}"

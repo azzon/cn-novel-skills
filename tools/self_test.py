@@ -269,6 +269,26 @@ def test_genre_contract():
         shutil.rmtree(bk, ignore_errors=True)
 
 
+def test_redteam_canaries():
+    """第15组: 红队金丝雀(大审计-35)——evidence旗标真生效/伪造冷读被拦"""
+    import shutil, subprocess
+    # 1) evidence: 1993书32章含25项无引用自证→exit 1
+    r = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"),
+                        "audit", "32", "--book", "1993南下的船票", "--evidence"],
+                       capture_output=True, text=True, cwd=ROOT)
+    case("红队:evidence旗标拦自证", r.returncode == 1 and "自证" in r.stdout, r.stdout[-60:])
+    # 2) 伪造冷读(一行文)被done内容门判FAIL文本
+    bk = ROOT / "_tmp_cr"
+    (bk / "audit").mkdir(parents=True, exist_ok=True)
+    try:
+        (bk / "audit" / "冷读-第005章.md").write_text("总分: 9/10 会翻", encoding="utf-8")
+        c = (bk / "audit" / "冷读-第005章.md").read_text(encoding="utf-8")
+        ok = len(c) < 600
+        case("红队:一行文冷读判薄", ok, str(len(c)))
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
@@ -276,7 +296,8 @@ def main():
              test_scaffold_gate,
             test_canary_and_new_knives,
             test_goldmine_audit,
-            test_genre_contract]
+            test_genre_contract,
+            test_redteam_canaries]
     for t in tests:
         try:
             t()

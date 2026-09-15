@@ -55,12 +55,13 @@ def cmd_list(n, book, wf_path=None):
             "> 每步执行前先读SKILL.md全文;完成后把 [ ] 改 [x] 并附一行产物说明。跳过=产物无效。", ""]
     for sid, name, typ, skill in steps():
         f = skill_file(str(skill))
+        ev = " → 产物: (路径或exit码,红队20260915: 打勾不带产物引用=自证,audit会拦)" if sid in ("scene_card", "draft", "cold_read", "ledger", "memory", "done", "commit") else ""
         if typ == "script":
-            rows.append(f"- [ ] {sid}({name}) [script步骤:真实执行命令后勾——预勾=审计失真(磨刀十三批H2)]")
+            rows.append(f"- [ ] {sid}({name}) [script步骤:真实执行命令后勾——预勾=审计失真(磨刀十三批H2)]{ev}")
         elif f:
-            rows.append(f"- [ ] {sid}({name}) 技能: {skill} → {f.relative_to(ROOT)}")
+            rows.append(f"- [ ] {sid}({name}) 技能: {skill} → {f.relative_to(ROOT)}{ev}")
         else:
-            rows.append(f"- [ ] {sid}({name}) 技能: {skill or '(无)'}")
+            rows.append(f"- [ ] {sid}({name}) 技能: {skill or '(无)'}{ev}")
     book.mkdir(parents=True, exist_ok=True) if not book.exists() else None
     (book / "ledgers").mkdir(parents=True, exist_ok=True)
     rec.write_text("\n".join(rows) + "\n", encoding="utf-8")
@@ -71,30 +72,54 @@ def cmd_list(n, book, wf_path=None):
     return 0
 
 
-def cmd_audit(n, book):
+def cmd_audit(n, book, evidence=False):
     rec = book / "ledgers" / "技能执行记录.md"
     if not rec.exists():
         print(f"[FAIL] 无技能执行记录: {rec}——先跑 skill_protocol.py list {n}")
         return 1
     total = done = 0
     missed = []
+    no_ev = []
+    bad_ev = []
+    toks = (f"第{n}章", f"第{n:03d}章")
     for line in rec.read_text(encoding="utf-8").splitlines():
         if not line.strip().startswith("- ["):
             continue
         total += 1
         if line.startswith("- [x]"):
             done += 1
+            if "→ 产物:" in line or "→产物:" in line:
+                import re as _re
+                m2 = _re.search(r"→\s*产物[:：]\s*([^ （(，,;；]+)", line)
+                if m2:
+                    ref = m2.group(1).strip().strip("，,;；")
+                    if ref.startswith("(") or ref == "(路径或exit码,红队20260915:打勾不带产物引用=自证,audit会拦)":
+                        no_ev.append(line[:80])
+                    elif re.fullmatch(r"exit[01](\([0-9a-f]{6,}\))?", ref.lower()):
+                        pass   # script步骤: exit码引用
+                    else:
+                        fp = (book / ref) if not ref.startswith("/") else pathlib.Path(ref)
+                        if not fp.exists():
+                            bad_ev.append(f"产物不存在: {ref} (来自: {line[:50]}…)")
+                        elif fp.suffix == ".md" and not any(tk in fp.read_text(encoding="utf-8", errors="ignore")[:20000] for tk in toks):
+                            bad_ev.append(f"产物未含第{n:03d}章token: {ref}")
+            else:
+                no_ev.append(line[:80])
         else:
             missed.append(line[:90])
     rate = done / total * 100 if total else 0
     print(f"技能执行率: {done}/{total} ({rate:.0f}%)")
     for m in missed:
         print(f"  [漏] {m}")
+    if no_ev:
+        print(f"  [WARN] {len(no_ev)}项打勾无产物引用(自证)——新章须按模板带'→ 产物: 路径'")
+    for b in bad_ev:
+        print(f"  [FAIL] 证据链断裂: {b}")
     if rate < 100:
         print("  [WARN] 执行率<100%——跳过的步骤产物按协议无效,done验收视角降级")
-        return 2
-    print("  技能执行记录全勾")
-    return 0
+    if evidence and (no_ev or bad_ev):
+        return 1
+    return 0 if not bad_ev else 1
 
 
 CARD_SKELETON = """# 场景卡 卷{vol}-第{n:03d}章（标题）
@@ -222,12 +247,18 @@ def main():
         return 2
     mode = args[0]
     rest = args[1:]
+    _ev = "--evidence" in rest   # 红队20260915: --evidence曾是死旗标(main不解析→done硬门空转),接线
+    if "--evidence" in rest:
+        rest = [a for a in rest if a != "--evidence"]
+        args = [args[0]] + rest
     n = int(re.sub(r"\D", "", rest[0]) or 0) if rest else 0
     book = ROOT
     if "--book" in args:
         book = ROOT / args[args.index("--book") + 1]
     wf = args[args.index("--wf") + 1] if "--wf" in args else None
-    return cmd_list(n, book, wf) if mode == "list" else cmd_audit(n, book)
+    if mode == "list":
+        return cmd_list(n, book, wf)
+    return cmd_audit(n, book, evidence=_ev)
 
 
 if __name__ == "__main__":

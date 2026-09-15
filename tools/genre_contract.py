@@ -33,25 +33,27 @@ def main():
         return 0
 
     m = re.search(r"流派[:：]\s*([^\s//(（]+)", premise)
+    parked = bool(re.search(r"待重启|清稿|搁置|封存", premise))   # 停摆书降级为WARN(红队: 门要诚实但不挡无关工作)
+    bucket = warns if parked else issues
     if not m:
-        issues.append("00-前提.md缺流派声明(- 流派: <名>)——genre-playbook硬前置: 流派引擎必须构思期选定并声明,不许写完再补")
+        bucket.append("00-前提.md缺流派声明(- 流派: <名>)——genre-playbook硬前置: 流派引擎必须构思期选定并声明,不许写完后补")
         genre = None
     else:
         genre = m.group(1).strip()
         main_g = next((k for k in KNOWN if k in genre), None)
         if main_g is None:
-            issues.append(f"流派「{genre}」不在genre-playbook档案库(已知: {'/'.join(KNOWN)})——先补档案再立项,或改用已收录流派")
+            bucket.append(f"流派「{genre}」不在genre-playbook档案库(已知: {'/'.join(KNOWN)})——先补档案再立项,或改用已收录流派")
 
     is_rebirth = bool(re.search(r"重生|穿越|先知|未来记忆|上一世|前世", premise))
 
     # 重生/穿越系(不论流派): 矿产三件套
     if is_rebirth:
         if not (book / "00-矿产档案.md").exists():
-            issues.append("重生/穿越书缺00-矿产档案.md(era-goldmine硬前置)")
+            bucket.append("重生/穿越书缺00-矿产档案.md(era-goldmine硬前置)")
         if not (book / "ledgers" / "矿产账.md").exists():
-            issues.append("重生/穿越书缺ledgers/矿产账.md(第九账)")
+            bucket.append("重生/穿越书缺ledgers/矿产账.md(第九账)")
         if not re.search(r"限制|不想赚|动机|记忆颗粒|盲区|代价", premise):
-            issues.append("重生书缺限制层声明(博弈流=能力层限制/躺赢流=动机层'不想赚')——无限先知=无聊死")
+            bucket.append("重生书缺限制层声明(博弈流=能力层限制/躺赢流=动机层'不想赚')——无限先知=无聊死")
 
     # 流派专属
     if genre and "躺赢流" in genre:
@@ -62,7 +64,7 @@ def main():
             warns.append("博弈流: 能力层限制器声明建议显式写入")
     if genre and "经营流" in genre:
         if not (book / "ledgers" / "数字账.md").exists():
-            issues.append("经营流缺ledgers/数字账.md——资产表复利是经营流主引擎,数字不动=死(1993卷一实证)")
+            bucket.append("经营流缺ledgers/数字账.md——资产表复利是经营流主引擎,数字不动=死(1993卷一实证)")
     if genre and "系统流" in genre:
         if not re.search(r"系统规则|系统面板|任务|积分|商城", premise):
             warns.append("系统流: 前提未见系统规则/任务/积分类声明——系统规则有限性须入设计层")

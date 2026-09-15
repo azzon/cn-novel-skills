@@ -32,9 +32,20 @@ def fold(path, keep_pred, archive_head, dry=False):
             head.append(l)
     if not arch:
         return 0
-    out = head + active + ["", archive_head, f"(共{len(arch)}条,压缩于本周期;全文在git历史)"] + arch
+    # 红队20260915: 归档区必须置于活跃区之前——账本读取协议是"取尾部=取最新",
+    # 归档在尾部会让近窗注入喂到旧账(story_time从090跳回030实测)
+    out = head + ["", archive_head, f"(共{len(arch)}条,压缩于本周期;全文在git历史)"] + arch + [""] + active
     if not dry:
+        _before = path.read_text(encoding="utf-8")
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
+        # 写后自检: 全文最大章号必须仍在尾部60行内(防活性反转),失败即回滚
+        import re as _re
+        _allch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", path.read_text(encoding="utf-8"))]
+        _tailch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", "\n".join(out[-60:]))]
+        if _allch and _tailch and max(_allch) not in _tailch:
+            path.write_text(_before, encoding="utf-8")
+            print(f"  [自检失败已回滚] {path.name}: 最大章在归档区,折叠中止——人工处理")
+            return 0
     return len(arch)
 
 
