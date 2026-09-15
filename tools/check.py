@@ -587,8 +587,8 @@ def check(fp: pathlib.Path):
         _tl_floor = _PROFILE.get("语气词下限", 3)
         if tl_per_k < _tl_floor:
             issues.append(f"对白语气词密度{tl_per_k}/千字(<3=严重不足:机器对白)——每段对话至少一个啊/呗/嘛/那啥(dialogue-voice)")
-        elif tl_per_k < 8:
-            warns.append(f"对白语气词密度{tl_per_k}/千字(<8)——对白偏干净,多加语气词/口头禅(dialogue-voice)")
+        elif tl_per_k < max(_tl_floor * 3, 6):
+            warns.append(f"对白语气词密度{tl_per_k}/千字(<{_tl_floor * 3:.0f})——对白偏干净,多加语气词/口头禅(dialogue-voice)")
 
     # 49) 对白完整句率(大审计-28: 碎片化不足=机器对白)
     if _dl > 200:
