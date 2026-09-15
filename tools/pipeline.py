@@ -842,7 +842,7 @@ def cmd_done(args):
     else:
         # 红队20260915: 冷读内容门——一行文伪造/低分/不会翻必须拦(新章FAIL,后验WARN)
         _crt = cr.read_text(encoding="utf-8", errors="ignore")
-        _sc = re.search(r"总分[:：]\s*([0-9](?:\.[0-9])?)", _crt)
+        _sc = re.search(r"总分[:：]\s*\*{0,2}([0-9](?:\.[0-9])?)", _crt)   # 红队: 总分:**6/10**粗体格式
         _fail = None
         if len(_crt) < 600:
             _fail = "冷读报告过薄(<600B,疑似一行文)"

@@ -170,7 +170,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         elif [ "$(stat -c%s "$CR_FILE" 2>/dev/null || echo 0)" -lt 600 ]; then
           PROC_MISS="$PROC_MISS 冷读报告过薄(<600B,疑似一行文伪造)"
         else
-          CR_SCORE=$(grep -oE "总分[:：][[:space:]]*[0-9]+(\.[0-9])?" "$CR_FILE" | grep -oE "[0-9]+(\.[0-9])?" | head -1)
+          CR_SCORE=$(grep -oE "总分[:：][[:space:]]*\*{0,2}[0-9]+(\.[0-9])?" "$CR_FILE" | grep -oE "[0-9]+(\.[0-9])?" | head -1)
           if [ -z "$CR_SCORE" ]; then
             PROC_MISS="$PROC_MISS 冷读无总分数字"
           elif awk "BEGIN{exit !($CR_SCORE < 7)}"; then

@@ -176,8 +176,13 @@ def check(fp: pathlib.Path):
 
     # 5) 明喻限额
     sim = 0
+    # 红队香火城隍: "神像/图像/摄像/录像/影像/画像/想象"的"像"是名词语素,非明喻词——先剥除再计数
+    _body_sim = re.sub(r"(神像|塑像|雕像|图像|摄像|录像|影像|画像|想象|像样|好像话)", "", body)
+    _spans = set()
     for p in SIMILE_PATTERNS:
-        sim += len(re.findall(p, body))
+        for _m in re.finditer(p, _body_sim):
+            _spans.add(_m.span())   # 跨模式去重: 同段文本被多模式重复计数(香火城隍事故)
+    sim = len(_spans)
     if sim > SIMILE_LIMIT:
         issues.append(f"明喻{sim}处(上限{SIMILE_LIMIT})")
 
