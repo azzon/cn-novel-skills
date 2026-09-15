@@ -244,13 +244,39 @@ def test_goldmine_audit():
         shutil.rmtree(bk, ignore_errors=True)
 
 
+def test_genre_contract():
+    """第14组: 流派契约门(2026-09-15)——无声明FAIL/重生缺矿产FAIL/齐装PASS"""
+    import shutil, subprocess
+    bk = ROOT / "_tmp_gc"
+    led = bk / "ledgers"; led.mkdir(parents=True, exist_ok=True)
+    try:
+        (bk / "00-前提.md").write_text("普通写实故事。", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "genre_contract.py"), str(bk)],
+                           capture_output=True, text=True, cwd=ROOT)
+        case("genre:无声明被抓", "缺流派声明" in r.stdout, r.stdout[-70:])
+
+        (bk / "00-前提.md").write_text("他重生回1993年,不想赚大钱,只想享受生活守着小档口(动机层限制);张力三轴: 反应链+树大招风。\n- 流派: 躺赢流", encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "genre_contract.py"), str(bk)],
+                            capture_output=True, text=True, cwd=ROOT)
+        case("genre:重生缺矿产被抓", "矿产档案" in r2.stdout, "")
+
+        (bk / "00-矿产档案.md").write_text("档案", encoding="utf-8")
+        (led / "矿产账.md").write_text("# 矿产账\n", encoding="utf-8")
+        r3 = subprocess.run([sys.executable, str(ROOT / "tools" / "genre_contract.py"), str(bk)],
+                            capture_output=True, text=True, cwd=ROOT)
+        case("genre:齐装放行", r3.returncode == 0 and "PASS" in r3.stdout, r3.stdout[-70:])
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
              test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation,
              test_scaffold_gate,
             test_canary_and_new_knives,
-            test_goldmine_audit]
+            test_goldmine_audit,
+            test_genre_contract]
     for t in tests:
         try:
             t()

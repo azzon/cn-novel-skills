@@ -22,6 +22,20 @@ phase_0_isolation:
     - "后续一切产物路径以书根为前缀"
 
 phases:
+  phase_0_genre:
+    name: "流派定调(2026-09-15 autopilot: 流派引擎必须构思期输入)"
+    steps:
+      - id: genre_playbook
+        name: "流派选型与引擎装配"
+        type: manual
+        skill: genre-playbook
+        outputs:
+          - "00-前提.md含 '- 流派: <主流派>(+辅流派佐料)'"
+          - "引擎配置逐条落设计产物(矿产档案/系统规则/资产表/仇恨账本...)"
+          - "限制层写入前提句"
+        gate:
+          - "python3 tools/genre_contract.py <书根> 过(无流派声明=FAIL)"
+          - "读者契约一句话入00-前提(冷读量规⑥的判分依据)"
   phase_0_goldmine:
     name: "矿产建档(重生/穿越书必走,2026-09-15硬前置)"
     condition: "00-前提.md含 重生|穿越|先知|未来记忆"
