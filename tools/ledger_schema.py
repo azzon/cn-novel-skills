@@ -60,7 +60,7 @@ def chapter_stamps_ok(book, n):
     rule("钩分布", lambda rs: [r for r in rs if not re.match(rf"第0?0*{n}章\s*\[[^\]]{{2,6}}\]\s*\S", r)][:1]
          or [r for r in rs if PLACEHOLDER.search(r)][:1] or [])
     rule("时间线", lambda rs: [r for r in rs if not (
-        r.count("|") >= 3 and ("年" in r.split("|")[1] or "当代" in r.split("|")[1]))][:1])   # 无声作证: 当代书无年份/在场人物5段格式
+        r.count("|") >= 3 and any(k in r.split("|")[1] for k in ("年", "当代", "日", "时")))][:1])   # 适配: 年份/当代/相对日期(次日/时辰)均合法
     rule("数字账", lambda rs: [r for r in rs
                                if not (("(" in r and "=" in r)   # 恒等式行: 目标(说明) = A ± B
                                        or (r.count("|") >= 3 and extract_vals(r.split("|")[2])))][:1])

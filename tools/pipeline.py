@@ -304,6 +304,69 @@ def sync_hooks():
         return "已同步(源与.git/hooks不一致,已覆盖)"
     return None
 
+
+def cmd_batch(args):
+    """红队20260916 end-to-end批量化: 机器侧半自动驾驶——对区间逐章: 前置检查→bundle→四门→done,输出生产看板。
+    AI侧(填卡/写正文/冷读)仍在人机回路,本命令报告每章的可推进/阻塞状态。"""
+    nums = [a for a in args if not a.startswith("--")]
+    if len(nums) < 2:
+        print("用法: pipeline.py batch <起始章> <结束章> [--book 书根]")
+        return 2
+    n1, n2 = int(nums[0]), int(nums[1])
+    cm = chapter_map()
+    vols = G.scan_volumes(list(cm.values()))
+    board = []
+    for n in range(n1, n2 + 1):
+        row = {"章": n, "状态": "OK", "阻塞": []}
+        card = card_for(n)
+        if card is None:
+            row["阻塞"].append("无卡")
+        else:
+            ct = card.read_text(encoding="utf-8-sig")
+            if any(m in ct for m in ("（填）", "（四选一", "（本章全部数字事实")):
+                row["阻塞"].append("卡未填")
+        body = cm.get(n)
+        if body is None:
+            row["阻塞"].append("无正文")
+            row["状态"] = "BLOCKED"
+            board.append(row)
+            continue
+        cjk = len(re.sub(r"[^\u4e00-\u9fff]", "", body.read_text(encoding="utf-8", errors="ignore")))
+        row["字数"] = cjk
+        if cjk < 1800:
+            row["阻塞"].append(f"正文{cjk}字<1800(残章或未写)")
+        rc, out, _ = run_check_metrics(body)
+        if rc != 0:
+            row["阻塞"].append("check未过")
+        rc2, gout = run_gate("modified", [str(body)])
+        if rc2 != 0:
+            row["阻塞"].append("gate未过")
+        dr = cold_read_for(n)
+        row["冷读"] = "有" if dr else "无"
+        stamped = ledger_stamped(n)
+        miss = [x for x in LEDGER_NAMES if x not in stamped]
+        if miss:
+            row["阻塞"].append(f"缺账:{','.join(miss[:3])}")
+        row["状态"] = "BLOCKED" if row["阻塞"] else "READY"
+        board.append(row)
+
+    print("\n═══ 生产看板 ═══")
+    for r in board:
+        flag = "🟢" if r["状态"] == "READY" else ("🟡" if r["状态"] == "OK" else "🔴")
+        line = f"{flag} 第{r['章']:03d}章 {r['状态']}"
+        if "字数" in r:
+            line += f" {r['字数']}字"
+        line += f" 冷读:{r.get('冷读', '?')}"
+        if r["阻塞"]:
+            line += " | 阻塞: " + "; ".join(r["阻塞"])
+        print(line)
+    ready = sum(1 for r in board if r["状态"] == "READY")
+    blocked = sum(1 for r in board if r["状态"] == "BLOCKED")
+    print(f"\n可验收(READY): {ready} | 阻塞(BLOCKED): {blocked} | 其余: 未到生产位")
+    print("下一步: 对READY章跑 done N;对BLOCKED章按阻塞项处置")
+    return 0
+
+
 def cmd_status():
     stub_chapter_alert()
     hs = sync_hooks()
@@ -1066,6 +1129,8 @@ def main():
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()
+    if cmd == "batch":
+        return cmd_batch(rest)
     if cmd == "next":
         return cmd_next(rest)
     if cmd == "bundle":
