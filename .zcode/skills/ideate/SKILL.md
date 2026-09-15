@@ -39,7 +39,7 @@ description: 构思域入口与编排器——从一句话想法到可开写的�
 
 **2 标准序列(新立项全流程,序即依赖)**
 
-**story-incubate(孵化)** → **premise-fit(适配闸:AI擅长×语料富度×概念维持成本×受众主流×长跑空间,≥20/25)** → premise → theme-dossier → world-rules → world-power → world-map → world-economy → world-history → world-culture → iceberg-budget → char-bible → char-web → char-voice → plot-spine → romance-line → volume-outline → set-piece → opening-arc → unit-designer → foreshadow-plan → reward-economy → pacing-score → thread-weaver → positioning → ideate-audit → **trial-write(试写验证)** (naming按需插队)
+**story-incubate(孵化)** → **premise-fit(适配闸:AI擅长×语料富度×概念维持成本×受众主流×长跑空间,≥20/25;重生穿越流另有三硬前置)** → **era-goldmine(重生/穿越书必走: 矿产档案+限制器,无档案拒开卷)** → premise → theme-dossier → world-rules → world-power → world-map → world-economy → world-history → world-culture → iceberg-budget → char-bible → char-web → char-voice → plot-spine → romance-line → volume-outline → set-piece → opening-arc → unit-designer → foreshadow-plan → reward-economy → pacing-score → thread-weaver → positioning → ideate-audit → **trial-write(试写验证)** (naming按需插队)
 
 > **80/20原则**：孵化(story-incubate)和试写(trial-write)两步应占总构思时间的50%以上。
 > 中间的23叶是"结构化文档"，孵化是"找到非写不可的故事"，试写是"确认故事活了"。

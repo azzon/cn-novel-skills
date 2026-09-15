@@ -221,12 +221,36 @@ def test_canary_and_new_knives():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
+def test_goldmine_audit():
+    """第13组: 矿产账审计(2026-09-15 era-goldmine)——双采/超窗FAIL,非重生书跳过"""
+    import shutil, subprocess
+    bk = ROOT / "_tmp_gm"
+    led = bk / "ledgers"; led.mkdir(parents=True, exist_ok=True)
+    try:
+        (bk / "00-前提.md").write_text("他重生回1993年。", encoding="utf-8")
+        (led / "时间线.md").write_text("- 第041章|1998年05月|股市|入场\n", encoding="utf-8")
+        (led / "矿产账.md").write_text(
+            "- [G-1] 94年大底 | 类别:股市 | 窗口:1994.07 | 采:第040章 | 收益:2万 | 时扰:0 | 状态:已采\n"
+            "- [G-1] 94年大底 | 类别:股市 | 窗口:1994.07 | 采:第041章 | 收益:3万 | 时扰:0 | 状态:已采\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "goldmine_audit.py"), str(bk)],
+                           capture_output=True, text=True, cwd=ROOT)
+        case("goldmine:双采被抓", "双采" in r.stdout, r.stdout[-80:])
+        case("goldmine:超窗被抓", "超窗" in r.stdout, "")
+        (bk / "00-前提.md").write_text("普通写实年代文。", encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "goldmine_audit.py"), str(bk)],
+                            capture_output=True, text=True, cwd=ROOT)
+        case("goldmine:非重生书跳过", "跳过" in r2.stdout, "")
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
              test_n1_assembly, test_exit_and_timejump, test_number_and_anticipation,
              test_scaffold_gate,
-            test_canary_and_new_knives]
+            test_canary_and_new_knives,
+            test_goldmine_audit]
     for t in tests:
         try:
             t()

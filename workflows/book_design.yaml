@@ -22,6 +22,21 @@ phase_0_isolation:
     - "后续一切产物路径以书根为前缀"
 
 phases:
+  phase_0_goldmine:
+    name: "矿产建档(重生/穿越书必走,2026-09-15硬前置)"
+    condition: "00-前提.md含 重生|穿越|先知|未来记忆"
+    steps:
+      - id: era_goldmine
+        name: "时代矿产建库"
+        type: manual
+        skill: era-goldmine
+        outputs:
+          - "00-矿产档案.md(≥15条+错过区,九元组)"
+          - "ledgers/矿产账.md(空账开卷)"
+        gate:
+          - "goldmine_audit.py过(无账=FAIL)"
+          - "限制器≥1条已写入00-前提.md"
+          - "第一桶金来源在主角能力圈内
   phase_1_market:
     name: "市场调研"
     description: "调研目标平台的当前标准、热门赛道、读者偏好"
