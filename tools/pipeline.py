@@ -122,6 +122,12 @@ def zh_num_variants(x):
     if bai: parts.append(digits[bai] + "百")
     if shi: parts.append(("一" if shi == 1 and not (qian or bai) else digits[shi]) + "十")
     if ge: parts.append(digits[ge])
+    full = "".join(parts)
+    if full:
+        out.add(full)
+        # 口语截断: 九百五十→九百五/两千四百→两千四(末位为零时吞最后一个单位字)
+        if ge == 0 and len(parts) >= 2:
+            out.add(full[:-1])
     s = "".join(parts) if parts else "零"
     out.add(s)
     # 口语省略: 4500→四千五; 250→二百五
@@ -708,19 +714,27 @@ def cmd_done(args):
 
     # 6.95 技能执行率+四产物存在性(磨刀十三批H3-H6: 删记录即绕过/章摘要/人物圣经演进层/bundle生成记录全堵)
     sp = BOOK / "ledgers" / "技能执行记录.md"
+    _spt = read_text(sp) if sp.exists() else ""
     if sp.exists():
-        _tot = len([l for l in read_text(sp).splitlines() if l.strip().startswith("- [")])
-        _done = len([l for l in read_text(sp).splitlines() if l.strip().startswith("- [x]")])
+        _tot = len([l for l in _spt.splitlines() if l.strip().startswith("- [")])
+        _done = len([l for l in _spt.splitlines() if l.strip().startswith("- [x]")])
         if _tot and _done < _tot:
             (warns if revise else problems).append(
                 f"技能执行记录未全勾({_done}/{_tot})——跳过的步骤产物按SKILL_PROTOCOL无效;漏项见{sp.name}")
+        # H3.5 按章断言(1993ch031事故: 只查全局勾选率,漏登记整章块=空放过)
+        if f"第{n:03d}章" not in _spt and f"第{n}章" not in _spt:
+            (warns if revise else problems).append(
+                f"技能执行记录无第{n:03d}章条目块——按章登记缺失,补录或跑: skill_protocol.py list {n}")
     else:
         (warns if revise else problems).append(
             f"无技能执行记录({sp.name})——先跑: python3 tools/skill_protocol.py list {n} {(f'--book {BOOK.name}' if BOOK != ROOT else '')}".strip())
-    # H4 章摘要(story-bible技能产物)
+    # H4 章摘要(story-bible技能产物) —— 章摘要库按卷分册,通配匹配(硬编码卷1漏卷2+)
     _sb_tokens = (f"第{n:03d}章", f"第{n}章")
     _sb_paths = [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md",
-                 BOOK / "ledgers" / "章摘要.md", BOOK / "圣经" / "章摘要.md", BOOK / "圣经" / "卷1章摘要.md"]   # 磨刀十六批: 与bundle的BIBLE产物位对齐
+                 BOOK / "ledgers" / "章摘要.md", BOOK / "圣经" / "章摘要.md"]
+    _sb_dir = BOOK / "圣经"
+    if _sb_dir.is_dir():
+        _sb_paths += sorted(_sb_dir.glob("*章摘要.md"))
     _sb_ok = any(p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens) for p2 in _sb_paths)
     if not _sb_ok:
         (warns if revise else problems).append(f"章摘要未含第{n:03d}章(story-bible技能memory步)——落盘: {BOOK.name if BOOK != ROOT else 'story/60-圣经/'}/故事圣经.md")
@@ -738,11 +752,12 @@ def cmd_done(args):
     if not (_gr.exists() and any(tk in _gr.read_text(encoding="utf-8") for tk in _sb_tokens)):
         (warns if revise else problems).append(f"生成记录未含第{n:03d}章(bundle注入无落盘)——先跑: pipeline.py bundle {n} 再生成正文")
 
-    # 7 八账盖章
+    # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)
     missing = [x for x in LEDGER_NAMES if x not in stamped]
     if missing:
-        warns.append(f"七账未盖章: {missing}——ledger-update补记(禁无章号记账)")
+        _msg = f"八账未盖章: {missing}——ledger-update补记(禁无章号记账)"
+        (warns if (revise or post) else problems).append(_msg)
 
     print()
     if problems:

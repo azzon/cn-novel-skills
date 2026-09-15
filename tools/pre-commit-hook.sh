@@ -104,7 +104,35 @@ for CHAPTER in $NEW_CH $MOD_CH; do
     echo "── $CHAPTER ──"
     CH_NUM=$(echo "$CHAPTER" | grep -o '第[0-9]*章' | grep -o '[0-9]*')
     MODERN_FLAG=""
-    [ -f "text/.modern" ] && MODERN_FLAG="--modern"
+    BDIR=$(dirname "$(dirname "$CHAPTER")")   # 书根(text的上级)或"."
+    [ -f "$BDIR/text/.modern" ] && MODERN_FLAG="--modern"
+
+    # ── D0.5 新章流程硬门(1993ch031事故: 正文可裸提,记账/记忆/填卡全跳过无拦截) ──
+    # 只对新增章(status A)生效;存量章修复(M)不要求重记账。
+    if [ -n "$CH_NUM" ] && git diff --cached --name-status -- "$CHAPTER" 2>/dev/null | grep -q "^A"; then
+      BROOT=$(dirname "$(dirname "$(dirname "$CHAPTER")")")   # 文件→卷→text→书根(主书时=".")
+      PROC_MISS=""
+      for led in 钩分布 时间线 数字账 人物状态; do
+        grep -qs "第${CH_NUM}章" "$BROOT/ledgers/${led}.md" || PROC_MISS="$PROC_MISS $led"
+      done
+      grep -qs "第${CH_NUM}章" "$BROOT/ledgers/技能执行记录.md" || PROC_MISS="$PROC_MISS 技能执行记录"
+      grep -qs "第${CH_NUM}章" "$BROOT/ledgers/生成记录.md" || PROC_MISS="$PROC_MISS 生成记录"
+      SB_OK=0
+      for sb in "$BROOT"/圣经/*章摘要.md "$BROOT"/ledgers/章摘要.md "$BROOT"/故事圣经.md "$BROOT"/圣经/章摘要.md; do
+        [ -f "$sb" ] && grep -qs "第${CH_NUM}章" "$sb" && SB_OK=1
+      done
+      [ "$SB_OK" = "0" ] && PROC_MISS="$PROC_MISS 章摘要"
+      CARD_FILE=$(ls "$BROOT"/卡/*第${CH_NUM}章*.md "$BROOT"/text/卡/*第${CH_NUM}章*.md 2>/dev/null | head -1)
+      if [ -z "$CARD_FILE" ]; then
+        PROC_MISS="$PROC_MISS 场景卡"
+      elif grep -qE "（填）|（四选一|（本章全部数字事实" "$CARD_FILE"; then
+        PROC_MISS="$PROC_MISS 卡未填"
+      fi
+      if [ -n "$PROC_MISS" ] && ! waiver_registered "$CH_NUM" "card" "$BROOT/ledgers/waivers.md"; then
+        echo -e "${RED}  [FAIL] 新章流程硬门缺:$PROC_MISS ——记账/章摘要/填卡是commit前置件,不得事后补(1993ch031事故)${NC}"
+        FAIL=1
+      fi
+    fi
 
     # ── D0. 引号三重修复(自动修+重新暂存)+声口门+卡文对账门(磨刀第七批集成:此前绕过chapter_pipeline.sh直提时三道门不生效) ──
     echo "$CHAPTER" | grep -q "\.md$" && python3 tools/fix_quotes.py "$CHAPTER" > /tmp/fq_out.txt 2>&1 && git add "$CHAPTER" 2>/dev/null
@@ -118,7 +146,7 @@ for CHAPTER in $NEW_CH $MOD_CH; do
         echo "$VOICE_OUT" | grep "FAIL]" | head -3 | sed 's/^/    /'
         FAIL=1
       fi
-      CARD_VOL=$(echo "$CHAPTER" | grep -oE '卷[0-9]+' | grep -o '[0-9]+')
+      CARD_VOL=$(echo "$CHAPTER" | grep -oE '卷[0-9]+' | grep -oE '[0-9]+')
       CARD_OUT=$(python3 tools/card_check.py "${CH_NUM}" --volume "${CARD_VOL:-1}" ${BOOKROOT:+--book $BOOKROOT} 2>&1)
       if echo "$CARD_OUT" | grep -q "FAIL]"; then
         echo -e "${RED}  [FAIL] 卡文对账(${CHAPTER}):${NC}"

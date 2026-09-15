@@ -115,8 +115,14 @@ def main():
         book = pathlib.Path(sys.argv[sys.argv.index("--book") + 1])
     card = find_card(n, book)
     if card is None:
-        print(f"  [WARN] 第{n:03d}章场景卡不存在——跳过对账")
-        return 0
+        print(f"  [FAIL] 第{n:03d}章场景卡不存在——scene-card先于正文,无卡=流程倒置(1993ch031事故;豁免走waivers登记card门)")
+        return 1
+    # 骨架卡拦截: 占位符残留=卡未填,数字表必空转(1993ch031事故vacuous pass根因)
+    # 注: generated-by指纹是audit-cards要求的合法标记,只判（填）残留
+    ct0 = card.read_text(encoding="utf-8-sig")
+    if any(m in ct0 for m in ("（填）", "（四选一", "（本章全部数字事实")):
+        print(f"  [FAIL] {card.name} 骨架卡未填(（填）残留)——先走scene-card填卡再写正文")
+        return 1
     # 找正文(主书或书根)
     body_p = None
     _cands = [card.parent.parent / "text" / f"卷{vol}" / f"第{n:03d}章.md",
@@ -137,6 +143,14 @@ def main():
         print(f"  [WARN] {card.name} 无数字表字段——建议补(法医ch001教训:数字失对账)")
         return 0
     items = [x.strip() for x in m.group(1).split("/") if x.strip()]
+    # 空表拦截: 占位/无数字条目=数字表未实填(唯一合法空表=明写"无")
+    items_real = [x for x in items if extract_vals(re.sub(r"（[^）]*）|\([^)]*\)", "", x))]
+    if not items_real:
+        if any(x in ("无", "无数字", "本章无数字事实") for x in items):
+            print(f"  数字表明写无数字事实({card.name})——对账跳过")
+            return 0
+        print(f"  [FAIL] {card.name} 数字表无有效条目(全占位或无数字)——数字表是冷读验算依据,必须实填")
+        return 1
     issues, warns = [], []
     body_vals = extract_vals(body)
     issues, warns = [], []

@@ -98,7 +98,7 @@ def cmd_audit(n, book):
 
 
 CARD_SKELETON = """# 场景卡 卷{vol}-第{n:03d}章（标题）
-<!-- generated-by:skill_protocol gen-card —— 本卡由scene-card技能骨架生成,填空式作业;残留"（填）"=骨架卡,scene-draft拒工 -->
+<!-- generated-by:skill_protocol gen-card —— 本卡由scene-card技能骨架生成,填空式作业;占位符未清=骨架卡(注释自身禁含占位字样,否则填好的卡过不了骨架门),scene-draft拒工 -->
 - **开场型**: （四选一:对话直入|动作直入|异常直入|判断句;须与前两章错型）
 - **场景型**: （单元型+压弹级）
 - **戏剧问题**: （一个问句）
@@ -151,6 +151,16 @@ COLDREAD_SKELETON = """# 冷读-第{n:03d}章（标题）
 def cmd_gen(what, n, book, vol):
     (book / "卡").mkdir(parents=True, exist_ok=True)
     if what == "card":
+        if vol == 1:   # 未显式给卷: 按正文分布推期望卷(1993ch031/ch032事故: 跨卷后默认卷1落错位)
+            try:
+                import gate_chapter as _g
+                _files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
+                _vols = _g.scan_volumes(_files)   # scan_volumes吃Path(用p.name)
+                _exp = _g.expected_volume(n, _vols)
+                if _exp:
+                    vol = int(re.search(r"\d+", str(_exp)).group())   # expected_volume返回"卷2",归一成数字
+            except Exception:
+                pass
         out = book / "卡" / f"卷{vol}-第{n:03d}章-场1.md"
         out.write_text(CARD_SKELETON.format(vol=vol, n=n), encoding="utf-8")
     elif what == "coldread":
@@ -182,8 +192,8 @@ def cmd_audit_cards():
             continue
         txt = fp.read_text(encoding="utf-8-sig")
         kind = "冷读报告" if "冷读-" in c else "场景卡"
-        if "（填）" in txt:
-            print(f"  [FAIL] {kind}骨架残留（填）: {c}——逐字段填完(填空式作业)")
+        if any(m in txt for m in ("（填）", "（四选一", "（本章全部数字事实")):
+            print(f"  [FAIL] {kind}骨架残留(占位提示语): {c}——逐字段填完(填空式作业)")
             bad += 1
         elif "generated-by:skill_protocol" not in txt:
             print(f"  [FAIL] {kind}非脚手架产物(缺generated-by指纹): {c}——从零手写=绕过技能;重跑: python3 tools/skill_protocol.py gen {'coldread' if '冷读-' in c else 'card'} <章号> --book <书根>")

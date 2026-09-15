@@ -192,7 +192,8 @@ def test_scaffold_gate():
         case("骨架卡+骨架冷读被拦", "场景卡骨架残留" in r.stdout and "冷读报告骨架残留" in r.stdout and r.returncode == 1, r.stdout[-60:])
         # 填空后应放行: 替换（填）并保留指纹
         for f in bk.rglob("*.md"):
-            f.write_text(f.read_text(encoding="utf-8").replace("（填）", "已填"), encoding="utf-8")
+            _t = f.read_text(encoding="utf-8").replace("（填）", "已填").replace("（四选一", "（已选").replace("（本章全部数字事实", "（数字事实")
+            f.write_text(_t, encoding="utf-8")
         r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "audit-cards"], capture_output=True, text=True, cwd=ROOT)
         case("填空+指纹放行", r2.returncode == 0 and "通过" in r2.stdout, r2.stdout[-60:])
     finally:

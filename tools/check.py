@@ -1041,7 +1041,12 @@ def main():
     for a in args:
         if a.startswith("--"): continue
         if not pathlib.Path(a).exists():
-            print(f"文件不存在: {a}"); return 2
+            if re.fullmatch(r"\d+", a):
+                # 1993审计事故: 章号当路径→"文件不存在"→批量扫空转成"全过零报警"
+                print(f"参数「{a}」是章号不是文件——check.py只收文件路径(例: text/卷1/第{int(a):03d}章.md 或 书根/text/卷N/第NNN章.md)")
+            else:
+                print(f"文件不存在: {a}")
+            return 2
     if args[0] == "--threads":
         if len(args) < 2:
             print("用法: check.py --threads <目录>"); return 2
