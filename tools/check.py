@@ -76,6 +76,8 @@ def _load_profile(fp):
     prof = {}
     cur = pathlib.Path(fp).resolve().parent
     for _ in range(5):
+        if (cur / "text" / ".modern").exists() and not MODERN_SETTING[0]:
+            MODERN_SETTING[0] = True   # 红队一致性: text/.modern只有pipeline读,check裸跑曾误FAIL"电话"
         cfg = cur / "题材配置.md"
         if cfg.exists():
             for line in cfg.read_text(encoding="utf-8").splitlines():

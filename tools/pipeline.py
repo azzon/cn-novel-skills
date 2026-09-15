@@ -176,6 +176,21 @@ def read_text(p, limit=None):
         return t
     return t[limit:] if limit < 0 else t[:limit]  # 负数=取末尾N字
 
+def stub_chapter_alert():
+    """红队中断恢复: 末章是残章(cjk<1500)时报警——42字断句曾被当'上一章末尾'注入下一章(E8实测)"""
+    try:
+        cm2 = chapter_map()
+        if not cm2:
+            return
+        last = max(cm2)
+        p2 = cm2[last]
+        cjk = len(re.sub(r"[^\u4e00-\u9fff]", "", p2.read_text(encoding="utf-8", errors="ignore")))
+        if 0 < cjk < 1500:
+            print(f"[WARN] 第{last:03d}章仅{cjk}字——疑中断残留,先补完该章再推进(status/next/bundle均提醒)")
+    except Exception:
+        pass
+
+
 def _atomic_write(path, text):
     """红队中断恢复: JSON/状态写入tmp+os.replace——半截JSON会静默重置scores历史(E1实测)"""
     import os
@@ -290,6 +305,7 @@ def sync_hooks():
     return None
 
 def cmd_status():
+    stub_chapter_alert()
     hs = sync_hooks()
     if hs:
         print(f"hook同步: {hs}")
@@ -356,6 +372,7 @@ def cmd_status():
 
 # ---------------- next ----------------
 def cmd_next(args):
+    stub_chapter_alert()
     cm = chapter_map()
     maxn = max(cm) if cm else 0
     n = int(args[0]) if args else maxn + 1
@@ -398,6 +415,7 @@ def crop(text, cap, tag):
     return t
 
 def cmd_bundle(args):
+    stub_chapter_alert()
     if not args:
         print("用法: pipeline.py bundle N"); return 2
     try:
@@ -746,6 +764,18 @@ def cmd_done(args):
     if cr is None:
         msg = "无冷读记录(story/audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
         (problems if hard_cold else warns).append(msg + ("[硬门]" if hard_cold else "[软门]"))
+        # 红队二轮(冷读可信度): 出处账——硬门章的冷读报告必须在ledgers/冷读出处.md有登记
+        # (章号|报告hash前12|judge注记);无登记=报告来源不可审计(可能是执行者自写)
+        if hard_cold:
+            _pro = LEDGERS / "冷读出处.md"
+            import hashlib as _h2
+            _rhash = _h2.sha1(cr.read_bytes()).hexdigest()[:12]
+            _prook = _pro.exists() and any(
+                (f"第{n:03d}章" in l or f"第{n}章" in l) and _rhash in l
+                for l in _pro.read_text(encoding="utf-8").splitlines())
+            if not _prook:
+                (warns if (revise or post) else problems).append(
+                    f"冷读报告无出处登记(ledgers/冷读出处.md 缺 hash{_rhash} 行)——硬门章冷读须由独立代理产出并落账(写手自写=自我阅卷)")
     else:
         # 红队20260915: 冷读内容门——一行文伪造/低分/不会翻必须拦(新章FAIL,后验WARN)
         _crt = cr.read_text(encoding="utf-8", errors="ignore")
