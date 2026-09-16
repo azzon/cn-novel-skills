@@ -129,8 +129,10 @@ def main():
             _msg = f"卡上「{_fld}」行未实填(占位/缺失)——工艺挂载(scene-discipline/cool-point)的落点,填了才算挂载过"
             (warns if "补录卡" in ct0 else issues).append(_msg)   # 补录卡=legacy_cards诚实欠账,降WARN;新卡FAIL
 
-    if any(m in ct0 for m in ("（填）", "（四选一", "（本章全部数字事实")):
-        print(f"  [FAIL] {card.name} 骨架卡未填(（填）残留)——先走scene-card填卡再写正文")
+    from skill_protocol import scaffold_residue
+    _res = scaffold_residue(ct0)
+    if _res:
+        print(f"  [FAIL] {card.name} 骨架卡未填(残留:{''.join(_res[:3])})——先走scene-card填卡再写正文")
         return 1
     # 找正文(主书或书根)
     body_p = None

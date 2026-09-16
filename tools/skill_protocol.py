@@ -152,6 +152,15 @@ CARD_SKELETON = """# 场景卡 卷{vol}-第{n:03d}章（标题）
 NEXT-SKILL: write:scene-draft
 """
 
+# 骨架占位串全集(从CARD_SKELETON自动派生;审计20260917: 原3个标记漏掉（不定式）（停在哪拍）等,旧卡未填字段过门)
+SKELETON_MARKS = sorted(set(re.findall(r"（[^（）]{1,24}）", CARD_SKELETON)) | {"（填）"})
+
+
+def scaffold_residue(text):
+    """返回卡文本中残留的骨架占位串列表"""
+    return [m for m in SKELETON_MARKS if m in text]
+
+
 COLDREAD_SKELETON = """# 冷读-第{n:03d}章（标题）
 <!-- generated-by:skill_protocol gen-coldread —— 六项量规逐项引原文作证,禁空评 -->
 ## 锚定

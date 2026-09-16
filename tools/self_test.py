@@ -55,10 +55,27 @@ def test_fix_quotes():
 def test_voice_check():
     print("[3] voice_check 归属与排除")
     import voice_check as v
-    # 双卡格式+括号剥离
-    p2, err = v.parse_card(ROOT / "法医秦见微" / "声口卡.md")
-    case("新书卡解析4人", not err and len(p2) == 4, f"{len(p2)}")
-    case("人名括号已剥离", "秦见微" in p2, list(p2))
+    # 双卡格式+括号剥离: 临时fixture(审计20260917: 旧书根已清,测试禁依赖可变书数据)
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        card = pathlib.Path(td) / "声口卡.md"
+        card.write_text(
+            "# 声口卡\n"
+            "## 秦见微（主角·法医）\n"
+            "- 3个口头禅: “数据不会说谎”“死人不吵架”“嗯”\n"
+            "- 2个禁词: “大概”“可能”\n"
+            "## 老周（搭档）\n"
+            "- 1个口头禅: “得嘞”\n"
+            "## 林小姐（法助）\n"
+            "- 1个口头禅: “好哒”\n"
+            "## 犯人甲\n"
+            "- 1个禁词: “我没杀人”\n"
+            "## 遮名测试验收线\n"
+            "- 说明行,不应被解析为人\n", encoding="utf-8")
+        p2, err = v.parse_card(card)
+        case("新书卡解析4人", not err and len(p2) == 4, f"{len(p2)}")
+        case("人名括号已剥离", "秦见微" in p2, list(p2))
+        case("保留节不入人表", "遮名测试验收线" not in p2, list(p2))
     p1, _ = v.parse_card(ROOT / "story" / "60-圣经" / "声口卡.md")
     case("主书卡解析8人", len(p1) == 8, f"{len(p1)}")
     # 否定前缀: "不一定"不算说"一定"
@@ -269,14 +286,62 @@ def test_genre_contract():
         shutil.rmtree(bk, ignore_errors=True)
 
 
+
+
+def test_era_clean_regression():
+    """第16组: era_clean回归(审计20260917)——.modern上溯死循环修复/--scan模式存活/相对路径"""
+    import subprocess, os
+    Path = pathlib.Path
+    ec = ROOT / "tools" / "era_clean.py"
+    # 1) 相对路径文件清洗须在30s内完成(旧bug: exists()死循环)
+    with tempfile.TemporaryDirectory() as td:
+        bk = Path(td) / "书"
+        (bk / "text" / "卷1").mkdir(parents=True)
+        f = bk / "text" / "卷1" / "第001章.md"
+        f.write_text("他需要开始继续已经。", encoding="utf-8")
+        rel = os.path.relpath(f, Path.cwd())
+        try:
+            r = subprocess.run([sys.executable, str(ec), rel], capture_output=True,
+                               text=True, timeout=30, cwd=Path.cwd())
+            case("era_clean相对路径不挂死", r.returncode == 0, (r.stderr or r.stdout)[-50:])
+        except subprocess.TimeoutExpired:
+            case("era_clean相对路径不挂死", False, "TIMEOUT>30s")
+        # 2) .modern书跳过清洗
+        (bk / ".modern").write_text("", encoding="utf-8")
+        f.write_text("他需要开始。", encoding="utf-8")
+        try:
+            r = subprocess.run([sys.executable, str(ec), os.path.relpath(f, Path.cwd())],
+                               capture_output=True, text=True, timeout=30)
+            case("era_clean.modern书跳过", r.returncode == 0 and "他需要开始。" in f.read_text(encoding="utf-8"), "")
+        except subprocess.TimeoutExpired:
+            case("era_clean.modern书跳过", False, "TIMEOUT>30s")
+        # 3) --scan模式存活(审计20260917: 旗标被参数清洗剥掉成死代码)
+        try:
+            r = subprocess.run([sys.executable, str(ec), "--scan", os.path.relpath(bk, Path.cwd())],
+                               capture_output=True, text=True, timeout=30)
+            case("era_clean --scan模式存活", r.returncode == 0 and "全量扫描" in r.stdout, r.stdout[-40:])
+        except subprocess.TimeoutExpired:
+            case("era_clean --scan模式存活", False, "TIMEOUT>30s")
+
+
 def test_redteam_canaries():
     """第15组: 红队金丝雀(大审计-35)——evidence旗标真生效/伪造冷读被拦"""
     import shutil, subprocess
-    # 1) evidence: 1993书32章含25项无引用自证→exit 1
-    r = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"),
-                        "audit", "32", "--book", "1993南下的船票", "--evidence"],
-                       capture_output=True, text=True, cwd=ROOT)
-    case("红队:evidence旗标拦自证", r.returncode == 1 and "自证" in r.stdout, r.stdout[-60:])
+    # 1) evidence: 临时书32章含无产物引用自证→exit 1(审计20260917: 悬空书根→fixture)
+    bk = ROOT / "_tmp_ev"
+    (bk / "ledgers").mkdir(parents=True, exist_ok=True)
+    try:
+        rec = bk / "ledgers" / "技能执行记录.md"
+        lines = ["# 技能执行记录（第032章）"]
+        for i in range(25):
+            lines.append(f"- [x] draft{ i }(生成初稿) 技能: scene-draft")
+        rec.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"),
+                            "audit", "32", "--book", "_tmp_ev", "--evidence"],
+                           capture_output=True, text=True, cwd=ROOT)
+        case("红队:evidence旗标拦自证", r.returncode == 1 and "自证" in r.stdout, r.stdout[-60:])
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
     # 2) 伪造冷读(一行文)被done内容门判FAIL文本
     bk = ROOT / "_tmp_cr"
     (bk / "audit").mkdir(parents=True, exist_ok=True)
@@ -297,7 +362,8 @@ def main():
             test_canary_and_new_knives,
             test_goldmine_audit,
             test_genre_contract,
-            test_redteam_canaries]
+            test_redteam_canaries,
+            test_era_clean_regression]
     for t in tests:
         try:
             t()

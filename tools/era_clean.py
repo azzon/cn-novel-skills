@@ -186,6 +186,24 @@ def clean_text(t, is_ancient=True):
 def main():
     args = sys.argv[1:]
     dry = "--dry" in args
+    # 注: --scan必须先于"--"参数清洗判断(审计20260917: 清洗在先会剥掉scan旗标,扫描模式成死代码)
+    if "--scan" in args:
+        args = [a for a in args if not a.startswith("--")]
+        book = pathlib.Path(args[0]).resolve() if args else ROOT
+        print("═══ 时代错位词全量扫描 ═══")
+        for f in sorted(book.rglob("text/卷*/第*.md")):
+            t = f.read_text(encoding="utf-8")
+            issues = scan_text(t)
+            if issues:
+                try:
+                    disp = f.relative_to(ROOT)
+                except ValueError:
+                    disp = f.relative_to(book)
+                print(f"\n{disp}:")
+                for word, count, fix in issues:
+                    print(f"  {word} ×{count} → {fix}")
+        return 0
+
     args = [a for a in args if not a.startswith("--")]
 
     if args and args[0] == "--scan":
@@ -195,7 +213,11 @@ def main():
             t = f.read_text(encoding="utf-8")
             issues = scan_text(t)
             if issues:
-                print(f"\n{f.relative_to(ROOT)}:")
+                try:
+                    disp = f.relative_to(ROOT)
+                except ValueError:
+                    disp = f.relative_to(book)
+                print(f"\n{disp}:")
                 for word, count, fix in issues:
                     print(f"  {word} ×{count} → {fix}")
         return 0

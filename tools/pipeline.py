@@ -387,7 +387,7 @@ def cmd_produce(args):
         steps.append(("卡", "MISS", "无卡——先跑 skill_protocol gen card"))
     else:
         ct = card.read_text(encoding="utf-8-sig")
-        has_fill = any(m in ct for m in ("（填）", "（四选一", "（本章全部数字事实"))
+        has_fill = bool(scaffold_residue(ct))
         steps.append(("卡", "BLOCK" if has_fill else "OK", "骨架未填" if has_fill else "已填"))
 
     if body and body.exists():
