@@ -370,7 +370,8 @@ def cmd_batch(args):
 
 
 def cmd_produce(args):
-    """单章机器侧全流程: 前置检查→bundle→四门→done。AI侧(填卡/写正文/冷读)在人机回路。"""
+    """单章全自动化流水线: era_clean→bundle→四门→auto_expand诊断→ledger_extract→done。
+    AI侧(填卡/写正文/冷读)在人机回路。"""
     nums = [a for a in args if not a.startswith("--")]
     if not nums:
         print("用法: pipeline.py produce <章号> [--book 书根]")
@@ -379,59 +380,76 @@ def cmd_produce(args):
     cm = chapter_map()
     body = cm.get(n)
     steps = []
-    ok = True
 
-    # 1. 卡检查
+    # 0. 卡检查
     card = card_for(n)
     if card is None:
         steps.append(("卡", "MISS", "无卡——先跑 skill_protocol gen card"))
-        ok = False
     else:
         ct = card.read_text(encoding="utf-8-sig")
-        from card_check import extract_vals
-        has_fill = "（填）" in ct or "（四选一" in ct or "（本章全部数字事实" in ct
-        steps.append(("卡", "BLOCK" if has_fill else "OK", "已填" if not has_fill else "骨架未填"))
+        has_fill = any(m in ct for m in ("（填）", "（四选一", "（本章全部数字事实"))
+        steps.append(("卡", "BLOCK" if has_fill else "OK", "骨架未填" if has_fill else "已填"))
 
-    # 2. bundle
     if body and body.exists():
+        # 1. era_clean(古代书自动清洗现代词)
+        ec = subprocess.run([sys.executable, "tools/era_clean.py", str(body)],
+                           capture_output=True, text=True, cwd=ROOT)
+        steps.append(("era_clean", "OK", ec.stdout.strip()[:30] if ec.stdout else "清洁"))
+
+        # 2. fix_quotes
+        fq = subprocess.run([sys.executable, "tools/fix_quotes.py", str(body)],
+                           capture_output=True, text=True, cwd=ROOT)
+        steps.append(("fix_quotes", "OK", fq.stdout.strip()[:30] if fq.stdout else "清洁"))
+
+        # 3. bundle
         r = subprocess.run([sys.executable, "tools/pipeline.py", "bundle", str(n), "--book", str(BOOK.name)],
                           capture_output=True, text=True, cwd=ROOT)
-        steps.append(("bundle", "OK" if r.returncode == 0 else "FAIL", r.stdout.strip()[-30:] if r.stdout else ""))
+        steps.append(("bundle", "OK" if r.returncode == 0 else "FAIL", ""))
 
-    # 3. 四门
-    if body and body.exists():
+        # 4. check
         rc, out, met = run_check_metrics(body)
-        steps.append(("check", "OK" if rc == 0 else "FAIL", f"{met['fails']}F" if met else ""))
+        steps.append(("check", "OK" if rc == 0 else "FAIL", f"{met.get('fails', '?')}F" if met else ""))
+        # 5. gate
         rc2, gout = run_gate("new" if not is_committed(body) else "modified", [str(body)])
         steps.append(("gate", "OK" if rc2 == 0 else "FAIL", ""))
+        # 6. voice
         rv = subprocess.run([sys.executable, "tools/voice_check.py", str(body)],
                            capture_output=True, text=True, cwd=ROOT)
         steps.append(("voice", "OK" if "PASS" in rv.stdout else "FAIL", ""))
+        # 7. card_check
         cc = subprocess.run([sys.executable, "tools/card_check.py", str(n), "--volume", "1", "--book", str(BOOK.name)],
                            capture_output=True, text=True, cwd=ROOT)
-        steps.append(("card_check", "OK" if cc.returncode == 0 else "FAIL", cc.stdout.strip()[-30:] if cc.stdout else ""))
+        steps.append(("card_check", "OK" if cc.returncode == 0 else "FAIL", cc.stdout.strip()[-20:] if cc.stdout else ""))
+
+        # 8. auto_expand诊断(只报告)
+        ae = subprocess.run([sys.executable, "tools/auto_expand.py", str(body), "--target", "2400"],
+                           capture_output=True, text=True, cwd=ROOT)
+        has_deficit = "欠" in ae.stdout and "✅" not in ae.stdout
+        steps.append(("expand诊断", "NEED" if has_deficit else "OK", ae.stdout.strip().split("\n")[1][:40] if len(ae.stdout.strip().split("\n")) > 1 else ""))
+
+        # 9. ledger_extract(自动抽取八账)
+        le = subprocess.run([sys.executable, "tools/ledger_extract.py", str(n), "--book", str(BOOK.name)],
+                           capture_output=True, text=True, cwd=ROOT)
+        steps.append(("ledger抽取", "OK", le.stdout.strip().split("\n")[-1][:30] if le.stdout else ""))
 
     # 输出
-    print(f"\n═══ 第{n:03d}章 生产流水线 ═══")
+    print(f"\n═══ 第{n:03d}章 全自动流水线 ═══")
     all_ok = True
     for name, status, detail in steps:
-        icon = "✅" if status in ("OK",) else ("🟡" if status == "MISS" else "🔴")
+        icon = "✅" if status == "OK" else ("🟡" if status in ("MISS", "NEED") else "🔴")
         print(f"  {icon} {name:12s} {status:6s} {detail}")
         if status in ("FAIL", "BLOCK", "MISS"):
             all_ok = False
 
     if not body or not body.exists():
-        print("\n→ 下一步: 写正文(create text/卷N/第NNN章.md)")
+        print("\n→ 下一步: 写正文")
         return 1
-
     if all_ok:
-        print(f"\n→ 四门全绿。下一步: 独立冷读→账本→done")
+        print("\n→ 全绿。下一步: 独立冷读→done→commit")
         return 0
     else:
-        print("\n→ 有阻塞项,先修复再继续")
+        print("\n→ 有阻塞项,先修复")
         return 1
-
-
 
 
 def cmd_volume_close(args):
