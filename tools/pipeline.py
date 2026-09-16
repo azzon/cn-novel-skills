@@ -367,6 +367,145 @@ def cmd_batch(args):
     return 0
 
 
+
+
+def cmd_produce(args):
+    """单章机器侧全流程: 前置检查→bundle→四门→done。AI侧(填卡/写正文/冷读)在人机回路。"""
+    nums = [a for a in args if not a.startswith("--")]
+    if not nums:
+        print("用法: pipeline.py produce <章号> [--book 书根]")
+        return 2
+    n = int(nums[0])
+    cm = chapter_map()
+    body = cm.get(n)
+    steps = []
+    ok = True
+
+    # 1. 卡检查
+    card = card_for(n)
+    if card is None:
+        steps.append(("卡", "MISS", "无卡——先跑 skill_protocol gen card"))
+        ok = False
+    else:
+        ct = card.read_text(encoding="utf-8-sig")
+        from card_check import extract_vals
+        has_fill = "（填）" in ct or "（四选一" in ct or "（本章全部数字事实" in ct
+        steps.append(("卡", "BLOCK" if has_fill else "OK", "已填" if not has_fill else "骨架未填"))
+
+    # 2. bundle
+    if body and body.exists():
+        r = subprocess.run([sys.executable, "tools/pipeline.py", "bundle", str(n), "--book", str(BOOK.name)],
+                          capture_output=True, text=True, cwd=ROOT)
+        steps.append(("bundle", "OK" if r.returncode == 0 else "FAIL", r.stdout.strip()[-30:] if r.stdout else ""))
+
+    # 3. 四门
+    if body and body.exists():
+        rc, out, met = run_check_metrics(body)
+        steps.append(("check", "OK" if rc == 0 else "FAIL", f"{met['fails']}F" if met else ""))
+        rc2, gout = run_gate("new" if not is_committed(body) else "modified", [str(body)])
+        steps.append(("gate", "OK" if rc2 == 0 else "FAIL", ""))
+        rv = subprocess.run([sys.executable, "tools/voice_check.py", str(body)],
+                           capture_output=True, text=True, cwd=ROOT)
+        steps.append(("voice", "OK" if "PASS" in rv.stdout else "FAIL", ""))
+        cc = subprocess.run([sys.executable, "tools/card_check.py", str(n), "--volume", "1", "--book", str(BOOK.name)],
+                           capture_output=True, text=True, cwd=ROOT)
+        steps.append(("card_check", "OK" if cc.returncode == 0 else "FAIL", cc.stdout.strip()[-30:] if cc.stdout else ""))
+
+    # 输出
+    print(f"\n═══ 第{n:03d}章 生产流水线 ═══")
+    all_ok = True
+    for name, status, detail in steps:
+        icon = "✅" if status in ("OK",) else ("🟡" if status == "MISS" else "🔴")
+        print(f"  {icon} {name:12s} {status:6s} {detail}")
+        if status in ("FAIL", "BLOCK", "MISS"):
+            all_ok = False
+
+    if not body or not body.exists():
+        print("\n→ 下一步: 写正文(create text/卷N/第NNN章.md)")
+        return 1
+
+    if all_ok:
+        print(f"\n→ 四门全绿。下一步: 独立冷读→账本→done")
+        return 0
+    else:
+        print("\n→ 有阻塞项,先修复再继续")
+        return 1
+
+
+
+
+def cmd_volume_close(args):
+    """卷末自动交接: 归档本卷→生成下卷脚手架→香火/数字账结算"""
+    nums = [a for a in args if not a.startswith("--")]
+    if not nums:
+        print("用法: pipeline.py volume-close <卷末章号> [--book 书根]")
+        return 2
+    n = int(nums[0])
+    cm = chapter_map()
+    vols = G.scan_volumes(list(cm.values()))
+    vol_num = G.parse_vol(cm[n]) if n in cm else None
+    if not vol_num:
+        print("[FAIL] 无法确定卷号")
+        return 1
+
+    print(f"═══ 卷{vol_num}末交接(ch{n:03d}) ═══")
+    checks = []
+
+    # 1) 卷摘要存在
+    vol_sum = BOOK / "圣经" / f"卷{vol_num}章摘要.md"
+    checks.append(("卷章摘要", vol_sum.exists() and vol_sum.stat().st_size > 100))
+
+    # 2) 人物圣经卷末快照
+    bible = BOOK / "人物圣经.md"
+    bt = bible.read_text(encoding="utf-8") if bible.exists() else ""
+    checks.append(("卷末快照", f"卷{vol_num}末" in bt or f"卷{vol_num}末" in bt))
+
+    # 3) 伏笔账卷末盘点
+    fban = BOOK / "ledgers" / "伏笔.md"
+    ft = fban.read_text(encoding="utf-8") if fban.exists() else ""
+    unfired = [l for l in ft.splitlines() if "充能" in l and "第" in l]
+    checks.append((f"在跑伏笔({len(unfired)}条)", len(unfired) > 0))
+
+    # 4) 香火账/数字账结算
+    for acc_name in ("香火账", "数字账"):
+        acc = BOOK / "ledgers" / f"{acc_name}.md"
+        has_balance = acc.exists() and "余额" in acc.read_text(encoding="utf-8")
+        checks.append((f"{acc_name}结算", has_balance))
+
+    all_pass = all(ok for _, ok in checks)
+    for name, ok in checks:
+        icon = "✅" if ok else "❌"
+        print(f"  {icon} {name}")
+
+    if all_pass:
+        print(f"\n✅ 卷{vol_num}交接检查全过。下一步: arc-review + 锚金丝雀 + 下卷立项")
+    else:
+        print(f"\n❌ 有未完成项,补齐后再交接")
+    return 0 if all_pass else 1
+
+
+
+def cmd_stats(args):
+    """质量指标统计: 各书冷读均分/章数追踪"""
+    import re as _re
+    for bk_dir in sorted(ROOT.iterdir()):
+        if not bk_dir.is_dir() or bk_dir.name.startswith("."):
+            continue
+        audit_dir = bk_dir / "audit"
+        if not audit_dir.is_dir():
+            continue
+        scores = []
+        for cr in sorted(audit_dir.glob("冷读-第*.md")):
+            ct = cr.read_text(encoding="utf-8", errors="ignore")
+            m = _re.search(r"总分[:：]\s*\*{0,2}([0-9](?:\.[0-9])?)", ct)
+            if m:
+                scores.append(float(m.group(1)))
+        if scores:
+            avg = round(sum(scores)/len(scores), 1)
+            print(f"  {bk_dir.name}: {len(scores)}章冷读 均分{avg} 区间[{min(scores)}-{max(scores)}]")
+    return 0
+
+
 def cmd_status():
     stub_chapter_alert()
     hs = sync_hooks()
@@ -1129,8 +1268,14 @@ def main():
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()
+    if cmd == "stats":
+        return cmd_stats(args)
     if cmd == "batch":
         return cmd_batch(rest)
+    if cmd == "produce":
+        return cmd_produce(rest)
+    if cmd == "volume-close":
+        return cmd_volume_close(rest)
     if cmd == "next":
         return cmd_next(rest)
     if cmd == "bundle":
