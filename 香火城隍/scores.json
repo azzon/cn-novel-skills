@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-17T02:10:37",
-  "head_commit": "63882a6",
+  "generated_at": "2026-09-17T03:01:12",
+  "head_commit": "5afb4c6",
   "chapters": {
     "1": {
       "path": "香火城隍/text/卷1/第001章.md",
@@ -172,6 +172,25 @@
       ],
       "budget_delta_pct": -14.3,
       "cold_read": "冷读-第009章.md",
+      "drift_flags": []
+    },
+    "10": {
+      "path": "香火城隍/text/卷1/第010章.md",
+      "committed": true,
+      "cjk": 2391,
+      "dia_char_pct": 55.3,
+      "psych_per_k": 1.67,
+      "hook_signals": 2,
+      "dup18": 0,
+      "check_status": "WARN",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2700,
+        3100
+      ],
+      "budget_delta_pct": -17.6,
+      "cold_read": "冷读-第010章.md",
       "drift_flags": []
     }
   }
