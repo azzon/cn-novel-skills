@@ -211,7 +211,13 @@ def main():
     t = fp.read_text(encoding="utf-8")
 
     # 判断是否古代书(检查.text/.modern的父目录有没有古代标记)
-    is_ancient = not (fp.parent / ".modern").exists()
+    # 红队长生炉工: era_clean只对古代书生效,科幻/现代书(.modern标记)跳过
+    modern_flag = fp.parent / ".modern"
+    while not modern_flag.exists() and modern_flag.parent != modern_flag.parent.parent:
+        modern_flag = modern_flag.parent / ".modern"
+        if modern_flag.exists():
+            break
+    is_ancient = not modern_flag.exists()
 
     if dry:
         issues = scan_text(t)

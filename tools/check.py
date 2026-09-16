@@ -353,10 +353,12 @@ def check(fp: pathlib.Path):
     if dialog_scenes < 2 and n > 800:
         issues.append(f"对话场景仅{dialog_scenes}个(<2,章内须至少2个独立对话场景)")
 
-    # 19) 英文残留(连续≥3个拉丁字母,时代错位)
-    en_hits = re.findall(r"[a-zA-Z]{3,}", re.sub(r"\b(?:CSI|now|BEAT|beat)\b", "", body))
-    if en_hits:
-        issues.append(f"英文残留:{','.join(en_hits[:5])}(正文不得出现拉丁字母词)")
+        # 19) 英文残留(连续≥3个拉丁字母)——.modern存在时跳过(科幻/现代书允许英文术语)
+    if not MODERN_SETTING[0]:
+        eng = re.findall(r"[A-Za-z]{3,}", body)
+        if eng:
+            issues.append(f"英文残留:{','.join(eng[:3])}(正文不得出现拉丁字母词)")
+
 
     # 20) 流水账叙述检测(段落开头=人名+叙述动词,连续≥3段)
     flow_starts = 0
