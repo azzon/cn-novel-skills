@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-17T00:31:33",
-  "head_commit": "d314a98",
+  "generated_at": "2026-09-17T01:55:27",
+  "head_commit": "063f1bd",
   "chapters": {
     "1": {
       "path": "香火城隍/text/卷1/第001章.md",
@@ -101,9 +101,9 @@
     "6": {
       "path": "香火城隍/text/卷1/第006章.md",
       "committed": true,
-      "cjk": 1832,
-      "dia_char_pct": 42.8,
-      "psych_per_k": 2.73,
+      "cjk": 2446,
+      "dia_char_pct": 53.2,
+      "psych_per_k": 1.64,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -111,18 +111,18 @@
       "hook_level_from_card": null,
       "card_budget": [
         2400,
-        3200
+        2800
       ],
-      "budget_delta_pct": -34.6,
-      "cold_read": null,
+      "budget_delta_pct": -5.9,
+      "cold_read": "冷读-第006章.md",
       "drift_flags": []
     },
     "7": {
       "path": "香火城隍/text/卷1/第007章.md",
       "committed": true,
-      "cjk": 1813,
-      "dia_char_pct": 43.0,
-      "psych_per_k": 1.65,
+      "cjk": 2472,
+      "dia_char_pct": 55.7,
+      "psych_per_k": 1.21,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "WARN",
@@ -130,26 +130,30 @@
       "hook_level_from_card": null,
       "card_budget": [
         2400,
-        3200
+        2800
       ],
-      "budget_delta_pct": -35.2,
-      "cold_read": null,
+      "budget_delta_pct": -4.9,
+      "cold_read": "冷读-第007章.md",
       "drift_flags": []
     },
     "8": {
       "path": "香火城隍/text/卷1/第008章.md",
       "committed": true,
-      "cjk": 3334,
-      "dia_char_pct": 40.7,
-      "psych_per_k": 1.5,
-      "hook_signals": 2,
+      "cjk": 2540,
+      "dia_char_pct": 41.0,
+      "psych_per_k": 1.57,
+      "hook_signals": 3,
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
       "hook_level_from_card": null,
-      "card_budget": null,
-      "cold_read": null,
-      "drift_flags": []
+      "card_budget": [
+        2600,
+        3000
+      ],
+      "cold_read": "冷读-第008章.md",
+      "drift_flags": [],
+      "budget_delta_pct": -9.3
     }
   }
 }

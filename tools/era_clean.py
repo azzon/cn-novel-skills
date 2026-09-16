@@ -94,7 +94,7 @@ ERA_MAP = {
     "完成": "办妥",
     "实现": "做成",
     "发展": "壮大",
-    "提高": "长进",
+    "提高": "拔高",
     "降低": "减损",
     "增加": "添补",
     "减少": "削减",
@@ -212,12 +212,16 @@ def main():
 
     # 判断是否古代书(检查.text/.modern的父目录有没有古代标记)
     # 红队长生炉工: era_clean只对古代书生效,科幻/现代书(.modern标记)跳过
-    modern_flag = fp.parent / ".modern"
-    while not modern_flag.exists() and modern_flag.parent != modern_flag.parent.parent:
-        modern_flag = modern_flag.parent / ".modern"
-        if modern_flag.exists():
+    # 注: 必须对"目录"上溯(flag=目录/.modern,推进时取flag.parent.parent),
+    #     否则 flag.parent/'.modern' == flag 原地打转(2026-09-16修复: exists()死循环)
+    d = fp.parent
+    while True:
+        if (d / ".modern").exists():
             break
-    is_ancient = not modern_flag.exists()
+        if d.parent == d:
+            break
+        d = d.parent
+    is_ancient = not (d / ".modern").exists()
 
     if dry:
         issues = scan_text(t)
