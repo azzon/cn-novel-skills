@@ -76,8 +76,21 @@ def test_voice_check():
         case("新书卡解析4人", not err and len(p2) == 4, f"{len(p2)}")
         case("人名括号已剥离", "秦见微" in p2, list(p2))
         case("保留节不入人表", "遮名测试验收线" not in p2, list(p2))
-    p1, _ = v.parse_card(ROOT / "story" / "60-圣经" / "声口卡.md")
-    case("主书卡解析8人", len(p1) == 8, f"{len(p1)}")
+    # 双星号格式fixture(清盘20260917: 旧主书卡已随内容移除,测试不再依赖story/)
+    with tempfile.TemporaryDirectory() as td2:
+        card2 = pathlib.Path(td2) / "声口卡.md"
+        card2.write_text(
+            "# 声口卡\n"
+            "## 甲\n- **口头禅**: ['x1']\n- **禁词**: ['y1']\n"
+            "## 乙\n- **口头禅**: ['x2']\n"
+            "## 丙\n- **口头禅**: ['x3']\n- **禁词**: ['y3']\n"
+            "## 丁\n- **禁词**: ['y4']\n"
+            "## 戊\n- **口头禅**: ['x5']\n"
+            "## 己\n- **口头禅**: ['x6']\n"
+            "## 庚\n- **口头禅**: ['x7']\n- **禁词**: ['y7']\n"
+            "## 辛\n- **口头禅**: ['x8']\n", encoding="utf-8")
+        p1, err1 = v.parse_card(card2)
+        case("双星号卡解析8人", not err1 and len(p1) == 8, f"{len(p1)}")
     # 否定前缀: "不一定"不算说"一定"
     import types
     q = [("贵的也不一定是好的", "", True)]
