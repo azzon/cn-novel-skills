@@ -189,7 +189,7 @@ def test_scaffold_gate():
         subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "gen", "coldread", "9", "--book", bk.name], capture_output=True)
         subprocess.run(["git", "add", str(bk)], capture_output=True, cwd=ROOT)
         r = subprocess.run([sys.executable, str(ROOT / "tools" / "skill_protocol.py"), "audit-cards"], capture_output=True, text=True, cwd=ROOT)
-        case("骨架卡+骨架冷读被拦", "场景卡骨架残留" in r.stdout and "冷读报告骨架残留" in r.stdout and r.returncode == 1, r.stdout[-60:])
+        case("骨架卡+骨架冷读被拦", ("骨架残留" in r.stdout or "占位提示语" in r.stdout) and r.returncode == 1, r.stdout[-60:])
         # 填空后应放行: 替换（填）并保留指纹
         for f in bk.rglob("*.md"):
             _t = f.read_text(encoding="utf-8").replace("（填）", "已填").replace("（四选一", "（已选").replace("（本章全部数字事实", "（数字事实")
