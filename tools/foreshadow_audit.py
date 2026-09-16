@@ -87,7 +87,12 @@ def main():
 
     print(f"伏笔账: {ledger.relative_to(book)} | 当前章: ch{cur:03d} | 条目: {len(items)}")
     if not items:
-        print("  [FAIL] 伏笔账解析0条——账本为空或格式漂移(30章书0伏笔=必然漏报),人审账本格式")
+        # 2026-09-16: 空账=未开卷(主书待重启/新书立项前)——降为WARN而非FAIL
+        body_files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
+        if not body_files:
+            print("  [WARN] 伏笔账为空且无正文——未开卷状态,正常")
+            return 0
+        print("  [FAIL] 伏笔账解析0条但有正文——格式漂移或漏报,人审账本格式")
         return 1
     for l in fails:
         print(f"  [FAIL] {l}")

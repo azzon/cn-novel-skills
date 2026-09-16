@@ -180,7 +180,7 @@ def cmd_check():
         if new.get("cjk", 0) < old.get("cjk", 0) * 0.9:
             regressions.append(f"{name}: 字数骤降 {old.get('cjk')}→{new.get('cjk')}")
 
-    for k, old_pct in base["structure"].items():
+    for k, old_pct in base.get("structure", {}).items():
         new_pct = cur["structure"].get(k, 0)
         if new_pct > old_pct + 10:
             regressions.append(f"结构分布恶化[{k}]: {old_pct}%→{new_pct}%")

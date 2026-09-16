@@ -51,6 +51,10 @@ def main():
         print(f"非重生/穿越书(前提无标记)——矿产审计跳过")
         return 0
     if not ledger.exists():
+        body_files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
+        if not body_files:
+            print("  [WARN] 重生书缺矿产账且无正文——待重启状态,正常")
+            return 0
         print(f"  [FAIL] 重生书缺矿产账({ledger.relative_to(book)})——era-goldmine硬前置: 建账+00-矿产档案.md")
         return 1
 

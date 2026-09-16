@@ -7,3 +7,9 @@ text/.modern
 text/.era2005
 text/.modern
 text/.era2005
+# 根区主书空壳(清盘后残留,系统工具自动重建但无内容)
+text/
+卡/
+.progress.json
+scores.json
+evals_baseline.json

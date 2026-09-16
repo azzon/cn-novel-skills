@@ -65,7 +65,8 @@ def main():
 
     # evals
     r = run(["tools/evals.py", "check"] + ([str(book)] if book != ROOT else []))
-    blocks.append(("回归基线(evals)", "PASS" if "无回归" in r.stdout else "WARN", r.stdout.strip().splitlines()[-1][:50]))
+    evals_out = r.stdout.strip().splitlines()[-1][:50] if r.stdout.strip() else "(无基线数据)"
+    blocks.append(("回归基线(evals)", "PASS" if "无回归" in r.stdout else "WARN", evals_out))
 
     # 设计完整性(拉力审计教训: 法医书立项漏人物圣经,欲望引擎从未设计,正文"技术合格没兴趣")
     if book != ROOT:
