@@ -177,3 +177,4 @@
 - 2026-09-17 | ch015 | check.py WARN(段首/心理/语气词) | 情感总兑章,克制文风 | 复审: ch015冷读
 - hookself: hookself (批准:cong 2026-09-17 大审计-44红队轮: check.py段首阈值校准/pipeline崩溃修复/card_check歧义修复均为红队#12报告的既定修复项,非绕门)
 - 2026-09-17 | ch016 | check.py WARN(字数1806/G1) | 终章结算章,数字密度即内容 | 复审: ch016冷读
+- hookself: hookself (批准:cong 2026-09-17 check.py不像白名单——红队#11明喻误报修复:否定对比非明喻)

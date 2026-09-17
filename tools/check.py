@@ -178,6 +178,7 @@ def check(fp: pathlib.Path):
     sim = 0
     # 红队香火城隍: "神像/图像/摄像/录像/影像/画像/想象"的"像"是名词语素,非明喻词——先剥除再计数
     _body_sim = re.sub(r"(神像|塑像|雕像|图像|摄像|录像|影像|画像|想象|像样|好像话)", "", body)
+    _body_sim = re.sub(r"不像", "", _body_sim)  # 红队20260917: "不像X"是否定对比非明喻,误计入明喻限额
     _spans = set()
     for p in SIMILE_PATTERNS:
         for _m in re.finditer(p, _body_sim):
