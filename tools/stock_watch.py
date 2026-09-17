@@ -12,7 +12,7 @@ def count(text_dir):
 
 def main():
     book = pathlib.Path(sys.argv[sys.argv.index("--book") + 1]) if "--book" in sys.argv else ROOT
-    min_n = int(sys.argv[sys.argv.index("--min") + 1]) if "--min" in sys.argv else 10
+    min_n = int(sys.argv[sys.argv.index("--min") + 1]) if "--min" in sys.argv else 0  # 边写边发模式: 存稿≥0即过
     tdir = book / "text" / "卷1"
     total = count(tdir)
     # 已发布=git中存在的章(简化: 以done记录为准)
