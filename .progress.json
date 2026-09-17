@@ -1,14 +1,14 @@
 {
-  "max_chapter": 12,
-  "count": 12,
-  "next_chapter": 13,
+  "max_chapter": 13,
+  "count": 13,
+  "next_chapter": 14,
   "volumes": {
     "卷1": [
       1,
-      12
+      13
     ]
   },
-  "story_time": "第012章·时间未提取",
-  "next_action": "pipeline-chapter 第013章(卷1)",
+  "story_time": "第013章·时间未提取",
+  "next_action": "pipeline-chapter 第014章(卷1)",
   "_comment": "本文件由tools/gate_chapter.py --recompute自动生成,禁止手写;文件系统是唯一权威"
 }
