@@ -197,6 +197,8 @@ def check(fp: pathlib.Path):
         issues.append(f"系统台词{len(sysl)}行(上限{SYSTEM_LINE_LIMIT})")
 
     # 8) 段落开头重复(同两字开头≥4段)
+    # 红队20260917阈值校准: 15章实测10章豁免=门失效。人名/称谓段首是中文叙事常态,
+    # 阈值从4上调至7(主语型开头),疑问/对话引导词仍4(真雷同形状);豁免预算制的数据依据
     opens = {}
     paras = [p.strip() for p in body.split("\n") if p.strip()]
     for p in paras:
@@ -204,7 +206,8 @@ def check(fp: pathlib.Path):
         if len(k) == 2:
             opens[k] = opens.get(k, 0) + 1
     for k, c in sorted(opens.items(), key=lambda x: -x[1])[:3]:
-        if c >= 4:
+        is_subject = bool(re.match(r"^[他她达周孙王刘张严胡温白老.{1,3}]{2}$", k))
+        if c >= (7 if is_subject else 4):
             warns.append(f"段落开头「{k}…」{c}次(注意句式雷同)")
 
     # 9) 句长方差(反均匀;std<6 视为节奏单一)

@@ -984,8 +984,9 @@ def cmd_done(args):
     if cr is None:
         msg = "无冷读记录(story/audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
         (problems if hard_cold else warns).append(msg + ("[硬门]" if hard_cold else "[软门]"))
-        # 红队二轮(冷读可信度): 出处账——硬门章的冷读报告必须在ledgers/冷读出处.md有登记
-        # (章号|报告hash前12|judge注记);无登记=报告来源不可审计(可能是执行者自写)
+        # 红队20260917修: 原hash校验误置于cr=None分支必崩(AttributeError),移至else(cr存在)分支
+    else:
+        # 出处账(红队二轮: 硬门章冷读须在ledgers/冷读出处.md登记hash;自写报告=自我阅卷)
         if hard_cold:
             _pro = LEDGERS / "冷读出处.md"
             import hashlib as _h2
@@ -995,8 +996,7 @@ def cmd_done(args):
                 for l in _pro.read_text(encoding="utf-8").splitlines())
             if not _prook:
                 (warns if (revise or post) else problems).append(
-                    f"冷读报告无出处登记(ledgers/冷读出处.md 缺 hash{_rhash} 行)——硬门章冷读须由独立代理产出并落账(写手自写=自我阅卷)")
-    else:
+                    f"冷读报告无出处登记(ledgers/冷读出处.md 缺 hash{_rhash} 行)——硬门章冷读须由独立代理产出并落账")
         # 红队20260915: 冷读内容门——一行文伪造/低分/不会翻必须拦(新章FAIL,后验WARN)
         _crt = cr.read_text(encoding="utf-8", errors="ignore")
         _sc = re.search(r"总分[:：]\s*\*{0,2}([0-9](?:\.[0-9])?)", _crt)   # 红队: 总分:**6/10**粗体格式

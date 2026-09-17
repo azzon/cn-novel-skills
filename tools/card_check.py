@@ -79,6 +79,11 @@ def extract_vals(text):
             j = i
             while j < len(text) and text[j] in cn_chars:
                 j += 1
+            # 红队20260917: "三千一年(3000元/年)"被口语截断解析成3100——数字段后紧跟
+            # 时间/序数量词时,该段是时长/次序不是金额,跳过(修卡-文对账假阳性)
+            if j < len(text) and text[j] in "年月天日岁位次回趟年":
+                i = j
+                continue
             for k in range(j, i, -1):
                 v = cn2num(text[i:k])
                 if v is not None and v >= 0:   # 0合法(卡载"流水0"),比对由negation规则兜底(审计-32: v>0过滤致0永远FAIL)
