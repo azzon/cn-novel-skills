@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-18T03:10:26",
-  "head_commit": "4534b90",
+  "generated_at": "2026-09-18T03:38:25",
+  "head_commit": "320647b",
   "chapters": {
     "2": {
       "path": "检修工/text/卷1/第002章.md",
@@ -25,8 +25,8 @@
     "3": {
       "path": "检修工/text/卷1/第003章.md",
       "committed": false,
-      "cjk": 1823,
-      "dia_char_pct": 74.2,
+      "cjk": 1822,
+      "dia_char_pct": 74.3,
       "psych_per_k": 1.65,
       "hook_signals": 1,
       "dup18": 0,
@@ -37,8 +37,8 @@
         1800,
         2200
       ],
-      "budget_delta_pct": -8.8,
-      "cold_read": null,
+      "budget_delta_pct": -8.9,
+      "cold_read": "冷读-第003章.md",
       "drift_flags": []
     },
     "1": {
@@ -59,7 +59,7 @@
     "5": {
       "path": "检修工/text/卷1/第005章.md",
       "committed": false,
-      "cjk": 2363,
+      "cjk": 2360,
       "dia_char_pct": 42.1,
       "psych_per_k": 2.54,
       "hook_signals": 1,
@@ -71,16 +71,16 @@
         2200,
         2400
       ],
-      "budget_delta_pct": 2.7,
+      "budget_delta_pct": 2.6,
       "cold_read": "冷读-第005章.md",
       "drift_flags": []
     },
     "6": {
       "path": "检修工/text/卷1/第006章.md",
       "committed": false,
-      "cjk": 2237,
+      "cjk": 2233,
       "dia_char_pct": 40.3,
-      "psych_per_k": 2.68,
+      "psych_per_k": 2.69,
       "hook_signals": 1,
       "dup18": 0,
       "check_status": "PASS",
@@ -90,15 +90,15 @@
         2200,
         2400
       ],
-      "budget_delta_pct": -2.7,
+      "budget_delta_pct": -2.9,
       "cold_read": "冷读-第006章.md",
       "drift_flags": []
     },
     "7": {
       "path": "检修工/text/卷1/第007章.md",
       "committed": false,
-      "cjk": 2393,
-      "dia_char_pct": 59.0,
+      "cjk": 2387,
+      "dia_char_pct": 58.9,
       "psych_per_k": 2.51,
       "hook_signals": 1,
       "dup18": 0,
@@ -109,8 +109,27 @@
         2200,
         2400
       ],
-      "budget_delta_pct": 4.0,
+      "budget_delta_pct": 3.8,
       "cold_read": "冷读-第007章.md",
+      "drift_flags": []
+    },
+    "4": {
+      "path": "检修工/text/卷1/第004章.md",
+      "committed": false,
+      "cjk": 1847,
+      "dia_char_pct": 51.3,
+      "psych_per_k": 3.25,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "PASS",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        1800,
+        2200
+      ],
+      "budget_delta_pct": -7.6,
+      "cold_read": "冷读-第004章.md",
       "drift_flags": []
     }
   }
