@@ -317,8 +317,11 @@ def check(fp: pathlib.Path):
 
     # 16) 对话字数占比(口径: 对白段整段/全文——织毛衣语义,台词+引导+段内动作线;
     #     45章实测中位50%,min33% → FAIL<35/WARN<40 与历史验收水平一致)
+    # 16) 对话字数占比(口径: 对白段整段/全文——织毛衣语义,台词+引导+段内动作线;
+    #     45章实测中位50%,min33% → FAIL<35/WARN<40 与历史验收水平一致)
+    # 20260917: 群消息【】行也算对话(检修工/群聊流适配)
     _para_list = [pp.strip() for pp in re.split(r"\n\s*\n", raw) if pp.strip()]
-    dialog_chars = sum(cjk_len(pp) for pp in _para_list if "\u201c" in pp)
+    dialog_chars = sum(cjk_len(pp) for pp in _para_list if "\u201c" in pp or re.match(r"^【[^】]+】", pp))
     if n > 500:
         dpct = dialog_chars / n * 100
         metrics["dia_char_pct"] = round(dpct, 1)
