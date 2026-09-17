@@ -649,6 +649,30 @@ def cmd_bundle(args):
     missing = []
     if card is None:
         missing.append(f"场景卡 text/卡/*第{n:03d}章*(先走scene-card)")
+    # ── 开写门(20260917用户战略纠偏:"构思没做到位就急于开写") ──
+    # 第001章bundle=全书开写时刻,强制核构思域五件套;缺=拒开写(ideate域final_gate机器化)
+    if n == 1:
+        _dm = []
+        def _has(rel):
+            return (BOOK / rel).exists() if BOOK != ROOT else (ROOT / rel).exists()
+        if not _has("story/20-人物/人物圣经.md"):
+            _dm.append("人物圣经(char-bible:五层弧线)")
+        if not _has("story/01-主题.md"):
+            _dm.append("主题档案(theme-dossier)")
+        if not _has("story/素材库.md"):
+            _dm.append("素材库(world-economy)")
+        if not _has("story/30-情节/卷册表.md"):
+            _dm.append("卷册表(全书弧线+问题句)")
+        _o = (BOOK / "story/卷一纲.md") if BOOK != ROOT else (ROOT / "story/30-情节/卷一纲.md")
+        _ot = _o.read_text(encoding="utf-8") if _o.exists() else ""
+        if _ot and "名场面" not in _ot:
+            _dm.append("set-piece名场面钉桩(纲内须有名场面节)")
+        if _dm:
+            print("[开写门·FAIL] 构思域缺" + str(len(_dm)) + "项——禁止开写正文:")
+            for d in _dm:
+                print("  ✗ " + d)
+            print("  (20260917用户质询:'构思没做到位就急于开写';此门机器强制,补齐后重跑)")
+            return 2
     sp = STYLE
     if sp is None:
         missing.append("书根风格包.md(多书隔离禁回退主书;走style-compiler)")
