@@ -8,7 +8,8 @@ import sys, re, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 def main():
-    book = pathlib.Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    book = pathlib.Path(args[0]).resolve() if args else ROOT
     fails, warns = [], []
     # 1) 纲内名场面清单
     outline = ""

@@ -12,7 +12,11 @@ PAT_REACT = re.compile(r"震惊|惊呆|哗然|炸了|轰动|全县|传遍|议论
 PAT_MONEY = re.compile(r"\d+[块元万毛分]")
 
 def main():
+    if len(sys.argv) < 2 or sys.argv[1] in ("--help", "-h"):
+        print(__doc__ or "用法: reader_comments.py <章文件>"); return 0
     fp = pathlib.Path(sys.argv[1])
+    if not fp.exists():
+        print(f"文件不存在: {fp}"); return 2
     t = re.sub(r"<!--.*?-->", "", fp.read_text(encoding="utf-8"), flags=re.S)
     cn = len(re.findall(r"[\u4e00-\u9fff]", t))
     tail_lines = [l for l in t.split("\n") if l.strip()][-3:]

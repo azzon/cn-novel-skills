@@ -11,6 +11,8 @@ def count(text_dir):
     return len(list(text_dir.glob("第*.md"))) if text_dir.exists() else 0
 
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print(__doc__ or "存稿水位监控"); return 0
     book = pathlib.Path(sys.argv[sys.argv.index("--book") + 1]) if "--book" in sys.argv else ROOT
     min_n = int(sys.argv[sys.argv.index("--min") + 1]) if "--min" in sys.argv else 0  # 边写边发模式: 存稿≥0即过
     tdir = book / "text" / "卷1"

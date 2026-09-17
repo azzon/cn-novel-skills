@@ -26,6 +26,6 @@ def check(fp):
         return 1
     return 0
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("用法: era1993.py <章文件>"); sys.exit(2)
+    if len(sys.argv) < 2 or sys.argv[1] in ("--help", "-h"):
+        print("用法: era1993.py <章文件> | era1993.py --scan <书根>"); sys.exit(0)
     sys.exit(check(sys.argv[1]))
