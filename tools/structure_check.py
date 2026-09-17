@@ -46,6 +46,8 @@ def scan(files):
     data = []
     for f in files:
         t = f.read_text(encoding="utf-8-sig")
+        # 红队20260917: 先剥离文首自验注释(<!-- -->)——否则首段恒为注释,开场型恒判"动作直入"=度量假象
+        t = re.sub(r"^<!--.*?-->\s*", "", t, flags=re.S)
         paras = [p.strip() for p in re.split(r"\n\s*\n", t) if p.strip()]
         # 跳过标题行(大审计-18 P0-2: 标题"第N章"恒判时间状语=度量假象)
         paras = [p for p in paras if not re.match(r"^第[一二三四五六七八九十百0-9]+章", p)]
