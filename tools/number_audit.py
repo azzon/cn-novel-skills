@@ -79,7 +79,11 @@ def main():
 
     issues, warns = [], []
 
-    # 1) 同键矛盾
+    # 1) 同键矛盾(红队20260917语义修正): 累计/余额/余欠类键跨章演化是账本本职,
+    #    只判"同章同键不同值"=真矛盾;演化键另验方向(累计增/余欠降),反向才FAIL
+    import re as _re4
+    _evol_up = _re4.compile(r"累计|余额|合计|总计|存")
+    _evol_dn = _re4.compile(r"余欠|欠款|负债")
     seen = {}
     for subj, qual, val, ch, raw in flows:
         v = parse_val(val)
@@ -87,9 +91,16 @@ def main():
             warns.append(f"账内值无法解析: {raw[:50]}")
             continue
         key = (subj, qual)
-        if key in seen and seen[key][0] != v:
-            issues.append(f"同键矛盾: {subj}[{qual}] ch{seen[key][1]}={seen[key][0]:.0f} vs {ch}={v:.0f}")
-        seen.setdefault(key, (v, ch))
+        if key in seen:
+            pv, pch = seen[key]
+            if pch == ch and pv != v:
+                issues.append(f"同键矛盾: {subj}[{qual}] ch{pch}={pv:.0f} vs {ch}={v:.0f}")
+            elif pch != ch and pv != v:
+                if _evol_up.search(subj) and v < pv:
+                    issues.append(f"演化反向: {subj}[{qual}] {pch}章={pv:.0f} → {ch}={v:.0f}(应单调不降)")
+                if _evol_dn.search(subj) and v > pv:
+                    issues.append(f"演化反向: {subj}[{qual}] {pch}章={pv:.0f} → {ch}={v:.0f}(欠款应递减)")
+        seen[key] = (v, ch)
 
     # 2) 恒等式验算
     for target, keys, raw in eqs:
