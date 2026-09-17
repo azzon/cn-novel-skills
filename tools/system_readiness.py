@@ -41,6 +41,7 @@ def main():
     tag = "主书" if book == ROOT else book.name
 
     blocks = []
+    blocks.append(check_block("全工序审计(process_audit)", ["tools/process_audit.py"] + ([str(book)] if book != ROOT else []), fail_kw="✗"))
     blocks.append(check_block("工具自测(self_test)", ["tools/self_test.py"], pass_kw="全部通过"))
     blocks.append(check_block("技能库(skills_check)", ["tools/skills_check.py"]))
     blocks.append(check_block("伏笔账(foreshadow_audit)", ["tools/foreshadow_audit.py", str(book)]))
