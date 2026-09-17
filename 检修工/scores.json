@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-18T05:25:40",
-  "head_commit": "b4cc909",
+  "generated_at": "2026-09-18T05:56:39",
+  "head_commit": "acf413f",
   "chapters": {
     "2": {
       "path": "检修工/text/卷1/第002章.md",
@@ -187,6 +187,25 @@
       ],
       "budget_delta_pct": 0.1,
       "cold_read": "冷读-第010章.md",
+      "drift_flags": []
+    },
+    "11": {
+      "path": "检修工/text/卷1/第011章.md",
+      "committed": false,
+      "cjk": 2127,
+      "dia_char_pct": 46.1,
+      "psych_per_k": 2.35,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "PASS",
+      "check_fails": 0,
+      "hook_level_from_card": null,
+      "card_budget": [
+        1900,
+        2200
+      ],
+      "budget_delta_pct": 3.8,
+      "cold_read": "冷读-第011章.md",
       "drift_flags": []
     }
   }
