@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-17T18:45:18",
-  "head_commit": "bbb880f",
+  "generated_at": "2026-09-17T18:45:37",
+  "head_commit": "d112e13",
   "chapters": {
     "1": {
       "path": "text/卷1/第001章.md",
