@@ -19,6 +19,7 @@ import sys, re, json, subprocess, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import gate_chapter as G  # noqa: E402  复用chapter_files/parse_num/scan_volumes/expected_volume
+from skill_protocol import scaffold_residue  # noqa: E402  骨架残留检测(20260917系统级统一)
 
 # 多书隔离(docs/多书隔离协议.md): --book <书根> 切换; 主书=ROOT(历史占用)
 BOOK = ROOT
@@ -391,10 +392,22 @@ def cmd_produce(args):
         steps.append(("卡", "BLOCK" if has_fill else "OK", "骨架未填" if has_fill else "已填"))
 
     if body and body.exists():
-        # 1. era_clean(古代书自动清洗现代词)
+        # 1a. era_clean(古代书自动清洗现代词)
         ec = subprocess.run([sys.executable, "tools/era_clean.py", str(body)],
                            capture_output=True, text=True, cwd=ROOT)
         steps.append(("era_clean", "OK", ec.stdout.strip()[:30] if ec.stdout else "清洁"))
+
+        # 1b. era1993(年代书专用: .modern书自动扫穿帮词——20260917系统级接入)
+        _modern_flag = body.parent
+        while _modern_flag != _modern_flag.parent:
+            if (_modern_flag / ".modern").exists():
+                break
+            _modern_flag = _modern_flag.parent
+        if (_modern_flag / ".modern").exists():
+            er = subprocess.run([sys.executable, "tools/era1993.py", str(body)],
+                               capture_output=True, text=True, cwd=ROOT)
+            steps.append(("era1993", "OK" if er.returncode == 0 else "FAIL",
+                          er.stdout.strip()[:30] if er.stdout else "年代清洁"))
 
         # 2. fix_quotes
         fq = subprocess.run([sys.executable, "tools/fix_quotes.py", str(body)],
