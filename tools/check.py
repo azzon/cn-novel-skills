@@ -483,6 +483,22 @@ def check(fp: pathlib.Path):
     if nar_ex > dia_ex and nar_ex > 3:
         warns.append(f"感叹号温差倒挂:叙述段{nar_ex}个 vs 对话段{dia_ex}个——感叹号应集中对话与情绪峰值,叙述保持句号(冷面)")
 
+    # 30b) 爽感扩散门(用户战略纠偏20260917:"索然无味弃书"——爽点兑了没人围观=白爽)
+    # 病灶实证: 卷一15章REACT词仅12处(0.8/章)。爽=主角赢+别人震惊,只写前半=温吞死
+    # 词表双轨: 网络腔(震惊/轰动)+年代文生活腔(传开/茶馆/井台/拍大腿/念叨)——20260917二修
+    _react_pat = re.compile(r"震惊|惊呆|哗然|炸了|轰动|全县|传遍|议论|傻眼|服了|倒吸|看傻|围观|打听|排队|传开|念叨|指指点点|拍大腿|将信将疑|看热闹|酒桌|茶馆|井台|人人皆知|跟着激动|一家传")
+    _react_n = len(_react_pat.findall(body))
+    metrics["react_density"] = round(_react_n * 1000 / max(cjk_len(body), 1), 2)
+    if _react_n * 1000 / max(cjk_len(body), 1) < 1.0:
+        issues.append(f"爽感扩散密度{metrics['react_density']}/千字(<1.0=温吞红线)——爽点兑现处必须有人围观/震惊/传开,装逼没人看=白装(卷一15章实测0.4/千字=索然无味根因)")
+
+    # 30c) 转折密度门(同上:每章≥2次价值翻转,只装1事件的"全流程章"=又短又慢)
+    _flip_pat = re.compile(r"却|竟然|忽然|没想到|谁知|反倒|一夜之间")
+    _flip_n = len(_flip_pat.findall(body))
+    metrics["flips"] = _flip_n
+    if _flip_n < 2:
+        issues.append(f"转折密度{_flip_n}处(<2=单事件流水章)——每章至少2次价值翻转,beats设计需含反转拍")
+
     # 31) 章末钩子存在性(红队D:末三行决定追读,情绪最高点切断)
     tail_lines = [l for l in body_lines[-3:] if l.strip()]
     tail_joined = "".join(tail_lines)
