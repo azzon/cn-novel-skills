@@ -337,6 +337,22 @@ def test_era_clean_regression():
             case("era_clean --scan模式存活", False, "TIMEOUT>30s")
 
 
+
+def test_era1993():
+    """第17组: era1993年代词门(20260917)"""
+    import subprocess, os
+    Path = pathlib.Path
+    t = ROOT / "tools" / "era1993.py"
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "test.md"
+        f.write_text("他用手机支付了。", encoding="utf-8")
+        r = subprocess.run([sys.executable, str(t), str(f)], capture_output=True, text=True, timeout=15)
+        c1 = r.returncode == 1 and "移动支付" in r.stdout
+        f.write_text("他把扳手放回工具箱。", encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(t), str(f)], capture_output=True, text=True, timeout=15)
+        c2 = r2.returncode == 0
+        case("era1993年代门", c1 and c2, f"{r.returncode}/{r2.returncode}")
+
 def test_redteam_canaries():
     """第15组: 红队金丝雀(大审计-35)——evidence旗标真生效/伪造冷读被拦"""
     import shutil, subprocess

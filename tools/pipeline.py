@@ -593,6 +593,22 @@ def cmd_status():
 # ---------------- next ----------------
 def cmd_next(args):
     stub_chapter_alert()
+    # 脏章检测(20260917用户铁令): done后正文被改但未重跑done=脏章,禁止推进
+    _hf = BOOK / "ledgers" / ".done_hashes"
+    if _hf.exists():
+        import hashlib as _hl
+        _dm = chapter_map()
+        for _line in _hf.read_text().splitlines():
+            if ":" not in _line: continue
+            _k, _, _v = _line.partition(":")
+            _k = _k.strip()
+            if not _k.isdigit(): continue
+            _f = _dm.get(int(_k))
+            if _f and _f.exists():
+                _cur = _hl.sha1(_f.read_bytes()).hexdigest()
+                if _cur != _v.strip():
+                    print(f"[脏章] 第{int(_k):03d}章正文在done后被修改——请重跑: pipeline.py done {_k}")
+                    return 1
     cm = chapter_map()
     maxn = max(cm) if cm else 0
     n = int(args[0]) if args else maxn + 1
@@ -1004,7 +1020,8 @@ def cmd_done(args):
     # 5 冷读节奏(双轨: --strict/5的倍数/卷首=硬,其余=软)
     cr = cold_read_for(n)
     vol_first = exp in vols and n == vols[exp][0]
-    hard_cold = strict or (n % 5 == 0) or vol_first
+    # 20260917用户铁令: 冷读不设软门——每章必冷读,缺失一律FAIL(原非硬门=软WARN可跳=漏洞)
+    hard_cold = True
     if cr is None:
         msg = "无冷读记录(story/audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
         (problems if hard_cold else warns).append(msg + ("[硬门]" if hard_cold else "[软门]"))
