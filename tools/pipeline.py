@@ -692,6 +692,8 @@ def cmd_bundle(args):
             _dm.append("素材库(world-economy)")
         if not _has("story/30-情节/卷册表.md"):
             _dm.append("卷册表(全书弧线+问题句)")
+        if not _has("story/60-圣经/声口卡.md"):
+            _dm.append("声口卡(char-voice)")
         _o = (BOOK / "story/卷一纲.md") if BOOK != ROOT else (ROOT / "story/30-情节/卷一纲.md")
         _ot = _o.read_text(encoding="utf-8") if _o.exists() else ""
         if _ot and "名场面" not in _ot:
