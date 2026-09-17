@@ -127,9 +127,12 @@ def check(fp: pathlib.Path):
     _m = re.search(r"第(\d+)章", fp.name)
     _card_txt = ""
     if _m:
-        for _c in pathlib.Path(fp.parent.parent / "卡").glob(f"*第{_m.group(1)}章*.md"):
-            _card_txt = _c.read_text(encoding="utf-8")
-            break
+        # 卡目录双位探测: 主书=text/卡(历史),多书=书根/卡(skill_protocol gen card 落点)——20260917检修工005事故
+        for _base in (fp.parent.parent, fp.parent.parent.parent):
+            _hit = sorted(pathlib.Path(_base / "卡").glob(f"*第{_m.group(1)}章*.md"))
+            if _hit:
+                _card_txt = _hit[0].read_text(encoding="utf-8")
+                break
     _peak = "峰章" in _card_txt
     _band = re.search(r"(\d{4})\s*[-—~至]\s*(\d{4})", _card_txt)
     _lo = int(_band.group(1)) if _band else 2400
