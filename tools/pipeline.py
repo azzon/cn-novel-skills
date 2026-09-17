@@ -592,6 +592,13 @@ def cmd_status():
             m = re.search(r"第(\d+)", f.name)
             if m:
                 drift_max = max(drift_max, int(m.group(1)))
+            # 红队20260917: 期数小(第1期)但覆盖面大(至第10章)——以文件内"覆盖至第N章"兜底
+            try:
+                mc = re.search(r"覆盖至第(\d+)章", f.read_text(encoding="utf-8", errors="ignore"))
+                if mc:
+                    drift_max = max(drift_max, int(mc.group(1)))
+            except Exception:
+                pass
     if maxn // 10 > drift_max // 10:
         print(f"[REMIND] 漂移审计到期: 已到第{maxn}章,账面仅覆盖至第{drift_max}章周期")
     if cm:
