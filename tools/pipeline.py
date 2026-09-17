@@ -540,6 +540,12 @@ def cmd_stats(args):
 def cmd_status():
     stub_chapter_alert()
     hs = sync_hooks()
+    # production-ready: 书达10章须有发行包(书名/简介/上架节奏)——20260917发行prepped检查
+    _fbk = (BOOK if BOOK != ROOT else ROOT)
+    _fab = _fbk / "发行包.md"
+    _max_ch = max((_dm2 := {int(re.search(r'(\d+)', f.name).group()) for f in _fbk.glob('text/卷*/第*.md') if re.search(r'第(\d+)章', f.name)}), default=0) if _fbk.exists() else 0
+    if _max_ch >= 10 and not _fab.exists():
+        print("[红灯] 已达10章而无发行包.md(书名/简介/上架节奏)——不可上架,走publish-prep")
     if hs:
         print(f"hook同步: {hs}")
     cm = chapter_map()
