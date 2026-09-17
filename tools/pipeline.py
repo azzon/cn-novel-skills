@@ -49,7 +49,8 @@ def set_book(name):
     # 红队技能库: 声口资产三分天下——统一单源: 书根声口卡.md优先,主书用story/60-圣经/声口卡.md(与voice_check同源)
     _root_card = ROOT / "story" / "60-圣经" / "声口卡.md"
     VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else (_root_card if BOOK == ROOT and _root_card.exists() else None)
-    MATERIAL = (BOOK / "素材库.md") if (BOOK / "素材库.md").exists() else ((ROOT / "story" / "素材库.md") if BOOK == ROOT else None)
+    _mat_c = [c for c in ((BOOK / "素材库.md"), (BOOK / "story" / "素材库.md")) if c.exists()]
+    MATERIAL = _mat_c[0] if _mat_c else None
     SCORES = BOOK / "scores.json" if BOOK != ROOT else ROOT / "scores.json"
 BIBLE = ROOT / "story" / "60-圣经"   # 目录(全书卡/卷摘要/章摘要);set_book按书根重定向
 STYLE = ROOT / "story" / "50-风格包.md"
@@ -606,8 +607,8 @@ def cmd_status():
         missing = [x for x in LEDGER_NAMES if x not in stamped]
         if missing:
             print(f"第{maxn:03d}章盖章缺: {missing} → ledger-update")
-    mat_left = len([l for l in read_text(MATERIAL).splitlines()
-                    if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if MATERIAL.exists() else 0
+    mat_left = (len([l for l in read_text(MATERIAL).splitlines()
+                     if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if MATERIAL and MATERIAL.exists() else 0)
     est = mat_left // 3 if mat_left else 0
     if mat_left < 30:
         print(f"[红灯] 素材库仅剩{mat_left}条(约{est}章耗尽)——立即扩容(world-economy/行业经营库)")
