@@ -64,6 +64,8 @@ def check_metrics(fp):
 
 def collect(book_root=ROOT, only_files=None):
     """红队20260919长跑修复: only_files参数支持增量采样(避免900章全量collect的O(N)瓶颈)"""
+    if not (book_root / "text").is_dir() and book_root != ROOT:
+        print(f"[WARN] {book_root}无text/目录")
     data = {"chapters": {}, "structure": {}, "skills": "", "total_cjk": 0}
     total = 0
     if only_files is not None:

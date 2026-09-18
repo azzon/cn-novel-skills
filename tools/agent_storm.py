@@ -25,6 +25,7 @@
 import sys, pathlib, re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+MAX_TARGET_SIZE = 500_000  # 缺陷16
 
 # ═══ 角色池(每个wave 10个不同角色) ═══
 

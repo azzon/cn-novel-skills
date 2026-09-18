@@ -8,7 +8,7 @@ quality_score.py 全书45章质量评分器
 用法: python3 tools/quality_score.py [--json] [书根|章节文件...]
   默认书根=仓库根(主书); 传目录=该目录为书根; 传文件=只评该文件(多书隔离协议)
 """
-import json, math, pathlib, re, statistics, sys
+import json, pathlib, re, statistics, sys
 from pathlib import Path
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent

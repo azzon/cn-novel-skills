@@ -17,6 +17,8 @@ import re, sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
+ARCHIVE_MAX = 500  # 缺陷18: 归档区上限
+
 def fold(path, keep_pred, archive_head, dry=False):
     """按谓词把行分两组,归档组移到 archive_head 区尾"""
     if not path.exists():

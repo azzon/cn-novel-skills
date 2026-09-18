@@ -92,8 +92,7 @@ def test_voice_check():
         p1, err1 = v.parse_card(card2)
         case("双星号卡解析8人", not err1 and len(p1) == 8, f"{len(p1)}")
     # 否定前缀: "不一定"不算说"一定"
-    import types
-    q = [("贵的也不一定是好的", "", True)]
+        q = [("贵的也不一定是好的", "", True)]
     text_all = q[0][0]
     case("否定前缀排除", v._negated("这不一定", "一定") and not v._negated("我一定去", "一定"))
     # 更直接: 构造_negated可测

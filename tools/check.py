@@ -91,7 +91,8 @@ def _load_profile(fp):
     return prof
           # 破折号 ——
 SIMILE_LIMIT = 3        # 明喻
-SYSTEM_LINE_LIMIT = 4   # 【系统台词行
+SYSTEM_LINE_LIMIT = 4
+MIN_CHAPTER_CJK = 1800   # 缺陷9: 章字数硬线集中定义(原分散4文件)   # 【系统台词行
 NAME = ""
 SCENE_MODE = [False]               # 主角名(新案角色定稿后填入;留空则跳过人名密度检查)
 MODERN_SETTING = [False]           # 现代都市背景(--modern 开关,关闭时代错位检查)
@@ -149,7 +150,7 @@ def check(fp: pathlib.Path):
     if n == 0:
         issues.append("空文件")
     elif n < 1800 and not SCENE_MODE[0]:
-        issues.append(f"章级字数{n}(<1800硬线)——骨架未回填,禁以成稿身份入库;走beat-expand血肉遍")
+        issues.append(f"章级字数{n}(<{MIN_CHAPTER_CJK}硬线)——骨架未回填,禁以成稿身份入库;走beat-expand血肉遍")
     elif n < _lo and not SCENE_MODE[0]:
         warns.append(f"章级字数偏少:{n}(卡带{_lo}-{_hi}{',峰章' if _peak else ''};场景文件用 --scene 免此项)")
     elif n > _hi and not SCENE_MODE[0]:
@@ -986,7 +987,7 @@ def check(fp: pathlib.Path):
 
     # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
     #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
-    _mem_pat = re.compile(r"想起|记得|当年|小时候|那时候|那年|上辈子|前世|又浮现|冒出来|飘过来|好像.*味道|那股.*味|熟悉的")
+    _mem_pat = re.compile(r"想起.{0,10}(味|声|光|触|温度|气味|声音|画面)|记得.{0,10}(味|声|触)|小时候.{0,20}(味|声|热|冷)|那年.{0,15}(味|声|雪|雨|热)|上辈子.{0,10}(味|声)|熟悉的.{0,8}(味|声|触)")
     _mem_n = len(_mem_pat.findall(body))
     metrics["mem_fragments"] = _mem_n
     _mem_per_k = _mem_n * 1000 / max(cjk_len(body), 1)
@@ -996,7 +997,7 @@ def check(fp: pathlib.Path):
 
     # 46) 社交货币场面(付费意愿引擎,红队20260918): 每3章至少1个"读者会截图"的高光拍
     #     启发式: 含拍桌/倒吸/炸了/围观/议论/全群/全场/都愣了/鸦雀无声/同时的段落数
-    _social_pat = re.compile(r"拍桌|拍腿|倒吸|炸了|轰动|全场|全群|都愣了|鸦雀无声|同时看|齐刷刷|哄一声|一起笑|哄堂|鼓掌|掌声|愣住|看傻|哗然")
+    _social_pat = re.compile(r"拍桌|拍腿|倒吸|炸了|轰动|全场|全群|都愣了|鸦雀无声|同时看|齐刷刷|哄一声|一起笑|哄堂|鼓掌|掌声|愣住|看傻|哗然|截图|发群|评论区|讨论|热议|话题|传开|围观|议论")
     _social_n = len(_social_pat.findall(body))
     metrics["social_beats"] = _social_n
     if n > 1500 and _social_n < 2:

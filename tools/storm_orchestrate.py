@@ -203,6 +203,7 @@ def cmd_aggregate(target):
     # 保存verdict
     state["verdict"] = verdict
     state["verdict_score"] = round(avg, 1)
+    state["verdict_locked"] = True  # 缺陷12: aggregate后锁定(防record改分不重算)
     state["verdict_reasons"] = reasons
     sp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     

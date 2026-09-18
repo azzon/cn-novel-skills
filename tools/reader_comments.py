@@ -5,7 +5,7 @@
 用法: python3 tools/reader_comments.py <章文件>
 输出: 模拟评论区(5条) + 追读率预估
 """
-import re, sys, pathlib, random
+import re, sys, pathlib
 
 PAT_HOOK = re.compile(r"[?！!]|——|…|突然|忽然|就在这时|却见|赫然|竟是|一声|来了|开门|转身")
 PAT_REACT = re.compile(r"震惊|惊呆|哗然|炸了|轰动|全县|传遍|议论|傻眼|服了|倒吸|看傻|围观|打听|排队|传开|念叨|拍大腿|将信将疑|看热闹|人人皆知")

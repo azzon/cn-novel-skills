@@ -18,7 +18,7 @@
 import re, sys, pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from card_check import find_card, extract_vals   # noqa: E402
+from card_check  extract_vals   # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 

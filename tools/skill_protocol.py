@@ -201,7 +201,10 @@ def cmd_gen(what, n, book, vol):
                     vol = int(re.search(r"\d+", str(_exp)).group())   # expected_volume返回"卷2",归一成数字
             except Exception:
                 pass
-        # 红队20260919漏洞3修复: gen card加入前瞻窗口检查(防绕过cmd_next)
+            if n <= 0:
+        print(f"[参数错误] 章号{n}无效(须≥1)")
+        return 2
+    # 红队20260919漏洞3修复: gen card加入前瞻窗口检查(防绕过cmd_next)
         _files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
         _nums = [int(re.search(r"\d+", f.stem).group()) for f in _files if re.search(r"\d+", f.stem)]
         _maxn = max(_nums) if _nums else 0

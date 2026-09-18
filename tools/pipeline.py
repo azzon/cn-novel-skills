@@ -62,7 +62,7 @@ LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "�
 
 PREFIX = (
     "【生成纪律】单位=一个场景,目标字数按卡带(2400-5000)。对话40-55%,心理>=2/千字(少而准,与风格卡一致)。"
-    "禁工程词;情绪禁告知;明喻<=3,破折号<=3,警句<=1/场景;首句禁时间状语开场(与前两章错型)。"
+    "正文禁工程词(伏笔/爽点/beat等元层词不入小说文本;PREFIX和卡内可用);情绪禁告知;明喻<=3,破折号<=3,警句<=1/场景;首句禁时间状语开场(与前两章错型)。"
     "【生活气正向(上限定式)】每章1个本书专属物件(可复现道具);钱过手写面额与谁的钱;"
     "对话跑题一次;季节落在具体物上(风掀榜纸,非'天气热');称呼带关系史(用本书声口卡人名与关系称谓)。"
     "季节落在具体物上(风掀榜纸/汗浸票据),禁写'天气很热';称呼带关系史(以'叔/姨/哥'带关系相称,不写姓名全称——用本书声口卡里的人)。"
@@ -654,7 +654,7 @@ def cmd_next(args):
     if n < maxn + 1:
         print(f"[gap] 第{n}章小于next={maxn+1}——补章禁止直接写,走arc-restructure重排(防时序倒置)")
         return 2
-    # 滚动前瞻模式(红队20260919): 场景卡只允许前瞻5-10章——防一次排完900章(纯瀑布死法)
+    # 滚动前瞻模式(与skill_protocol gen card共享;缺陷19: 此处为第二道防线)——防一次排完900章(纯瀑布死法)
     # 卷纲锁死当前卷,卡只做本卷内next~next+9;跨卷须先跑卷末复盘+下一卷纲
     _vol_end = _is_volend if '_is_volend' in dir() else None
     if maxn > 0 and n > maxn + 10:
@@ -1311,6 +1311,11 @@ def cmd_done(args):
             problems.append(f"Agent Storm未通过: {_st_msg}——跑 storm_orchestrate.py init/status/aggregate")
     except ImportError:
         problems.append("storm_orchestrate.py不存在——agent风暴工具缺失,禁止归档")  # 漏洞1: 不再静默跳过
+
+    # 缺陷7修复: 场景卡版本控制(done时自动备份到.git快照区)
+    _card_bak = BOOK / "卡" / f".bak-{n:03d}"
+    if card and card.exists() and not _card_bak.exists():
+        _card_bak.write_text(card.read_text(encoding="utf-8"), encoding="utf-8")
 
     # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)
