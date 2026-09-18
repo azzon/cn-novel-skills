@@ -1,0 +1,387 @@
+{
+  "target": "灶火1993/text/卷1/第005章.md",
+  "started": true,
+  "waves": {
+    "1": {
+      "label": "攻击波(红队·找问题)",
+      "agents": {
+        "A1": {
+          "role": "追更毒舌读者",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "巧合救场+账目打架:阿彪正好三百白送;八百押金压着与还差三十九矛盾;方方正正复读"
+        },
+        "A2": {
+          "role": "弃书审判官",
+          "lens": "注意力",
+          "dispatched": true,
+          "score": 5.5,
+          "issue": "重复句露草稿感(八百压枕头两写/直搓手两现);危机当章恰好化解零代价,末钩弱"
+        },
+        "A3": {
+          "role": "逻辑审查员",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 5.5,
+          "issue": "七百六十一还差三十九却数到八百整包钱,39元凭空;十块票子两张与订单款十一块矛盾"
+        },
+        "A4": {
+          "role": "文笔鉴赏家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "解说腔点破弧光(学徒口气变当家人口气)+同句复现,警句堆叠"
+        },
+        "A5": {
+          "role": "代入党",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "搪瓷缸位置穿帮(前文摆柜上后文父亲摸到);报纸包钱两段逐字重复拉断沉浸"
+        },
+        "A6": {
+          "role": "节奏警察",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "复语拖速(包钱/算账两现);阿彪入股beat赶,一句定局无拉扯"
+        },
+        "A7": {
+          "role": "重复猎手",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "关键句原样复现三处(方方正正/直搓手/一笔一笔);兄弟掏娶亲钱入股走俗"
+        },
+        "A8": {
+          "role": "伏笔审计师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "银元最后的底显式标枪过露;油墨味/算盘怀旧零回收收益"
+        },
+        "A9": {
+          "role": "角色律师",
+          "lens": "人设",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "父亲台词模板化遮名难辨;母亲急得直搓手原句重复降格为舞台指示"
+        },
+        "A10": {
+          "role": "商业分析师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "债务危机零阻力化解(福伯秒答应/阿彪恰好送钱),缺挫败与代价"
+        }
+      },
+      "complete": true
+    },
+    "2": {
+      "label": "辩护波(蓝队·滤误报)",
+      "agents": {
+        "D1": {
+          "role": "文本辩护律师",
+          "lens": "误报过滤",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:巧合指控成立——已修:阿彪零钱39.5补缺口,300整为股本,巧合变凑账"
+        },
+        "D2": {
+          "role": "类型惯例专家",
+          "lens": "类型合理性",
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "辩护:重复句指控全部成立(补丁残留),已逐处清理;末钩弱部分成立(保留机会型,下章加压)"
+        },
+        "D3": {
+          "role": "伏笔辩护人",
+          "lens": "伏笔合法性",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "辩护:账目三处矛盾确凿——已修:订单款统一11块/39.5补齐/欠账簿改欠阿彪"
+        },
+        "D4": {
+          "role": "节奏辩护人",
+          "lens": "蓄压合法性",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "辩护:解说腔(学徒口气→当家人口气)已删,警句已清;实物细节(搪瓷缸/算盘/火声簿)保留"
+        },
+        "D5": {
+          "role": "角色辩护人",
+          "lens": "角色复杂性",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:缸位置穿帮属实——已修(父亲摸缸前移柜上);报纸包重复已去重"
+        },
+        "D6": {
+          "role": "AI检测辩护人",
+          "lens": "检测假阳性",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "辩护:入股beat赶——已补零钱39.5+兄弟翻脸台词,拉扯感成立"
+        },
+        "D7": {
+          "role": "商业辩护人",
+          "lens": "长线价值",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "辩护:复现三处已清;入股桥段以账目公开+字据细节差异化,保留"
+        },
+        "D8": {
+          "role": "受众辩护人",
+          "lens": "受众分层",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:银元标枪句已删(留动作);油墨味为性格细节保留,算盘声回收于字据场景"
+        },
+        "D9": {
+          "role": "结构辩护人",
+          "lens": "结构必要性",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "辩护:父亲已删旁白代言,以搪瓷缸挪位动作代言;母亲直搓手去重后立住"
+        },
+        "D10": {
+          "role": "综合辩护律师",
+          "lens": "整体权衡",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "辩护:危机已加阻力(字据+手印+日账公开=信用抵押),非零成本"
+        }
+      },
+      "complete": true
+    },
+    "3": {
+      "label": "仲裁波(评审·综合判定)",
+      "agents": {
+        "J1": {
+          "role": "总编",
+          "lens": "综合质量",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁:波1均分6.76;账目矛盾与重复句全部裁定成立,处方四类(账/复现/巧合/解说)已列"
+        },
+        "J2": {
+          "role": "数据分析师",
+          "lens": "量化",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "仲裁:净问题8个全部可修,无结构缺陷;修复后数字账复核通过"
+        },
+        "J3": {
+          "role": "读者代表",
+          "lens": "追读",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "仲裁(读者代表):押金落定+手术排期+债一月三线并挂,我翻页"
+        },
+        "J4": {
+          "role": "平台审核员",
+          "lens": "合规",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "仲裁(平台审核):借贷立据情节合规,无敏感点"
+        },
+        "J5": {
+          "role": "编辑(情节线)",
+          "lens": "情节",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁(情节线):钱的一章把两难写实,信息密度足"
+        },
+        "J6": {
+          "role": "编辑(人物线)",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁(人物线):福伯立住(账本+核桃+那句好儿子);阿彪入股后升合伙人"
+        },
+        "J7": {
+          "role": "编辑(文笔线)",
+          "lens": "文笔",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁(文笔线):解说腔删除后无总结段;对白土味保持"
+        },
+        "J8": {
+          "role": "编辑(商业线)",
+          "lens": "商业",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "仲裁(商业线):长期订单+入股=商业双认可,追更动力保持"
+        },
+        "J9": {
+          "role": "心理顾问",
+          "lens": "情绪",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "仲裁(情绪):揪心→暖的换极成立,章末不丧不飘"
+        },
+        "J10": {
+          "role": "终审法官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁(终审):敲槌——修复后放行"
+        }
+      },
+      "complete": true
+    },
+    "4": {
+      "label": "修复波(工匠·定向改进)",
+      "agents": {
+        "C1": {
+          "role": "爽点强化师",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "处方:零钱39.5+股本300分离,巧合变凑账(已应用)"
+        },
+        "C2": {
+          "role": "节奏调音师",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "处方:删重复句三处(压枕头/方方正正/直搓手)(已应用)"
+        },
+        "C3": {
+          "role": "去AI化专家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "处方:订单款统一11块,送餐收款闭环(已应用)"
+        },
+        "C4": {
+          "role": "代入感工程师",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "处方:记忆碎片2处(油墨味/算盘声)落位(已应用)"
+        },
+        "C5": {
+          "role": "对话医生",
+          "lens": "对话",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:解说腔删除,弧光交给动作(已应用)"
+        },
+        "C6": {
+          "role": "伏笔缝纫师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "处方:银元标枪句删除(已应用)"
+        },
+        "C7": {
+          "role": "角色深化师",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "处方:阿彪零钱+翻脸台词补拉扯(已应用)"
+        },
+        "C8": {
+          "role": "逻辑修补匠",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "处方:时序单线化,当天傍晚去重(已应用)"
+        },
+        "C9": {
+          "role": "新鲜感守护者",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:母亲直搓手去重(已应用)"
+        },
+        "C10": {
+          "role": "社交货币设计师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "处方:缺口39.5由零钱补,主角仍欠阿彪情(保留代价)(已应用)"
+        }
+      },
+      "complete": true
+    },
+    "5": {
+      "label": "守卫波(终审·放行/打回)",
+      "agents": {
+        "G1": {
+          "role": "质量守门员",
+          "lens": "全项",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "守卫:四大问题复检全解决"
+        },
+        "G2": {
+          "role": "回归测试员",
+          "lens": "副作用",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:修复无新副作用,数字账已同步更新"
+        },
+        "G3": {
+          "role": "风格一致性守卫",
+          "lens": "风格",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:文风统一,无补丁感残留"
+        },
+        "G4": {
+          "role": "字数守卫",
+          "lens": "体量",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "守卫:2542字在卡带2400-2800内"
+        },
+        "G5": {
+          "role": "数字守卫",
+          "lens": "数字",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "守卫:数字账8科目对齐(20份11块/800押金/500债/300股)"
+        },
+        "G6": {
+          "role": "时间线守卫",
+          "lens": "时序",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:时序单线(周五凌晨→傍晚→深夜)无逆序"
+        },
+        "G7": {
+          "role": "知情状态守卫",
+          "lens": "知情",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:知情状态干净——半张方/油纸包未泄"
+        },
+        "G8": {
+          "role": "伏笔守卫",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:F账续养行合规,D-2人情债在账"
+        },
+        "G9": {
+          "role": "AI检测终审",
+          "lens": "AI",
+          "dispatched": true,
+          "score": 7.7,
+          "issue": "守卫:AI指纹复扫——重复句清零,解说腔清零,警句1处(祖父引语)合规"
+        },
+        "G10": {
+          "role": "放行官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "守卫(放行官):check 0F+冷读7.6会翻+账实对齐——签字放行"
+        }
+      },
+      "complete": true
+    }
+  },
+  "verdict": null
+}
