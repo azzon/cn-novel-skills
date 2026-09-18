@@ -75,7 +75,7 @@ def main():
         print("  无高频失败模式(所有FAIL<3次=正常波动)")
 
     # 保存分析结果
-    out = book / "audit" / "failure-analytics.md"
+    out = book / "story" / "audit" / "failure-analytics.md"   # 修正: 与其余audit产物统一story/audit
     out.parent.mkdir(exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write(f"# 失败模式分析({len(files)}章)\n\n## FAIL频率\n")

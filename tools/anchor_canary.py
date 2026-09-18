@@ -31,7 +31,7 @@ def main():
     if canaries and canaries[-1] >= 7:
         print("  [FAIL] 金丝雀锚被打≥7分——裁判失灵!近10次冷读作废,重配锚样本并重评")
         return 1
-    if n > 0 and n % CYCLE == 0 and (not canaries or n - canaries.index(canaries[-1]) * CYCLE >= CYCLE if canaries else True):
+    if n > 0 and n % CYCLE == 0 and (not canaries or n - len(canaries) >= CYCLE):   # 修正: 原把分数当序号index恒错,到期判定改用条数
         print("  [ACTION] 冷读满10次: 本轮须混入金丝雀(劣锚样张伪装成被测章,同一裁判评分,结果记入本账 canary行)")
         return 0
     print("  正常(距下次金丝雀还有%d次)" % (CYCLE - since))

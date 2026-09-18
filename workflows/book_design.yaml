@@ -136,9 +136,9 @@ phases:
         skill: dialogue-voice
         inputs:
           - "<书根>/story/00-前提.md"
-          - "<书根>/story/60-圣经/声口对照.md"
+          - "<书根>/story/60-圣经/story/20-人物/声纹表.md"
         outputs:
-          - "<书根>/story/60-圣经/声口卡.md"
+          - "<书根>/story/60-圣经/story/20-人物/声纹表.md"
         gate:
           - "每个主要角色一张卡"
           - "每张卡包含:聪明等级/知识域/3口头禅/3禁词/碎片习惯/废话主题/说话目的/信息盲区/性格关键/弧光方向"
@@ -151,7 +151,7 @@ phases:
         skill: char-bible
         inputs:
           - "<书根>/story/00-前提.md"
-          - "<书根>/story/60-圣经/声口卡.md"
+          - "<书根>/story/60-圣经/story/20-人物/声纹表.md"
         outputs:
           - "<书根>/story/20-人物/人物圣经.md"
         gate:

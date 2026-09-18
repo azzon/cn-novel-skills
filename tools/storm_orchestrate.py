@@ -146,7 +146,41 @@ def cmd_record(target, agent_id, score, issue):
         print(f"  [WARN] Wave1注入Wave2失败: {_e}")
     return 0
 
+def _inject_wave1_results(state, target, sp):
+    """Wave1完成后,把攻击结果写入Wave2的prompt(漏洞9)"""
+    wave1 = state["waves"].get("1", {})
+    if not wave1.get("complete"):
+        return
+    charges = []
+    for aid in sorted(wave1["agents"].keys()):
+        a = wave1["agents"][aid]
+        if a["score"] is not None and a["issue"]:
+            charges.append("  " + aid + "(" + a["role"] + "): " + str(a["issue"]))
+    if not charges:
+        return
+    import re as _re
+    _stem = _re.sub(r"[^\w]", "-", target.stem)[:20]   # W6验证:与agent_storm落盘名同清洗,否则exists()恒假静默失败
+    wave2_file = sp.parent / "storm" / ("chapter-" + _stem + "-wave2.md")
+    if wave2_file.exists():
+        t = wave2_file.read_text(encoding="utf-8")
+        NL = chr(10)
+        inject = NL + "## Wave1攻击波的指控(你要辩护这些)" + NL + NL.join(charges) + NL
+        anchor = "### Agent D1"
+        if anchor in t:
+            t = t.replace(anchor, inject + NL + anchor, 1)
+            wave2_file.write_text(t, encoding="utf-8")
+            print("  Wave1指控已注入Wave2 prompt(" + str(len(charges)) + "条)")
+
+
 def cmd_aggregate(target):
+    sp = storm_state_path(target)
+    if sp.exists():
+        # 可观测性: aggregate前备份旧state(重跑storm不再抹掉50agent个体分)
+        import shutil as _sh, datetime as _dt
+        _hdir = sp.parent / "storm-history"
+        _hdir.mkdir(exist_ok=True)
+        _sh.copy(sp, _hdir / (sp.stem + "-" + _dt.datetime.now().strftime("%m%d%H%M") + ".json"))
+
     sp = storm_state_path(target)
     if not sp.exists():
         print("❌ Storm未初始化"); return 1
@@ -173,6 +207,13 @@ def cmd_aggregate(target):
     verdict = "放行"
     reasons = []
     
+    # W5通胀修复: 任一agent≤3=灾难分,不被均分稀释,直接打回
+    for wn, wdata in state["waves"].items():
+        for aid, a in wdata["agents"].items():
+            if a.get("score") is not None and a["score"] <= 3.0:
+                if verdict == "放行":
+                    verdict = "打回"
+                    reasons.append(f"灾难分: {aid}({a.get('role','?')})={a['score']}≤3——单点一票否决")
     # 规则1(核心): Wave1攻击波均值≥6.0(原稿质量,不可被修复波稀释)
     w1_avg = wave_scores.get("1", 10)
     if w1_avg < 6.0:
@@ -294,27 +335,3 @@ def main():
 if __name__ == "__main__":
     sys.exit(main())
 
-def _inject_wave1_results(state, target, sp):
-    """Wave1完成后,把攻击结果写入Wave2的prompt(漏洞9)"""
-    wave1 = state["waves"].get("1", {})
-    if not wave1.get("complete"):
-        return
-    charges = []
-    for aid in sorted(wave1["agents"].keys()):
-        a = wave1["agents"][aid]
-        if a["score"] is not None and a["issue"]:
-            charges.append("  " + aid + "(" + a["role"] + "): " + str(a["issue"]))
-    if not charges:
-        return
-    import re as _re
-    _stem = _re.sub(r"[^\w]", "-", target.stem)[:20]   # W6验证:与agent_storm落盘名同清洗,否则exists()恒假静默失败
-    wave2_file = sp.parent / "storm" / ("chapter-" + _stem + "-wave2.md")
-    if wave2_file.exists():
-        t = wave2_file.read_text(encoding="utf-8")
-        NL = chr(10)
-        inject = NL + "## Wave1攻击波的指控(你要辩护这些)" + NL + NL.join(charges) + NL
-        anchor = "### Agent D1"
-        if anchor in t:
-            t = t.replace(anchor, inject + NL + anchor, 1)
-            wave2_file.write_text(t, encoding="utf-8")
-            print("  Wave1指控已注入Wave2 prompt(" + str(len(charges)) + "条)")

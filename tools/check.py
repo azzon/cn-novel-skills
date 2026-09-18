@@ -288,7 +288,7 @@ def check(fp: pathlib.Path):
             i += 1
     if len(dup_set) >= 2:
         metrics["dup18"] = len(dup_set)
-        issues.append(f"章内原样重复{len(dup_set)}处(首处:「{list(dup_set)[0][:18]}…»)——补丁残留或复读,必须整体重写")
+        issues.append(f"章内原样重复{len(dup_set)}处(首处:「{sorted(dup_set)[0][:18]}…»)——补丁残留或复读,必须整体重写")
     elif len(dup_set) == 1:
         metrics["dup18"] = 1
         warns.append(f"章内原样重复1处(「{list(dup_set)[0][:18]}…」)——检查是否补丁残留")
@@ -499,7 +499,7 @@ def check(fp: pathlib.Path):
     # 28) 心动场景死喻(红队I禁喻清单:只许动作/物证/沉默三载体)
     dead_metaphors = re.findall(r'月光如水|星辰满天|心跳加速|心跳如鼓|脸颊绯红|手心出汗|心里某处.{0,2}柔软|漏跳了一拍', body)
     if dead_metaphors:
-        warns.append(f"心动死喻{len(dead_metaphors)}处({','.join(set(dead_metaphors[:3]))})——换动作/物证/沉默三载体,红队I")
+        warns.append(f"心动死喻{len(dead_metaphors)}处({','.join(dict.fromkeys(dead_metaphors[:3]))})——换动作/物证/沉默三载体,红队I")
 
     # 29) 首句长度(红队E转换规则1:第一句≤10字,扔事件碎片不递画面)
     if body_lines:
@@ -813,7 +813,7 @@ def check(fp: pathlib.Path):
     _TRANSITION = ("转眼", "一晃", "入夏", "入秋", "开春", "月底", "月初", "过了半天", "两个月的", "一个月后", "半个月")
     for _a, _b in zip(_ts_points, _ts_points[1:]):
         _diff = (_b[1] // 100 - _a[1] // 100) * 30 + (_b[1] % 100 - _a[1] % 100)
-        if _diff > 7:
+        if _diff > 7 or _diff < -20:   # W5: 跨年(12月→1月)负差不报=漏检
             _between = "".join(paras[_a[0]:_b[0]])
             if not any(w in _between for w in _TRANSITION):
                 warns.append(f"时间跳跃: {_a[2]}→{_b[2]}(跨{_diff}天)中间无过渡交代(审计-32 N5;回忆或对话已交代的登记waivers)")
@@ -829,7 +829,7 @@ def check(fp: pathlib.Path):
         _names = {re.sub(r"（[^）]*）|\([^)]*\)", "", x) for x in _names}
     _names |= {"马小丁", "崔兰", "王大龙", "苏棠", "陈会计", "罗胖子", "丁师傅", "麻老五", "老拐", "秦见微"}
     def _slot_norm(s):
-        for _nm in _names:
+        for _nm in sorted(_names, key=len, reverse=True):
             s = s.replace(_nm, "⟨名⟩")
         return re.sub(r"[\s，。！？“”—、]", "", s)
     _first_sents = []
@@ -1200,6 +1200,10 @@ def check(fp: pathlib.Path):
     _dash = re.findall(r"--|－－|———", body)
     if _dash:
         warns.append(f"破折号变体{len(_dash)}处(--/－－/———)——规范为中文双破折号'——'")
+    # 79) 感叹问号连用(排版规范:情绪堆叠=AI指纹)
+    _bang = re.findall(r"[！！]{2,}|[？？]{2,}|！\?|\?！|!!|\?\?", body)
+    if len(_bang) >= 2:
+        warns.append(f"感叹问号连用{len(_bang)}处(！！/？！堆叠=情绪靠标点不靠内容)——留一处最强的,其余改句式")
     return fp, n, status, issues, warns, metrics
 
 

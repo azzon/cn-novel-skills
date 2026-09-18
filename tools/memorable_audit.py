@@ -28,7 +28,7 @@ def main():
             if len(a) >= 2 and a in body_all:
                 print(f"  ✓ 意象锚「{a}」正文已现")
             elif len(a) >= 2:
-                warns.append(f"意象锚「{a}」正文未现——钉了桩没浇混凝土")
+                warns.append(f"意象锚「{a}」正文0次——挑下一章场景卡写入党象锚(scene-card),或改卷纲钉位")
     # 3) 金句落章验证
     for m in re.finditer(r"[「\u201c]([^」\u201d]{6,20})[」\u201d]", outline):
         q = m.group(1)

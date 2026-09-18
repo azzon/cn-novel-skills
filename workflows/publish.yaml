@@ -55,7 +55,7 @@ phases:
         inputs:
           - "评论区/催更/弃书评论原文"
         outputs:
-          - "ledgers/读者反馈账.md(章号+原文+分类:追读点/弃书点/催更主题)"
+          - "<书根>/ledgers/读者反馈账.md(章号+原文+分类:追读点/弃书点/催更主题)"
         gate:
           - "弃书点评论 48h 内入账"
       - id: weekly_retro
@@ -78,3 +78,24 @@ phases:
       - "上架线全过(商业质量线.md 上架线节)"
       - "反馈账在更新(发布后每周)"
     on_fail: "退回对应phase;上架材料问题优先级最高"
+  # 十波批补(W3盘点: publish-prep新四节无对应step)
+  - id: launch_design
+    name: 上架章设计(免费末章钩/首V三拍/三连爆排期/卡点标记)
+    type: agent
+    skill: publish-prep
+    instruction: 按publish-prep"上架章设计"节产出上架章排期表,入卷纲商业位预标
+  - id: ops_template
+    name: 章末运营件模板(作者的话三段式/防剧透/彩蛋章工艺)
+    type: agent
+    skill: publish-prep
+    instruction: 产出运营件模板存<书根>/story/60-圣经/运营件.md,逐章套用
+  - id: monthly_ticket
+    name: 月票冲刺排期(大高潮对齐月初/加更计划/福利票)
+    type: agent
+    skill: publish-prep
+    instruction: 按月票排期节倒推卷末高潮对齐日历
+  - id: data_ledger
+    name: 数据账月度对表(追读/均订/环比预警)
+    type: agent
+    skill: publish-prep
+    instruction: 填<书根>/ledgers/数据账.md,环比跌>15%触发pacing-score复排

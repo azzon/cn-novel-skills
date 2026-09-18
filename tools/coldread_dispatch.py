@@ -14,6 +14,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 def gen_prompt(n, book):
     b = pathlib.Path(book)
+    _adir = "story/audit" if b == ROOT else "audit"   # 与pipeline AUDIT_DIR书根分支一致
     body_files = sorted((b / "text").rglob(f"第{n:03d}章.md"))
     if not body_files:
         return None
@@ -30,7 +31,7 @@ def gen_prompt(n, book):
 {ROOT}/{body_rel}（第{n:03d}章。你是挑剔的付费读者，全部引原文作证。）
 
 ## 落盘
-UTF-8 Markdown → {b}/audit/冷读-第{n:03d}章.md，首行 `<!-- generated-by:skill_protocol gen-coldread 独立代理 -->`。所有引文用「」或块引用(>)逐字摘自正文。
+UTF-8 Markdown → {b}/{_adir}/冷读-第{n:03d}章.md(与pipeline cold_read_for的AUDIT_DIR一致)，首行 `<!-- generated-by:skill_protocol gen-coldread 独立代理 -->`。所有引文用「」或块引用(>)逐字摘自正文。
 
 ## 返回消息只要
 总分+追读判定一行 / 最致命问题第一条 / 最强段落摘录一段。
@@ -38,10 +39,15 @@ UTF-8 Markdown → {b}/audit/冷读-第{n:03d}章.md，首行 `<!-- generated-by
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    _raw = sys.argv[1:]
     book = ROOT
-    if "--book" in sys.argv:
-        book = ROOT / sys.argv[sys.argv.index("--book") + 1]
+    if "--book" in _raw:
+        _bi = _raw.index("--book")
+        book = ROOT / _raw[_bi + 1]   # 书根归一(set_book同款;主书名→ROOT)
+        if book == ROOT or (ROOT / book.name) == book:
+            book = ROOT if book == ROOT else book
+        _raw = _raw[:_bi] + _raw[_bi + 2:]
+    args = [a for a in _raw if not a.startswith("--")]
     output = None
     if "--output" in sys.argv:
         output = pathlib.Path(sys.argv[sys.argv.index("--output") + 1])

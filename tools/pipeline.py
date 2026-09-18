@@ -396,7 +396,7 @@ def cmd_produce(args):
     if body and body.exists():
         # 1a. era_clean(古代书自动清洗现代词)
         ec = subprocess.run([sys.executable, "tools/era_clean.py", str(body)],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("era_clean", "OK", ec.stdout.strip()[:30] if ec.stdout else "清洁"))
 
         # 1b. era1993(年代书专用: .modern书自动扫穿帮词——20260917系统级接入)
@@ -407,18 +407,18 @@ def cmd_produce(args):
             _modern_flag = _modern_flag.parent
         if (_modern_flag / ".modern").exists():
             er = subprocess.run([sys.executable, "tools/era1993.py", str(body)],
-                               capture_output=True, text=True, cwd=ROOT)
+                               capture_output=True, text=True, cwd=ROOT, timeout=180)
             steps.append(("era1993", "OK" if er.returncode == 0 else "FAIL",
                           er.stdout.strip()[:30] if er.stdout else "年代清洁"))
 
         # 2. fix_quotes
         fq = subprocess.run([sys.executable, "tools/fix_quotes.py", str(body)],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("fix_quotes", "OK", fq.stdout.strip()[:30] if fq.stdout else "清洁"))
 
         # 3. bundle
         r = subprocess.run([sys.executable, "tools/pipeline.py", "bundle", str(n), "--book", str(BOOK.name)],
-                          capture_output=True, text=True, cwd=ROOT)
+                          capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("bundle", "OK" if r.returncode == 0 else "FAIL", ""))
 
         # 4. check
@@ -429,23 +429,23 @@ def cmd_produce(args):
         steps.append(("gate", "OK" if rc2 == 0 else "FAIL", ""))
         # 6. voice
         rv = subprocess.run([sys.executable, "tools/voice_check.py", str(body)],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("voice", "OK" if "PASS" in rv.stdout else "FAIL", ""))
         # 7. card_check
         _expv = re.search(r"卷(\d+)", str(body.parent)) if 'body' in dir() else None
         cc = subprocess.run([sys.executable, "tools/card_check.py", str(n), "--volume", _expv.group(1) if _expv else "1", "--book", str(BOOK.name)],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("card_check", "OK" if cc.returncode == 0 else "FAIL", cc.stdout.strip()[-20:] if cc.stdout else ""))
 
         # 8. auto_expand诊断(只报告)
         ae = subprocess.run([sys.executable, "tools/auto_expand.py", str(body), "--target", "2400"],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         has_deficit = "欠" in ae.stdout and "✅" not in ae.stdout
         steps.append(("expand诊断", "NEED" if has_deficit else "OK", ae.stdout.strip().split("\n")[1][:40] if len(ae.stdout.strip().split("\n")) > 1 else ""))
 
         # 9. ledger_extract(自动抽取八账)
         le = subprocess.run([sys.executable, "tools/ledger_extract.py", str(n), "--book", str(BOOK.name)],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, cwd=ROOT, timeout=180)
         steps.append(("ledger抽取", "OK", le.stdout.strip().split("\n")[-1][:30] if le.stdout else ""))
 
     # 输出
@@ -745,7 +745,7 @@ def cmd_bundle(args):
     try:
         n = int(args[0])
     except (ValueError, IndexError):
-        print("用法: pipeline.py done <章号>"); return 2
+        print("用法: pipeline.py bundle <章号> [--book 书根]"); return 2
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
     exp = G.expected_volume(n, vols) or "卷1"
@@ -1258,7 +1258,7 @@ def cmd_done(args):
         if _spt:
             import subprocess as _sp
             rc_ev = _sp.run([sys.executable, "tools/skill_protocol.py", "audit", str(n), "--book", str(BOOK), "--evidence"],
-                            capture_output=True, text=True, cwd=ROOT)
+                            capture_output=True, text=True, cwd=ROOT, timeout=180)
             if rc_ev.returncode != 0:
                 (warns if (revise or post) else problems).append(
                     "技能执行记录证据链不过(打勾无产物引用/引用断裂)——红队20260915: 自证打勾=可偷懒,新章必须带'→ 产物: 路径'")
@@ -1300,6 +1300,10 @@ def cmd_done(args):
                         warns.append(f"章摘要漏新线: {','.join(sorted(_miss_ids)[:4])} 本章埋设但摘要未提——bundle槽7将永久缺此线,补写摘要")
         except Exception:
             pass
+    # W盘点修复: 圣经同步闸门——演进层停滞则卷末character-audit对的是过期圣经
+    _bible_f = BOOK / "人物圣经.md"
+    if _bible_f.exists() and n >= 5 and str(f"{n:03d}") not in _bible_f.read_text(encoding="utf-8"):
+        warns.append(f"人物圣经演进层未含第{n:03d}章——伤疤/认知累积断更,卷末character-audit将对过期圣经(ledger-update第④项)")
     # 红队20260919工效批: 账本半写检测(ledger-update中断=半账,done只拦缺账拦不住半账)
     _journals = sorted(LEDGERS.glob(".ledger-journal-*.json")) if LEDGERS.exists() else []
     if _journals:
@@ -1438,6 +1442,26 @@ def cmd_done(args):
         for x in warns:
             print(f"  [WARN] {x}")
         return 1
+    # 脏章检测闭环(W盘点: .done_hashes只读无写=死门): 通过时落hash
+    try:
+        _dh = LEDGERS / ".done_hashes"
+        _lines = _dh.read_text(encoding="utf-8").splitlines() if _dh.exists() else []
+        _lines = [l for l in _lines if not l.startswith(f"{n:03d}:")]
+        import hashlib as _hh
+        _lines.append(f"{n:03d}:{_hh.sha1(p.read_bytes()).hexdigest()[:12]}")
+        _dh.write_text("\n".join(_lines) + "\n", encoding="utf-8")
+    except Exception:
+        pass
+    # 可观测性(W新角度批): 质量曲线可回溯——每次done追加一行历史
+    try:
+        import json as _json, datetime as _dt
+        _hlog = BOOK / "ledgers" / "scores_history.jsonl"
+        with _hlog.open("a", encoding="utf-8") as _f:
+            _f.write(_json.dumps({"章": n, "时刻": _dt.datetime.now().isoformat(timespec="seconds"),
+                                   "分": (met or {}).get("quality_avg"), "状态": (met or {}).get("status")},
+                                  ensure_ascii=False) + "\n")
+    except Exception:
+        pass
     recalc_progress()
     scores_update(n, p, met, committed)
     # 范例段飞轮收割(done后自动——冷读高光回落风格包范例段库,喂给后续章)

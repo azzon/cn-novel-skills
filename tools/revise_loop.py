@@ -113,6 +113,14 @@ def main():
             print("  ⬆️ 已第3轮: 字符串补丁次数用尽——改走 scene-rewrite 整场景重写(禁补丁),或alt-takes换写法")
         if round_n >= 5:
             print("  ⛔ 已第5轮: 登记ledgers/waivers.md门级豁免或回炉卷纲(该FAIL可能是上游结构问题,本章修不动)")
+        # 可观测性: 修订流水落盘(轮次/处方摘要,中断重启不归零)
+        try:
+            import datetime as _dt
+            _log = fp.parent.parent / "ledgers" / "修订流水.md" if fp.parent.parent.name == "text" else fp.parent / "修订流水.md"
+            with _log.open("a", encoding="utf-8") as _f:
+                _f.write(f"- {_dt.datetime.now().strftime('%m-%d %H:%M')} 第{round_n}轮 {fp.name}: {len(fails)}FAIL\n")
+        except Exception:
+            pass
         print(f"\n  修复后重跑: python3 tools/revise_loop.py {fp}")
     return 1
 

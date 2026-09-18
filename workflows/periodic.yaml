@@ -40,7 +40,7 @@ phases:
         name: "读者反馈回路(发布后;未发布则跳过)"
         type: agent
         skill: revise
-        condition: "ledgers/读者反馈账.md 有新增条目"
+        condition: "<书根>/ledgers/读者反馈账.md 有新增条目"
         gate:
           - "每个弃书点有处置(修订排期或理由)"
           - "爽点管道按反馈校准"
@@ -94,7 +94,7 @@ phases:
         script: "python3 tools/failure_analytics.py <书根>"
         gate:
           - "高频FAIL(≥3次)有对应优化建议"
-          - "建议落入audit/failure-analytics.md"
+          - "建议落入story/audit/failure-analytics.md"
 
       - id: continuity_guard
         name: "内容连续性守卫(红队20260919: 生死账+伏笔完整性+情节跳变+情节重复)"
@@ -107,7 +107,7 @@ phases:
       - id: multi_lens_check
         name: "多视角冷读抽检(红队20260919: 全过机器门≠高质量)"
         type: agent
-        skill: multi_lens_coldread
+        skill: reader-proxy   # 经coldread_dispatch.py工具生成prompt(原引用不存在的技能)
         condition: "每20章或卷末"
         inputs: ["评分最高章+评分最低章各1"]
         gate:
@@ -161,15 +161,15 @@ phases:
       - id: storm_chapter_best
         name: "最佳章风暴(评分最高章: 确认'好'是真的好)"
         type: script
-        script: "python3 tools/agent_storm.py chapter <最佳章路径>"
+        script: "python3 tools/agent_storm.py chapter <最佳章路径(由quality_scores.json最高分章读出,无上游step则本phase先跑scores统计)>"
       - id: storm_chapter_worst
         name: "最差章风暴(评分最低章: 找出所有问题)"
         type: script
-        script: "python3 tools/agent_storm.py chapter <最差章路径>"
+        script: "python3 tools/agent_storm.py chapter <最差章路径(同上取最低分章)>"
       - id: storm_system
         name: "系统自身风暴(攻击系统规则/PREFIX/卡骨架的漏洞)"
         type: script
-        script: "python3 tools/agent_storm.py system tools/check.py"
+        script: "python3 tools/agent_storm.py system --book ${BOOK:-.} tools/check.py"
         condition: "每卷末或重大系统变更"
 
   phase_3_redteam:
@@ -184,3 +184,22 @@ phases:
           纪律: 攻击位≠建造位——读者位代理只读成品判追读,不读设计文档辩护。
           附加: 卷末跑 tools/anchor_canary.py <书根>(金丝雀哨兵)+market-scan白金锚滚动加料(锚漂移对策,大审计-36)。
 
+  # 十波批补触发(W3盘点:knowledge/humor/memorable/timeline此前零触发点)
+  - id: knowledge_spot
+    name: 知情越界抽查(每10章随冷读)
+    trigger: 每10章
+    type: agent
+    skill: knowledge-audit
+    instruction: 对最近10章跑knowledge-audit知情矩阵抽查,越界用信即出返工指令
+  - id: humor_10ch
+    name: 喜剧审计(每10章)
+    trigger: 每10章
+    type: agent
+    skill: humor-audit
+    instruction: 实测笑点密度/类型轮换/callback间隔,偏差>20%出校准报告
+  - id: memorable_volend
+    name: 名场面钉桩审计(卷末)
+    trigger: 卷末
+    type: agent
+    skill: set-piece
+    instruction: memorable_audit对账——本卷名场面钉桩/意象锚/出圈金句兑付核验

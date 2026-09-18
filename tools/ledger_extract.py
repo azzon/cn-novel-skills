@@ -91,8 +91,18 @@ def extract_from_chapter(n, book):
 
     # 9) 爽点管道(红队20260919: 卡"兑现Pn"→管道状态自动翻转——此前状态列纯手工,账可失真而红灯判据失真)
     _pay_m = re.search(r"兑现\s*(P\d+)", card_t)
-    if _pay_m and (b / "ledgers" / "爽点管道.md").exists():
-        entries["爽点管道"] = f"兑现:{_pay_m.group(1)} 章:{n:03d}——将P行状态'充能'改'已兑',计划兑现章填实际章号"
+    _pipe_f = b / "ledgers" / "爽点管道.md"
+    if _pay_m and _pipe_f.exists():
+        # W5修复: 原只出指令行(解析器不认=假翻转);直接改表状态列+填实际章号
+        _ptxt = _pipe_f.read_text(encoding="utf-8")
+        _pid = _pay_m.group(1)
+        _ptxt2, _nsub = re.subn(
+            rf"(\| {_pid} \|[^|]+\|[^|]+\|[^|]+\|)[^|]+(\|)[^|]+(\|)\s*充能\s*",
+            rf"\g<1>第{n:03d}章\g<2>利息照旧\g<3>已兑", _ptxt, count=1)
+        if _nsub:
+            _pipe_f.write_text(_ptxt2, encoding="utf-8")
+        else:
+            entries["爽点管道"] = f"兑现:{_pid} 章:{n:03d}——P行未匹配或非充能态,人工核对管道"
     return entries, None
 
 

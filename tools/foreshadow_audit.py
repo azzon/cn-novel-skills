@@ -92,7 +92,7 @@ def main():
         if not body_files:
             print("  [WARN] 伏笔账为空且无正文——未开卷状态,正常")
             return 0
-        print("  [FAIL] 伏笔账解析0条但有正文——格式漂移或漏报,人审账本格式")
+        print("  [FAIL] 伏笔账解析0条但有正文——格式漂移或漏报,对照ledger_schema.py盖章行格式,核对ledgers/伏笔.md首10行")
         return 1
     for l in fails:
         print(f"  [FAIL] {l}")

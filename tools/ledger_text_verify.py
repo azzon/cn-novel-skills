@@ -40,7 +40,7 @@ def verify_foreshadow(ledger, files):
         keywords = re.findall(r'[\u4e00-\u9fff]{2,4}', desc)
         found = any(kw in body for kw in keywords[:5])  # 前5个关键词任一命中
         if not found:
-            issues.append(f"伏笔账说第{ch:03d}章埋了[{desc[:20]}],但正文找不到相关内容(账实分离)")
+            issues.append(f"伏笔账说第{ch:03d}章埋了[{desc[:20]}],但正文找不到相关内容(账实分离——章漏写则按账补埋设段;改稿漂移则同步伏笔账条目)")
     return issues
 
 def verify_numbers(num_ledger, files):

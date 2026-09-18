@@ -82,7 +82,7 @@ def main():
         print(f"── {spec}分布 ──")
         for k, (cnt, pct) in sorted(dist(data, key).items(), key=lambda x: -x[1][0]):
             mark = ""
-            eff = max(pct, pct * n / 10)  # 小样本(n<10)降级
+            eff = min(pct, pct * n / 10) if n < 10 else pct  # 修正: 原max写反,n<10应折减而非放大
             if pct > 80 and n >= 10:
                 mark = "  [FAIL] 同构固化"; fails += 1
             elif eff > 60:

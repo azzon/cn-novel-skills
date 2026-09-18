@@ -39,12 +39,12 @@ def fold(path, keep_pred, archive_head, dry=False):
         na_set = set(na_idx)
         kept = [l for i, l in enumerate(active) if i not in na_set]
         new_arch = [active[i] for i in na_idx]
-        # ARCHIVE_MAX: 归档区超上限时丢最旧(全文在git历史)
+        # ARCHIVE_MAX: 归档区超上限时丢最旧(全文在git历史——截断前确保已commit未提交改动)
         old_arch_rows = [l for l in old_block if l.strip().startswith("- ")]
         total_arch = old_arch_rows + new_arch
         if len(total_arch) > ARCHIVE_MAX:
             total_arch = total_arch[-ARCHIVE_MAX:]
-        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史)"] + total_arch + [""] + kept
+        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史——截断前确保已commit未提交改动)"] + total_arch + [""] + kept
         if not dry:
             _before = path.read_text(encoding="utf-8")
             path.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -63,7 +63,7 @@ def fold(path, keep_pred, archive_head, dry=False):
         return 0
     if len(arch) > ARCHIVE_MAX:
         arch = arch[-ARCHIVE_MAX:]
-    out = head + ["", archive_head, f"(共{len(arch)}条,压缩于本周期;全文在git历史)"] + arch + [""] + active
+    out = head + ["", archive_head, f"(共{len(arch)}条,压缩于本周期;全文在git历史——截断前确保已commit未提交改动)"] + arch + [""] + active
     if not dry:
         _before = path.read_text(encoding="utf-8")
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -108,7 +108,7 @@ def keep_tail(path, prefix, keep, archive_head, dry=False):
         total_arch = old_rows + new_arch
         if len(total_arch) > ARCHIVE_MAX:
             total_arch = total_arch[-ARCHIVE_MAX:]
-        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史)"] + total_arch + [""] + kept
+        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史——截断前确保已commit未提交改动)"] + total_arch + [""] + kept
         if not dry:
             _before = path.read_text(encoding="utf-8")
             path.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -121,7 +121,7 @@ def keep_tail(path, prefix, keep, archive_head, dry=False):
     fold_set = set(idx[:fold_n])
     kept = [l for i, l in enumerate(lines) if i not in fold_set]
     arch = [lines[i] for i in sorted(fold_set)]
-    out = ["", archive_head, f"(前{fold_n}条折叠;全文在git历史)"] + arch + [""] + kept  # P1-035: 归档区在前,活跃区在后
+    out = ["", archive_head, f"(前{fold_n}条折叠;全文在git历史——截断前确保已commit未提交改动)"] + arch + [""] + kept  # P1-035: 归档区在前,活跃区在后
     if not dry:
         _before = path.read_text(encoding="utf-8")
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -162,7 +162,7 @@ def main():
                 _fold = _data[:_fold_n]
                 _keep = _data[_fold_n:]
                 _head = [l for l in _lines if not l.strip().startswith("- ") and l.strip()]
-                _out = _head + ["", f"## 归档({_fname}·折叠)", f"(前{_fold_n}条;全文在git历史)"] + _fold + [""] + _keep
+                _out = _head + ["", f"## 归档({_fname}·折叠)", f"(前{_fold_n}条;全文在git历史——截断前确保已commit未提交改动)"] + _fold + [""] + _keep
                 if not dry:
                     _fp.write_text("\n".join(_out) + "\n", encoding="utf-8")
                 total += _fold_n

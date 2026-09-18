@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fetch fanqie reader chapters, extract obfuscated content, decode with per-page font."""
 import subprocess, re, sys, os
-sys.path.insert(0, '/tmp')
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from fq_decode import get_font_url, decode
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"

@@ -93,7 +93,7 @@ def score_chapter(fp):
     if t.count("\u2014\u2014") > 3: finger += 1
     if re.search(r"不是[^。」]{1,10}，是[^。」]{1,15}。$", t): finger += 1
     if re.search(r"有一种?账[^。」]{0,10}。$", t): finger += 1
-    f_score = max(0, 5 - finger)
+    f_score = max(0, 10 - finger * 2)   # 修正: 八维权重和95→100(指纹维5→10,20+15+10+15+10+10+10+10=100)
     score += f_score
     details["指纹"] = finger
     details["无指纹得分"] = f_score

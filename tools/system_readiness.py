@@ -30,7 +30,7 @@ def check_block(name, args, fail_kw="FAIL]", pass_kw=None, use_rc=False):
     if fail_kw and fail_kw in out:
         # FAIL 数量
         n = out.count("[FAIL]")
-        return (name, "FAIL", f"{n}项")
+        return (name, "FAIL", f"{n}项(明细见上方各门输出,逐条按对应工具修复指引处理)")
     if pass_kw and pass_kw not in out:
         return (name, "FAIL", f"无'{pass_kw}'标记")
     warns = out.count("[WARN]")
@@ -78,13 +78,13 @@ def main():
     if book != ROOT:
         missing_design = []
         bible = None
-        for cand in ["人物圣经.md", "story/20-人物/人物圣经.md", "声口卡.md"]:
+        for cand in ["人物圣经.md", "story/20-人物/人物圣经.md", "story/20-人物/声纹表.md"]:
             if (book / cand).exists():
                 bible = book / cand
                 break
         if bible is None:
             missing_design.append("人物圣经")
-        elif bible and "ghost" not in bible.read_text(encoding="utf-8").lower() and "欲望" not in bible.read_text(encoding="utf-8") and "want" not in bible.read_text(encoding="utf-8").lower():
+        elif bible and "ghost|wound|lie|need" not in bible.read_text(encoding="utf-8").lower() and "欲望" not in bible.read_text(encoding="utf-8") and "want" not in bible.read_text(encoding="utf-8").lower():
             missing_design.append("人物圣经缺ghost/want引擎字段")
         xianxian = book / "ledgers" / "线弦.md"
         if xianxian.exists() and "欲望线" not in xianxian.read_text(encoding="utf-8"):
@@ -93,7 +93,7 @@ def main():
                        "缺: " + "; ".join(missing_design) if missing_design else "人物引擎在位"))
 
     # 卡文对账余量
-    r = run(["tools/card_check.py", "001", "--volume", "1"])
+    pass  # 修正: 原card_check("001")死调用结果未用且空库误报,卡校验归produce/章级门
     ledger = book / "ledgers" / "卡文对账清单.md"
     if ledger.exists():
         pending = sum(1 for l in ledger.read_text(encoding="utf-8").splitlines()

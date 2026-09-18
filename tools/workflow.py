@@ -68,7 +68,7 @@ def load_state():
     return {"current_phase": "", "completed_steps": [], "phase_results": {}}
 
 
-def save_state(state):
+def _atomic_save_state(state):
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
@@ -167,6 +167,8 @@ def main():
         print("用法: workflow.py <list|status|next> <workflow_name>")
         return 2
     wf_name = sys.argv[2]
+    if cmd == "mark":
+        return cmd_mark(args[1:])
     if cmd == "status":
         return cmd_status(wf_name)
     if cmd == "next":
@@ -177,3 +179,25 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+def _atomic_save_state(state, path):
+    """原子写状态(W韧性批: 裸write_text断电=状态损)"""
+    import json
+    p = pathlib.Path(path)
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(p)
+
+
+def cmd_mark(args):
+    """workflow mark <步骤id> done|reset——进度器补全(原completed_steps永远空)"""
+    import json, sys
+    state_f = pathlib.Path(".workflow_state.json")
+    state = json.loads(state_f.read_text(encoding="utf-8")) if state_f.exists() else {"completed_steps": []}
+    sid, act = args[0], (args[1] if len(args) > 1 else "done")
+    if act == "done" and sid not in state["completed_steps"]:
+        state["completed_steps"].append(sid)
+    elif act == "reset" and sid in state["completed_steps"]:
+        state["completed_steps"].remove(sid)
+    _atomic_save_state(state, state_f)
+    print(f"  ✅ {sid} {act}")

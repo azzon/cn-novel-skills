@@ -62,13 +62,13 @@ def main():
             warns.append("躺赢流: 前提未见动机层限制/张力三轴声明——按genre-playbook模式B补入(张力三轴≥2)")
     if genre and "博弈流" in genre and is_rebirth:
         if not re.search(r"限制", premise):
-            warns.append("博弈流: 能力层限制器声明建议显式写入")
+            warns.append("博弈流: premise.md补能力层限制一句(模板见genre-playbook对应流派档案限制层)")
     if genre and "经营流" in genre:
         if not (book / "ledgers" / "数字账.md").exists():
             bucket.append("经营流缺ledgers/数字账.md——资产表复利是经营流主引擎,数字不动=死(1993卷一实证)")
     if genre and "系统流" in genre:
         if not re.search(r"系统规则|系统面板|任务|积分|商城", premise):
-            warns.append("系统流: 前提未见系统规则/任务/积分类声明——系统规则有限性须入设计层")
+            warns.append("系统流: 前提未见系统规则/任务/积分类声明——系统规则有限性写入world-rules.md系统节:任务/积分/代价上限各一条")
         if re.search(r"寿元|寿命|消耗生命", premise) and not (book / "ledgers" / "寿元账.md").exists():
             issues.append("系统流以寿元为代价但缺ledgers/寿元账.md——代价货币必须入账(数字账联动)")
     if genre and "杀伐流" in genre:

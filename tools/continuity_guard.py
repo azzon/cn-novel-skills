@@ -57,7 +57,7 @@ def check_foreshadow(ledger):
         if m:
             状态 = m.group(3)
             if "沉睡" in 状态 or "悬空" in 状态 or "待" in 状态:
-                issues.append(f"伏笔悬空: {line[:60]}")
+                issues.append(f"伏笔悬空(ledgers/伏笔.md该条无回收计划——foreshadow-plan排兑付章或改完结): {line[:60]}")
     return issues
 
 def check_time_jump(files):

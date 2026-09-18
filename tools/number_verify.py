@@ -75,6 +75,9 @@ def main():
         print(f"  [FAIL] {f}")
     for w in warns:
         print(f"  [WARN] {w}")
+    if not rows:
+        print("  [FAIL] 数字账0条——账未建或格式不符(行格式: 科目|限定|值|第NNN章),按scene-card数字表建账")
+        return 2   # 修正: 原静默"全过"=假绿,number_audit同场景退2
     if not fails and not warns:
         print("  全过")
     print(f"验算: {len(rows)}条 | FAIL {len(fails)} | WARN {len(warns)}")

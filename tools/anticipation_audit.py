@@ -25,7 +25,7 @@ def main():
         return 2
 
     entries = []   # (章号, 形态, 原行)
-    for line in ledger.read_text(encoding="utf-8-sig").splitlines():
+    for line in re.sub(r"<!--.*?-->", "", ledger.read_text(encoding="utf-8-sig"), flags=re.S).splitlines():   # W5: 注释内假账行注入防
         m = re.match(r"-\s*第(\d+)章\s*\[([^\]]+)\]", line.strip())
         if m:
             entries.append((int(m.group(1)), m.group(2).strip(), line.strip()))

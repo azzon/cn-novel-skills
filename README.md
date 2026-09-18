@@ -1,6 +1,6 @@
 # CN Novel Skills
 
-从构思到审计的全流程AI协作长篇小说创作技能系统。80个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
+从构思到审计的全流程AI协作长篇小说创作技能系统。82个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
 
 ## 这是什么
 
@@ -52,7 +52,7 @@ ideate(30叶) → write(11叶) → revise(8叶) → audit(9叶) → ops(10叶)
 ```
 
 <details>
-<summary>全部80个技能清单</summary>
+<summary>全部82个技能清单</summary>
 
 **构思域 ideate**
 story-incubate · trial-write · market-scan · premise · theme-dossier · world-rules · world-power · world-map · world-economy · world-history · world-culture · iceberg-budget · char-bible · char-web · char-voice · romance-line · plot-spine · volume-outline · set-piece · opening-arc · unit-designer · foreshadow-plan · reward-economy · pacing-score · thread-weaver · positioning · naming(按需) · ideate-audit · author-persona · plot-freshness
@@ -84,7 +84,7 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 | `tools/pre-commit-hook.sh` | 提交门v4:质量+流程+韧性(删除门/大小写逃逸/progress自愈/waiver门级化/卡内容门) |
 | `tools/commit-msg-hook.sh` | 提交信息必须含staged章号(git log可机器解析为二级信源) |
 | `tools/fix_quotes.py` | 直引号→中文弯引号 |
-| `.progress.json` / `scores.json` | 进度指针/质量仪表(hook与pipeline自动重算,禁手写) |
+| `.progress.json` / `quality_scores.json` | 进度指针/质量仪表(hook与pipeline自动重算,禁手写) |
 
 ## 核心工艺
 
