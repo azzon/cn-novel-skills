@@ -207,7 +207,12 @@ for CHAPTER in $NEW_CH $MOD_CH; do
     if [ -n "$CH_NUM" ] && ! waiver_registered "$CH_NUM" "card" "$(dirname "$(dirname "$(dirname "$CHAPTER")")")/ledgers/waivers.md"; then
       VOICE_ARGS=""
       BOOKROOT=$(echo "$CHAPTER" | grep -oE '^[^/]+/text/' | cut -d/ -f1)
-      if [ -n "$BOOKROOT" ] && [ -f "$BOOKROOT/声口卡.md" ]; then VOICE_ARGS="--card $BOOKROOT/声口卡.md"; fi
+      # 终打磨: 声口资产探测链补声纹表新名(char-voice产物已改名)与story/20-人物路径
+      if [ -n "$BOOKROOT" ]; then
+        if [ -f "$BOOKROOT/story/20-人物/声纹表.md" ]; then VOICE_ARGS="--card $BOOKROOT/story/20-人物/声纹表.md"
+        elif [ -f "$BOOKROOT/声口卡.md" ]; then VOICE_ARGS="--card $BOOKROOT/声口卡.md"
+        fi
+      fi
       VOICE_OUT=$(python3 tools/voice_check.py "$CHAPTER" $VOICE_ARGS 2>&1)
       if echo "$VOICE_OUT" | grep -q "FAIL]"; then
         echo -e "${RED}  [FAIL] 声口门(${CHAPTER}):${NC}"

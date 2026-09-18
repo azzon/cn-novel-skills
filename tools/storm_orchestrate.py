@@ -339,6 +339,8 @@ def main():
         return cmd_init(pathlib.Path(sys.argv[2]))
     elif cmd == "status" and len(sys.argv) > 2:
         return cmd_status(pathlib.Path(sys.argv[2]))
+    elif cmd == "record" and "--file" in sys.argv:
+        return cmd_record_file(pathlib.Path(sys.argv[2]), sys.argv[sys.argv.index("--file") + 1])
     elif cmd == "record" and len(sys.argv) > 5:
         return cmd_record(pathlib.Path(sys.argv[2]), sys.argv[3], float(sys.argv[4]), sys.argv[5])
     elif cmd == "aggregate" and len(sys.argv) > 2:
