@@ -615,7 +615,13 @@ def cmd_status():
         print(f"       扩容建议: 按当前卷的场景类型补充(查卷纲场景型分布);每10章扩20条=长跑稳态")
     else:
         print(f"素材库余量: {mat_left}条(约{est}章)")
-    print(f"下一动作: pipeline.py next {nxt}")
+    # 漏洞10修复: periodic到期自动提醒
+    if maxn > 0:
+        if maxn % 10 == 0:
+            print('[REMIND] 第' + str(maxn) + '章为10的倍数——漂移审计到期')
+        if maxn % 20 == 0:
+            print('[REMIND] 第' + str(maxn) + '章为20的倍数——连续性守卫到期')
+        print(f"下一动作: pipeline.py next {nxt}")
     return 0
 
 # ---------------- next ----------------
@@ -1297,13 +1303,14 @@ def cmd_done(args):
                 warns.append(f"第{n:03d}章距卷末≤5章而下一卷纲未落盘——滚动前瞻铁律: 卷末复盘→重排下一卷纲→再继续生产")
 
     # 滚动前瞻+agent风暴gate(红队20260919): storm未完成或未放行=拒绝done
+    # 红队20260919漏洞1-2修复: storm gate不降级+不静默跳过
     try:
         import storm_orchestrate as _SO
         _st_ok, _st_msg = _SO.cmd_gate(p)
         if not _st_ok:
-            (problems if not revise else warns).append(f"Agent Storm未通过: {_st_msg}——跑 storm_orchestrate.py init/status/aggregate")
+            problems.append(f"Agent Storm未通过: {_st_msg}——跑 storm_orchestrate.py init/status/aggregate")
     except ImportError:
-        pass  # 工具不存在时跳过(向后兼容)
+        problems.append("storm_orchestrate.py不存在——agent风暴工具缺失,禁止归档")  # 漏洞1: 不再静默跳过
 
     # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)

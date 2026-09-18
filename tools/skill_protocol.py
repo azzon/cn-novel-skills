@@ -201,6 +201,14 @@ def cmd_gen(what, n, book, vol):
                     vol = int(re.search(r"\d+", str(_exp)).group())   # expected_volume返回"卷2",归一成数字
             except Exception:
                 pass
+        # 红队20260919漏洞3修复: gen card加入前瞻窗口检查(防绕过cmd_next)
+        _files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
+        _nums = [int(re.search(r"\d+", f.stem).group()) for f in _files if re.search(r"\d+", f.stem)]
+        _maxn = max(_nums) if _nums else 0
+        if _maxn > 0 and n > _maxn + 10:
+            print(f"[前瞻窗口] 第{n:03d}章超出前瞻窗口(max={_maxn},窗口={_maxn+1}~{_maxn+10})")
+            print(f"  滚动前瞻模式: 卡只做5-10章远;要排更远须卷末复盘+下一卷纲")
+            return 1
         out = book / "卡" / f"卷{vol}-第{n:03d}章-场1.md"
         out.write_text(CARD_SKELETON.format(vol=vol, n=n), encoding="utf-8")
     elif what == "coldread":

@@ -124,6 +124,8 @@ def cmd_record(target, agent_id, score, issue):
     
     sp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✅ {agent_id} score={score} issue={issue[:40]}")
+    
+    # 红队20260919漏洞9修复: Wave1全完成时,自动把攻击结果注入Wave2的prompt
     return 0
 
 def cmd_aggregate(target):
@@ -233,6 +235,9 @@ def cmd_gate(target):
         return False, f"storm判定={state['verdict']}({reasons})"
     return True, f"storm✅({state.get('verdict_score')}分)"
 
+
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__); return 2
@@ -255,3 +260,26 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+def _inject_wave1_results(state, target, sp):
+    """Wave1完成后,把攻击结果写入Wave2的prompt(漏洞9)"""
+    wave1 = state["waves"].get("1", {})
+    if not wave1.get("complete"):
+        return
+    charges = []
+    for aid in sorted(wave1["agents"].keys()):
+        a = wave1["agents"][aid]
+        if a["score"] is not None and a["issue"]:
+            charges.append("  " + aid + "(" + a["role"] + "): " + str(a["issue"]))
+    if not charges:
+        return
+    wave2_file = sp.parent / "storm" / ("chapter-" + target.stem[:20] + "-wave2.md")
+    if wave2_file.exists():
+        t = wave2_file.read_text(encoding="utf-8")
+        NL = chr(10)
+        inject = NL + "## Wave1攻击波的指控(你要辩护这些)" + NL + NL.join(charges) + NL
+        anchor = "### Agent D1"
+        if anchor in t:
+            t = t.replace(anchor, inject + NL + anchor, 1)
+            wave2_file.write_text(t, encoding="utf-8")
+            print("  Wave1指控已注入Wave2 prompt(" + str(len(charges)) + "条)")
