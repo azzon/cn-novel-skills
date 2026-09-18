@@ -1,0 +1,53 @@
+{
+ "issues": [
+  [
+   "死import",
+   "check.py: '_Cnt2' 从未使用"
+  ],
+  [
+   "死import",
+   "check.py: '_col' 从未使用"
+  ],
+  [
+   "死import",
+   "check.py: '_json' 从未使用"
+  ],
+  [
+   "死import",
+   "plot_signature.py: 'defaultdict' 从未使用"
+  ],
+  [
+   "死import",
+   "self_test.py: 'importlib' 从未使用"
+  ],
+  [
+   "吞错",
+   "card_check.py: 1处except+pass"
+  ],
+  [
+   "吞错",
+   "check.py: 1处except+pass"
+  ],
+  [
+   "吞错",
+   "evals.py: 1处except+pass"
+  ],
+  [
+   "吞错",
+   "gate_chapter.py: 1处except+pass"
+  ],
+  [
+   "吞错",
+   "legacy_cards.py: 1处except+pass"
+  ],
+  [
+   "吞错",
+   "pipeline.py: 7处except+pass"
+  ],
+  [
+   "吞错",
+   "skill_protocol.py: 1处except+pass"
+  ]
+ ],
+ "count": 12
+}

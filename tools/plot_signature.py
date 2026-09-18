@@ -11,7 +11,7 @@
 输出: 签名矩阵+重复警告
 """
 import sys, pathlib, re, json
-from collections import defaultdict
+from collections 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
