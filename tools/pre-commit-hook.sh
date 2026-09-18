@@ -21,9 +21,9 @@ if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff
 fi
 
 # 重命名(R)按新路径判定: text/→archive/的归档移动自然豁免(audit修正)
-NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && ($1=="A" || $1 ~ /^R/) {print $2}')   # W6: git mv外来稿进text/曾跳过新章全流程门
+NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && ($1=="A" || ($1 ~ /^R/ && (index($2,"/text/")==0 && substr($2,1,5)!="text/") && (substr($3,1,5)=="text/" || index($3,"/text/")>0))) {if ($1=="A") print $2; else print $3}')   # W6+W10: R分双case,text内R不进NEW(防双入)
 MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="M" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (substr($3,1,5)=="text/" || index($3,"/text/")>0) && $1 ~ /^R/ {print $3}')
-DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (index($3,"/text/")==0) && $1 ~ /^R/ {print $2}')   # W6: R移出text/曾逃逸del门
+DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (index($3,"/text/")==0 && substr($3,1,5)!="text/") && $1 ~ /^R/ {print $2}')   # W6+W10: 补text/开头形态
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
 # 脚手架门(Python单点;磨刀十三批H0修复: 失败立即exit——此前只置FAIL会被'无变更跳过'分支exit 0吞掉)
@@ -49,11 +49,9 @@ HOOK_SELF=$(echo "$STATUS_OUT" | awk -F'\t' '$1 ~ /^[AM]/ && ($2 ~ /^tools\/pre-
 HOOKSELF_OK=0
     _HS_LINE=$(grep -E "^- hookself:.*hookself" ledgers/waivers.md 2>/dev/null | tail -1)
     _HS_DATE=$(echo "$_HS_LINE" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | head -1)
-    case "$_HS_DATE" in 3*|2[1-9]*) _HS_DATE="" ;; esac
-    if [ -n "$_HS_DATE" ] && [ "$_HS_DATE" \< "$(date +%F)" ] && [ "$_HS_DATE" \< "$(date -d '89 days ago' +%F 2>/dev/null || echo 1999-01-01)" ]; then
-      : # hookself登记超90天=过期,须复验重登
-    else
-      HOOKSELF_OK=1   # W6: 原只验存在=一次登记永生
+    # W10反转修复: 有效=日期存在且>=89天前且<=今天(未来日期无效);否则FAIL(原逻辑反转=无登记也放行)
+    if [ -n "$_HS_DATE" ] && ! [ "$_HS_DATE" \> "$(date +%F 2>/dev/null || echo 9999-01-01)" ] && [ "$_HS_DATE" \> "$(date -d '90 days ago' +%F 2>/dev/null || echo 1999-01-01)" ]; then
+      HOOKSELF_OK=1   # W10修正: 当天登记合法(原'-1 day'把当天登记误杀);条件=<=今天且>90天前
     fi
     if [ -n "$HOOK_SELF" ] && [ "$HOOKSELF_OK" != "1" ]; then
     echo -e "${RED}  [FAIL] 门自身文件被修改且staged: $HOOK_SELF${NC}"
@@ -78,9 +76,9 @@ waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
     # 红队20260915: waiver永不过期=后门;90天自动失效,需复验日期重登记
     WDATE=$(echo "$line" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | head -1)   # W6: 原tail -1,行内附2099即永生
     [ -z "$WDATE" ] && return 1   # 红队git绕过#4: 无日期=永生后门,一律失效重登记
-    case "$WDATE" in
-      3*|2[1-9]*) return 1 ;;   # W6: 未来日期(21xx+/3xxx)一律无效
-    esac
+    if [ "$WDATE" \> "$(date +%F 2>/dev/null || echo 9999-01-01)" ]; then
+      return 1   # W10: 未来日期一律无效(>今天才拒,当天合法)
+    fi
     if [ -n "$WDATE" ]; then
       if [ "$WDATE" \< "$(date -d '90 days ago' +%F 2>/dev/null || echo 1999-01-01)" ]; then   # W6: date失败原回退0000-00-00=fail-open永不过期
         return 1

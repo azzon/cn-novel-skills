@@ -80,8 +80,7 @@ def attribute_dialogue(body, people):
             # 无tag行: 对白轮转感知——最近两人交替场景下归属"另一人"(A-B-A-B中文对话惯例)
             cur = alternation[-2] if len(alternation) == 2 else (alternation[-1] if alternation else None)
         _qraw = re.findall('“([^“”]{2,})”|「([^「」]{2,})」|"([^"]{2,})"', para)   # W6验证:原只认弯引号,「」/直引号对白不可见=禁词门全绕
-        quotes = [a or b or c for a, b, c in _qraw if (a or b or c)]
-        quotes = [q for tup in quotes for q in tup if q]
+        quotes = [a or b or c for a, b, c in _qraw if (a or b or c)]   # W10: 原第二行把字符串再展平=炸成单字,禁词永不命中
         if cur and quotes:
             hard = cur in speakers   # 有直接tag=硬归属; 轮转/继承=软归属
             result[cur].append((" ".join(quotes), para[:20], hard))

@@ -574,18 +574,7 @@ def cmd_status():
     _max_ch = max((_dm2 := {int(re.search(r'(\d+)', f.name).group()) for f in _fbk.glob('text/卷*/第*.md') if re.search(r'第(\d+)章', f.name)}), default=0) if _fbk.exists() else 0
     if _max_ch >= 10 and not _fab.exists():
         print("[红灯] 已达10章而无发行包.md(书名/简介/上架节奏)——不可上架,走publish-prep")
-    # 断更保护(红队20260919商业批): 存稿=已写-已发,book-plan红线运行时化
-    _pub = _fbk / "ledgers" / "发布进度.md"
-    if _pub.exists():
-        _pm = re.search(r"已发至[:：]?\s*第?(\d+)", _pub.read_text(encoding="utf-8"))
-        if _pm:
-            _daily = 2
-            _plan_f = _fbk / "商业计划.md"
-            if _plan_f.exists():
-                _dm = re.search(r"日更[:：]?\s*(\d+)", _plan_f.read_text(encoding="utf-8"))
-                if _dm:
-                    _daily = max(int(_dm.group(1)), 1)
-    if hs:
+    if hs:   # 存稿红灯已移至maxn定义后(W10: 此处残留残缺块已删)
         print(f"hook同步: {hs}")
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
@@ -1119,11 +1108,14 @@ def cmd_done(args):
     problems, warns = [], []
 
     committed = is_committed(p)
-    if committed and not revise:
-        # v3.1: 已提交章允许后验刷新(audits/22-12: done常在commit后补跑,committed字段结构性为false的修复)
+    if committed and not revise and not strict:
+        # v3.1: 已提交章允许后验刷新(audits/22-12)——W10: strict时禁降级,不进post模式
         print(f"[post] 第{n:03d}章已committed——跑后验刷新(scores.committed将置真);改写验收用 --revise")
         revise = True  # 后验模式=按改写口径验收,但committed写真值
         post = True
+    elif committed and strict:
+        print(f"[strict] 峰章硬验收: 已committed章 --strict 全门硬验收,禁post/revise降级")
+        post = False
     else:
         post = False
 

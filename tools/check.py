@@ -222,7 +222,7 @@ def check(fp: pathlib.Path):
             warns.append(f"段落开头「{k}…」{c}次(注意句式雷同)")
 
     # 9) 句长方差(反均匀;std<6 视为节奏单一)
-    sents = re.split(r"[。！?！?\n]", body)   # W6验证:缺全角！？→首句长度虚高
+    sents = re.split(r"[。！？\uFF01\uFF1F\n]", body)   # W6验证:缺全角！？→首句长度虚高
     slens = [cjk_len(s) for s in sents if cjk_len(s) > 0]
     if len(slens) >= 20:
         sd = statistics.pstdev(slens)
@@ -299,7 +299,7 @@ def check(fp: pathlib.Path):
         sim_extra += len(re.findall(pat, body))
     personif = len(re.findall(r"[推拉扛拽]着一?(?:一整个|整个)", body))
     if sim + personif > SIMILE_LIMIT:
-        issues.append(f"装饰性修辞{sim+sim_extra+personif}处(明喻{sim+sim_extra}+拟人{personif},上限{SIMILE_LIMIT})——AI标志:每个描写点挂比喻;真实作者白描为主")
+        issues.append(f"装饰性修辞{sim+personif}处(明喻{sim}+拟人{personif},上限{SIMILE_LIMIT})——AI标志:每个描写点挂比喻;真实作者白描为主")
 
     # 14.5) 工程词泄漏(正文出现元层词汇=脱稿事故)
     META_WORDS = ["细纲", "情节点", "场景卡", "伏笔编号", "beat", "BEAT", "本章hook", "爽点数", "主角光环", "金手指设定"]
@@ -503,7 +503,7 @@ def check(fp: pathlib.Path):
 
     # 29) 首句长度(红队E转换规则1:第一句≤10字,扔事件碎片不递画面)
     if body_lines:
-        first_sent = re.split(r'[。！?！?\n]', body_lines[0])[0]
+        first_sent = re.split(r'[。！？\uFF01\uFF1F\n]', body_lines[0])[0]
         fl = cjk_len(first_sent)
         if fl > 25:
             warns.append(f"首句{fl}字(>25,白金开篇首句≤10字碎片式:『头七,第三夜。』式,不递画面扔事件)")
@@ -571,7 +571,16 @@ def check(fp: pathlib.Path):
         _mhits = re.findall(
             r"[一两二三四五六七八九十百千]{1,10}(?:千|万|块|元|毛|两|贯|文|石)[一两二三四五六七八九十百零点五]{0,8}"
             r"|\d+(?:\.\d+)?(?:块|元|毛|两|贯|文)", body)
-        _mhits = [h for h in _mhits if "千万" not in h]
+        _mhits = []
+        for h in re.findall(
+            r"[一两二三四五六七八九十百千]{1,10}(?:千|万|块|元|毛|两|贯|文|石)[一两二三四五六七八九十百零点五]{0,8}"
+            r"|\d+(?:\.\d+)?(?:块|元|毛|两|贯|文)", body):
+            if "千万" in h:
+                continue
+            _after = body[body.find(h) + len(h):body.find(h) + len(h) + 2]   # W10: 排除词看命中串后文("三千年"后是年=时间)
+            if re.match(r"年|月|日|次|遍|岁|分钟|度|号|名|个|位|回|斤|亩", _after):
+                continue
+            _mhits.append(h)
         money = len(_mhits)
         metrics["money_sample"] = ",".join(_mhits[:6])
         metrics["money_count"] = money
@@ -1082,7 +1091,7 @@ def check(fp: pathlib.Path):
     _time_toks = [(mm.start(), mm.group(1)) for mm in re.finditer(r"初([一二三四五六七八九十]{1,2}|\d{1,2})", body)]
     
     def _cn_day(x):
-        _m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
+        _m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10, "十一": 11, "十二": 12, "十三": 13, "十四": 14, "十五": 15, "十六": 16, "十七": 17, "十八": 18, "十九": 19, "二十": 20, "廿一": 21, "廿二": 22, "廿三": 23, "廿四": 24, "廿五": 25, "廿六": 26, "廿七": 27, "廿八": 28, "廿九": 29, "三十": 30}
         return _m.get(x, int(x) if x.isdigit() else None)
     _vals = [(pos, _cn_day(x)) for pos, x in _time_toks]
     _vals = [(pos, v) for pos, v in _vals if v]
@@ -1144,7 +1153,7 @@ def check(fp: pathlib.Path):
     _tenor_roots = {}
     for _s2, _e2 in _sim_spans:
         _frag = _body_sim2[_s2:_e2]
-        _mtenor = re.search(r"像([一样的]?)", _frag)
+        _mtenor = re.search(r"像(?:是)?", _frag)   # W10: "像是秤砣"原取"是秤"
         if not _mtenor:
             continue   # W6验证:宛如/恍若无尾标记,frag[:4]='宛如'→root恒'宛如'误聚类;只对"像X"式提取喻体
         _tenor = _frag[_mtenor.end():].strip("一样般的的")
@@ -1184,7 +1193,7 @@ def check(fp: pathlib.Path):
     if len(_fw) > 3:
         warns.append(f"全角半角混排{len(_fw)}处(全角数字字母/汉字后半角标点)——统一半角数字+全角标点")
     # 77) 省略号变体归一
-    _ell = re.findall(r"\.\.\.|。{2,}|…(?!\u2026)[^\u2026]|····", body)
+    _ell = re.findall(r"\.\.\.|。{2,}|(?<!\u2026)…(?!\u2026)|····", body)   # W10: 原正则把规范双省略号第二颗误报
     if _ell:
         warns.append(f"省略号变体{len(_ell)}处(…/.../。。。。)——规范为中文双省略号'……'")
     # 78) 破折号变体
@@ -1245,7 +1254,7 @@ def baseline_mode(fp: pathlib.Path):
         print("文本太短(<200字),基线无意义"); return 0
     fourgrams = len(re.findall(r"[\u4e00-\u9fff]{4}", body))
     glue = sum(body.count(w) for w in ["然而","因此","因为","所以","于是","但是","虽然","尽管","总之","综上","与此同时","不得不说","值得一提的是"])
-    sents = [cjk_len(s) for s in re.split(r"[。!?\n]", body) if cjk_len(s) > 0]
+    sents = [cjk_len(s) for s in re.split(r"[。！？\n]", body) if cjk_len(s) > 0]
     cv = (statistics.pstdev(sents) / statistics.mean(sents) * 100) if len(sents) >= 10 and statistics.mean(sents) else 0
     dia = "".join(re.findall(r"[\u201c]([^\u201d]*)[\u201d]", body))
     mood = sum(dia.count(w) for w in ["啊","呗","嘛","呗","得了","行吧","得了吧","嚯","啧","嗯","哦","诶","嘿"])

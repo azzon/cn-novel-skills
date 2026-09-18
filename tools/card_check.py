@@ -56,7 +56,7 @@ def cn2num(s):
 def extract_vals(text):
     """文本→数值集合(阿拉伯+中文口语全部数值化)"""
     vals = set()
-    for m in re.finditer(r"-?\d+(?:\.\d+)?", text):   # W6验证:负号丢失,负债500万按500万对账
+    for m in re.finditer(r"(?<!\d)-?\d+(?:\.\d+)?", text):   # W6:负号入账;W10:(?<!\d)防"3-5天"裂成[3,-5]
         try:
             vals.add(float(m.group()))
         except ValueError:
