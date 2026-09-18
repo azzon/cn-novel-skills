@@ -99,6 +99,17 @@ phases:
           - "判定不是REWRITE/HOOK_FAIL"
           - "跳读≤2处"
           - "追读欲不是无所谓"
+      - id: agent_storm_chapter
+        name: "五波agent风暴(红队20260919: 每章≥5波×10=50 subagent红蓝对抗)"
+        type: script
+        script: "python3 tools/agent_storm.py chapter <正文文件> --book <书根>"
+        condition: "峰章/卷首/卷末/每5章(高频);普通章可选wave1+wave3(轻量)"
+        gate:
+          - "Wave1攻击波10agent全派发"
+          - "Wave3仲裁波总编判定'放行'"
+          - "峰章须5波全跑"
+          - "Wave5守卫波全绿才done"
+
       - id: elevation_loop
         name: "升格环(磨刀十八批提上限: 过门≠结束——冷读<9.0触发定向润色一轮再评,上限≤1轮)"
         type: agent

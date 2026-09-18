@@ -149,6 +149,23 @@ phases:
         outputs: ["<书根>/story/30-情节/卷(N+1)纲.md"]
         gate: ["红队通过"]
 
+  phase_storm:
+    name: "五波agent风暴(红队20260919: 每10章/卷末/系统变更时)"
+    steps:
+      - id: storm_chapter_best
+        name: "最佳章风暴(评分最高章: 确认'好'是真的好)"
+        type: script
+        script: "python3 tools/agent_storm.py chapter <最佳章路径>"
+      - id: storm_chapter_worst
+        name: "最差章风暴(评分最低章: 找出所有问题)"
+        type: script
+        script: "python3 tools/agent_storm.py chapter <最差章路径>"
+      - id: storm_system
+        name: "系统自身风暴(攻击系统规则/PREFIX/卡骨架的漏洞)"
+        type: script
+        script: "python3 tools/agent_storm.py system tools/check.py"
+        condition: "每卷末或重大系统变更"
+
   phase_3_redteam:
     name: "系统红队(每卷末或每30章,大审计-35制度化)"
     steps:
