@@ -13,8 +13,11 @@
 
 用法:
   python3 tools/agent_storm.py <功能类型> <目标路径> [--book 书根] [--wave N]
-  功能类型: chapter|premise|volume|system|periodic
+  功能类型: chapter|premise|design|volume|system|ledger|periodic
   --wave N: 只生成第N波(1-5),缺省生成全部5波
+
+红队20260919用户令: 每一章、每一个设计文件、每一个构思步骤
+都默认跑全5波×10 agent=50 subagent红蓝对抗。不设条件跳过。
 
 输出: <书根>/audit/storm/<功能>-<目标>-wave<N>.md
   每个wave文件包含10个agent prompt,供Agent工具逐个派发
