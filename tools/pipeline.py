@@ -612,6 +612,7 @@ def cmd_status():
     est = mat_left // 3 if mat_left else 0
     if mat_left < 30:
         print(f"[红灯] 素材库仅剩{mat_left}条(约{est}章耗尽)——立即扩容(world-economy/行业经营库)")
+        print(f"       扩容建议: 按当前卷的场景类型补充(查卷纲场景型分布);每10章扩20条=长跑稳态")
     else:
         print(f"素材库余量: {mat_left}条(约{est}章)")
     print(f"下一动作: pipeline.py next {nxt}")
@@ -857,7 +858,7 @@ def cmd_bundle(args):
     add("9钩/类型近窗", 550, hooks + "\n" + rotate)
     # 12 知情状态近窗(大审计-20断点恢复缺口: 知情状态无法恢复)
     kb = read_text(LEDGERS / "口碑账.md", -450)
-    add("12口碑账近窗(谁知道什么)", 500, kb)
+    add("12口碑账近窗(谁知道什么)", 800, kb)  # 红队20260919: 500→800,知情状态长跑保真
 
     # 10 生活素材(audits/21-Fix1): cast从声纹表派生(禁硬编码),按卡面提及打分,
     #    按地点分区加权,J区语言恒带2条;素材须变形入文(数字保留,表述重造)
@@ -933,9 +934,10 @@ def cmd_bundle(args):
     for name, used, cap, _ in items:
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
-    print(f"  合计: {total}字 (硬上限10200" + (",超限!" if total > 9000 else ",OK") + ")")
-    if total > 10200:
-        print("[FAIL] 注入包超硬上限10200字——先跑ledger_compact/伏笔归档再生成(磨刀十五批: 原超限仍return 0=注入静默截断)")
+    # 红队20260919长跑修复: 槽位上限总和~13900>旧硬上限10200=结构性必然FAIL→提至15500
+    print(f"  合计: {total}字 (硬上限15500" + (",超限!" if total > 14000 else ",OK") + ")")
+    if total > 15500:
+        print("[FAIL] 注入包超硬上限15500字——先跑ledger_compact/伏笔归档再生成(磨刀十五批: 原超限仍return 0=注入静默截断)")
         return 1
     print()
     print()
