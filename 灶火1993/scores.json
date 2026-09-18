@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-19T05:05:02",
-  "head_commit": "4ac20d9",
+  "generated_at": "2026-09-19T05:40:53",
+  "head_commit": "e7a23a0",
   "chapters": {
     "1": {
       "path": "灶火1993/text/卷1/第001章.md",
@@ -35,6 +35,46 @@
       "hook_level_from_card": null,
       "card_budget": null,
       "cold_read": "冷读-第002章.md",
+      "drift_flags": []
+    },
+    "3": {
+      "path": "灶火1993/text/卷1/第003章.md",
+      "committed": false,
+      "cjk": 2443,
+      "dia_char_pct": 41.8,
+      "psych_per_k": 4.09,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "PASS",
+      "check_fails": 0,
+      "gate_version": 9,
+      "hook_level_from_card": null,
+      "card_budget": [
+        2400,
+        2800
+      ],
+      "budget_delta_pct": -6.0,
+      "cold_read": "冷读-第003章.md",
+      "drift_flags": []
+    },
+    "4": {
+      "path": "灶火1993/text/卷1/第004章.md",
+      "committed": false,
+      "cjk": 2591,
+      "dia_char_pct": 47.0,
+      "psych_per_k": 3.47,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "PASS",
+      "check_fails": 0,
+      "gate_version": 9,
+      "hook_level_from_card": null,
+      "card_budget": [
+        3250,
+        4000
+      ],
+      "budget_delta_pct": -28.5,
+      "cold_read": "冷读-第004章.md",
       "drift_flags": []
     }
   }

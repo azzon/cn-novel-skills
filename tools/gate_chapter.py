@@ -344,8 +344,10 @@ def main():
                 warns.append(f"G5跨章查重: 与{worst_p.name if worst_p else '?'}相似度{worst:.0%}(>8%,检查是否自我复读)")
 
         # G6 时序门(硬化,audits/13攻击7): 解析时间线账,新章号≤账面末章且无插叙标记=FAIL
+        # 终打磨: 批量提交顺序章时,排除同批staged章号(否则003/004同提,003必误触)
         book_timeline = book / "ledgers" / "时间线.md"
         if book_timeline.exists() and n is not None:
+            _staged_nums = {parse_num(pathlib.Path(s)) for s in staged if parse_num(pathlib.Path(s)) is not None}
             tl_max = 0
             for l in book_timeline.read_text(encoding="utf-8-sig").splitlines():
                 m = re.match(r"-\s*第(\d+)章\|", l.strip())
@@ -353,7 +355,8 @@ def main():
                     mm = int(m.group(1))
                     # 红队20260915: 原"if mm < n"使下方n<tl_max恒假=死门;语义应为:
                     # 时间线存在比本章新的记录→在写旧章(时序回退),插叙标记豁免
-                    tl_max = max(tl_max, mm)
+                    if mm not in _staged_nums:
+                        tl_max = max(tl_max, mm)
             head = "\n".join(raw.splitlines()[:5])
             if tl_max and mode == "new" and n < tl_max:
                 if "插叙:" not in head and "插叙：" not in head:
