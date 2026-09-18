@@ -1,0 +1,14 @@
+{
+ "chapters": {},
+ "structure": {},
+ "skills": "FAIL:L.md 内容与源库不一致——重跑install_skills.sh\n - 漂移[.claude/skills]: write/scene-discipline/SKILL.md 内容与源库不一致——重跑install_skills.sh\n - 漂移[.claude/skills]: write/scene-draft/SKILL.md 内容与源库不一致——重跑install_skills.sh\n",
+ "total_cjk": 0,
+ "structure_raw": "未找到章节文件\n",
+ "quality_scores": {},
+ "quality_avg": null,
+ "self_test": "OK",
+ "syntax": "OK",
+ "recompute": "[progress] max=0 next=1 volumes={}",
+ "gate_new_smoke": "OK",
+ "bundle_cropped": 0
+}

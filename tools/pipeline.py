@@ -771,7 +771,10 @@ def cmd_bundle(args):
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带
     voice_lines = [l for l in read_text(voice).splitlines() if l.strip()]
-    cast = read_text(LEDGERS / "人物状态.md")
+    # P1-5 红队20260919长跑修复: 声纹cast限定最近出场(整账子串匹配→ch300+退场人物挤占在场人物)
+    _ps_all = read_text(LEDGERS / "人物状态.md")
+    _ps_tail = "\n".join(_ps_all.splitlines()[-20:])   # 只看最近20行=最近出场的人物
+    cast = _ps_tail
     def row_name(l):
         if not l.strip().startswith("|"):
             return None
@@ -825,10 +828,29 @@ def cmd_bundle(args):
         if _zq and _zq.exists():
             bible += "\n" + read_text(_zq, -900)
     add("7圣经(全书卡+章摘要近窗)", 1500, bible)
-    # 8 伏笔账在跑项
-    fb = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
-          if re.search(r"状态.*(养|悬空|待回收|充能|引信|排期|大压|悬)", l)]
-    add("8伏笔在跑项", 2600, "\n".join(fb))  # 随章数增长,季度性归档已兑项可回撤  # 大审计-20: 1435/600静默裁剪,P0
+        # 8 伏笔账在跑项(红队20260919长跑修复: 按距兑现章数排序+优先级裁剪)
+    #    旧逻辑: 静默截断→ch100+时94%活跃伏笔不可见→一致性塌缩无门报警
+    #    新逻辑: 解析每条的"兑付:第NNN章/卷N"→按距当前章的距离升序→最近的注入,超限按距裁剪
+    _fb_all = [l for l in read_text(LEDGERS / "伏笔.md").splitlines()
+               if re.search(r"状态.*(养|悬空|待回收|充能|引|排期|大压|悬)", l)]
+    def _fb_due(l):
+        """解析伏笔行的兑付章号,返回距当前章的距离(近=优先注入)"""
+        m2 = re.search(r"兑付[:：]\s*第?(\d+)", l)
+        if m2:
+            try:
+                return abs(int(m2.group(1)) - max(max(chapter_map()) if chapter_map() else 1, 1))
+            except:
+                pass
+        m3 = re.search(r"兑付[:：]\s*卷([一二三四五六七八九十\d]+)", l)
+        if m3:
+            cn = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
+            v = m3.group(1)
+            vol = cn.get(v, int(v) if v.isdigit() else 99)
+            return 100 * vol   # 卷级的距粗排
+        return 9999   # 无兑付信息的沉睡项排最后
+    _fb_sorted = sorted(_fb_all, key=_fb_due)
+    add("8伏笔在跑项", 2600, "\n".join(_fb_sorted))
+    # 红队20260919: 排序后注入,最近的伏笔始终可见(即使总量超限被裁,裁掉的是最远的)
     # 9 钩分布/类型轮换近窗
     hooks = read_text(LEDGERS / "钩分布.md", -250)
     rotate = read_text(LEDGERS / "类型轮换.md", -250)
@@ -1177,6 +1199,25 @@ def cmd_done(args):
     _sb_ok = any(p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens) for p2 in _sb_paths)
     if not _sb_ok:
         (warns if revise else problems).append(f"章摘要未含第{n:03d}章(story-bible技能memory步)——落盘: {BOOK.name if BOOK != ROOT else 'story/60-圣经/'}/故事圣经.md")
+        # P1-4 红队20260919长跑修复: 全书卡长度/新鲜度门(无门则跨卷失忆静默漂移)
+        for _sb_path in [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md"]:
+            if _sb_path.exists():
+                _sbt = _sb_path.read_text(encoding="utf-8")
+                _sb_cjk = len(re.findall(r"[\u4e00-\u9fff]", _sbt))
+                # 全书状态卡应在文件头部(## 全书状态卡 与第一个 ## 之间)
+                _m_card = re.search(r"## 全书状态卡\n(.*?)(?=\n## )", _sbt, re.S)
+                if _m_card:
+                    _card_cjk = len(re.findall(r"[\u4e00-\u9fff]", _m_card.group(1)))
+                    if _card_cjk > 1500:
+                        (warns if revise else problems).append(
+                            f"全书状态卡{_card_cjk}字(>1500=注入密度塌缩风险)——每10章删半(story-bible 3.2)")
+                    # 新鲜度: 卡内应含当前章号附近的卷号
+                    if max(cm) >= 10:
+                        _cur_vol = max(1, max(cm) // 30)
+                        if f"卷{_cur_vol}" not in _m_card.group(1) and f"第{max(cm)}章" not in _m_card.group(1):
+                            (warns if revise else problems).append(
+                                f"全书状态卡未含第{max(cm)}章/卷{_cur_vol}——跨卷失忆风险,bundle长程状态将过期")
+                break
     # H5 人物圣经演进层盖章(活文档协议)
     if BOOK != ROOT:
         _bible = BOOK / "人物圣经.md"
@@ -1338,10 +1379,7 @@ def cmd_scores(args):
             ch["drift_flags"] = ["below_target"]
     _atomic_write(SCORES, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     print(f"\nscores.json已重算({len(cm)}章,head={head})。红灯章: {worst or '无'}")
-    try:
-        bundle_log(n, total, card=card_for(n))
-    except Exception:
-        pass
+    # 红队20260919: 删除bundle_log(n,total,...)——n/total在cmd_scores作用域未定义(NameError被except吞=死代码)
     return 0
 
 def main():

@@ -62,10 +62,13 @@ def check_metrics(fp):
     return m
 
 
-def collect(book_root=ROOT):
+def collect(book_root=ROOT, only_files=None):
+    """红队20260919长跑修复: only_files参数支持增量采样(避免900章全量collect的O(N)瓶颈)"""
     data = {"chapters": {}, "structure": {}, "skills": "", "total_cjk": 0}
     total = 0
-    if book_root == ROOT:
+    if only_files is not None:
+        files = only_files
+    elif book_root == ROOT:
         files = chapter_files()
     else:
         files = sorted(book_root.glob("text/卷*/第*.md"))
@@ -158,16 +161,26 @@ def cmd_check():
         print("无基线。先运行: python3 tools/evals.py record [书根]")
         return 2
     base = json.loads(baseline.read_text(encoding="utf-8"))
-    cur = collect(book)
-    # 磨刀十六批: 增量模式——基线章抽头尾各3章复验(签名级),新章全验;全量仅record时跑(千章O(N)→抽检)
+    # 红队20260919长跑修复: 真增量——先确定抽样集,再只collect抽样章(旧逻辑先全量collect再过滤=O(N)不变)
     _bn = sorted(base.get("chapters", {}), key=lambda x: int(re.search(r"\d+", x).group()) if re.search(r"\d+", x) else 0)
     if len(_bn) > 12 and "--full" not in sys.argv:
-        _sample = set(_bn[:3] + _bn[-3:])
-        _new = set(cur["chapters"]) - set(base.get("chapters", {}))
+        _sample_names = set(_bn[:3] + _bn[-3:])
+        # 找到书根下对应文件
+        if book == ROOT:
+            _all_files = chapter_files()
+        else:
+            _all_files = sorted(book.glob("text/卷*/第*.md"))
+        _new_files = [f for f in _all_files if f.name not in base.get("chapters", {})]
+        _sample_files = [f for f in _all_files if f.name in _sample_names] + _new_files
+        cur = collect(book, only_files=_sample_files)
         cur = dict(cur)
-        cur["chapters"] = {k: v for k, v in cur["chapters"].items() if k in _sample or k in _new}
+        # total_cjk需要基线值+新章值(不全量重算)
+        _old_total = base.get("total_cjk", 0)
+        _new_total = sum(m.get("cjk", 0) for f, m in zip(_sample_files, [cur["chapters"].get(f.name, {}) for f in _sample_files]) if f.name not in _sample_names)
         base = dict(base)
-        base["chapters"] = {k: v for k, v in base.get("chapters", {}).items() if k in _sample or k in _new}
+        base["chapters"] = {k: v for k, v in base.get("chapters", {}).items() if k in _sample_names}
+    else:
+        cur = collect(book)
     regressions = []
 
     for name, old in base["chapters"].items():
