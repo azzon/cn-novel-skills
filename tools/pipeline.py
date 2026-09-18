@@ -648,6 +648,14 @@ def cmd_next(args):
     if n < maxn + 1:
         print(f"[gap] 第{n}章小于next={maxn+1}——补章禁止直接写,走arc-restructure重排(防时序倒置)")
         return 2
+    # 滚动前瞻模式(红队20260919): 场景卡只允许前瞻5-10章——防一次排完900章(纯瀑布死法)
+    # 卷纲锁死当前卷,卡只做本卷内next~next+9;跨卷须先跑卷末复盘+下一卷纲
+    _vol_end = _is_volend if '_is_volend' in dir() else None
+    if maxn > 0 and n > maxn + 10:
+        print(f"[前瞻窗口] 第{n:03d}章超出前瞻窗口(next+10)——滚动前瞻模式: 卡只做5-10章远")
+        print(f"  当前max={maxn},窗口={maxn+1}~{maxn+10};要排更远须: ①写完窗口内章 ②卷末复盘 ③下一卷纲")
+        return 2
+    # 跨卷检查: n超出当前卷末章时,要求下一卷纲已存在
     # 磨刀十六批: 卷切换机器触发——expected_volume跳变(上一章属卷A,本章属卷B)即硬提示卷末流程,无人时不再靠人记
     if maxn:
         _prev_vol = G.expected_volume(maxn, vols)
@@ -1265,9 +1273,28 @@ def cmd_done(args):
             (warns if (revise or post) else problems).append(
                 f"第{n:03d}章为卷{exp}末章,缺卷级连读审查(audit/*连读审查*.md)——arc-review是卷末强制项")
         _bt2 = (BOOK / "人物圣经.md").read_text(encoding="utf-8") if (BOOK / "人物圣经.md").exists() else ""
-        if "卷末快照" in _bt2 and f"卷{_expno}末" not in _bt2 if "_expno" in dir() else False:
-            (warns if (revise or post) else problems).append(
-                f"人物圣经缺卷{exp}末快照——活文档协议卷末义务")
+        if "卷末快照" in _bt2 and f"卷{_expno}末" not in _bt2:
+            warns.append(f"人物圣经缺卷{_expno}末快照——卷末义务")
+    # 滚动前瞻模式(红队20260919): 卷将尽时强制检查下一卷纲
+    _vols_decl = G.volume_decl(BOOK if BOOK != ROOT else ROOT)
+    if max(cm) >= 10:
+        _cur_vol_end = None
+        for v, (lo, hi) in _vols_decl.items():
+            if lo <= n <= hi:
+                _cur_vol_end = hi
+                break
+        # 如果当前章距卷末≤5章,检查下一卷纲
+        if _cur_vol_end and n >= _cur_vol_end - 5:
+            _next_num = None
+            for v, (lo, hi) in _vols_decl.items():
+                _vn = int(re.search(r'\d+', v).group()) if re.search(r'\d+', v) else 0
+                if _vn == (int(re.search(r'\d+', list(_vols_decl.keys())[0]).group() if re.search(r'\d+', list(_vols_decl.keys())[0]) else "1") + 1 if len(_vols_decl) > 1 else 2):
+                    _next_num = v
+                    break
+            _next_vol_files = sorted(pathlib.Path(BOOK / "story" / "30-情节").glob("卷*纲.md")) if (BOOK / "story" / "30-情节").exists() else []
+            _has_next = len(_next_vol_files) > len([1 for v in _vols_decl if True]) - 1
+            if not _has_next:
+                warns.append(f"第{n:03d}章距卷末≤5章而下一卷纲未落盘——滚动前瞻铁律: 卷末复盘→重排下一卷纲→再继续生产")
 
     # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)
