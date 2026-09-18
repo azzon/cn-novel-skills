@@ -1288,6 +1288,7 @@ def cmd_done(args):
     print()
     if problems:
         print(f"❌ done验收未过(第{n:03d}章):")
+        print(f"  💡 修复指引: python3 tools/revise_loop.py {p} ——按FAIL类型给出定向处方")
         for x in problems:
             print(f"  [FAIL] {x}")
         for x in warns:

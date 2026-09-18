@@ -82,6 +82,33 @@ phases:
         type: script
         script: "python3 tools/evals.py record"
 
+      - id: failure_analytics
+        name: "失败模式分析(红队20260919: 从反复FAIL中学习→优化PREFIX/卡骨架)"
+        type: script
+        script: "python3 tools/failure_analytics.py <书根>"
+        gate:
+          - "高频FAIL(≥3次)有对应优化建议"
+          - "建议落入audit/failure-analytics.md"
+
+      - id: continuity_guard
+        name: "内容连续性守卫(红队20260919: 生死账+伏笔完整性+情节跳变+情节重复)"
+        type: script
+        script: "python3 tools/continuity_guard.py <书根>"
+        gate:
+          - "零致命穿帮(死人复活/悬空伏笔>10)"
+          - "情节重复连续≥5章=0"
+
+      - id: multi_lens_check
+        name: "多视角冷读抽检(红队20260919: 全过机器门≠高质量)"
+        type: agent
+        skill: multi_lens_coldread
+        condition: "每20章或卷末"
+        inputs: ["评分最高章+评分最低章各1"]
+        gate:
+          - "五视角均值≥7.0"
+          - "弃书审判官'高风险'=打回"
+          - "文笔鉴赏家'AI风险高'=去AI化修订"
+
   phase_volume_end:
     name: "卷末审计"
     trigger: "卷最后一章done通过"
