@@ -400,6 +400,36 @@ def test_import_smoke():
          f'语法错误: {failed}')
     return ok
 
+def test_mono_exempt():
+    print("[18] 独角戏卡面豁免(缺陷025: 门#16/#18按卡放行+替代配额)")
+    import subprocess, shutil
+    bk = ROOT / "_tmp_mono_selftest"
+    (bk / "text" / "卷1").mkdir(parents=True, exist_ok=True)
+    (bk / "卡").mkdir(parents=True, exist_ok=True)
+    try:
+        _lp = ("他贴着墙根往前走砖缝里的青苔蹭在手心冰凉滑腻像一层化不开的旧时光他数着巡夜的脚步"
+               "一下两下火把的光斜过来他把自己压进阴影闻到陈年木头混着霉味上个月也是这么翻进去的"
+               "那晚老周的手电在墙头晃他趴在瓦楞上听自己的心跳像听一面破鼓不能退退了这批货就断了"
+               "断了这条街就再没有他的立足之地指尖摸到窗棂的裂缝粗糙扎手屋里没有动静只有梁上老鼠")
+        body = "\n\n".join((_lp * 12)[i*120:(i+1)*120] for i in range(16))
+        chap = bk / "text" / "卷1" / "第003章.md"
+        chap.write_text(f"第003章 夜探\n\n{body}\n", encoding="utf-8")
+
+        def _run(card_type):
+            (bk / "卡" / "第003章卡.md").write_text(
+                f"# 第003章场景卡\n场景型: {card_type}\n字数带: 1800-2200\n", encoding="utf-8")
+            r = subprocess.run([sys.executable, str(ROOT / "tools" / "check.py"), str(chap)],
+                               capture_output=True, text=True, cwd=ROOT)
+            return r.stdout + r.stderr
+
+        _normal, _mono = _run("对峙"), _run("潜行")
+        case("正常卡#16/#18照常拦截", "对话场景仅" in _normal and "严重不足" in _normal)
+        case("独角戏卡#16/#18豁免+标记", "对话场景仅" not in _mono and "严重不足" not in _mono
+             and "独角戏" in _mono)
+    finally:
+        shutil.rmtree(bk, ignore_errors=True)
+
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
@@ -409,7 +439,7 @@ def main():
             test_goldmine_audit,
             test_genre_contract,
             test_redteam_canaries,
-            test_era_clean_regression, test_import_smoke]
+            test_era_clean_regression, test_mono_exempt, test_import_smoke]
     for t in tests:
         try:
             t()

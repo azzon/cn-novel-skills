@@ -135,6 +135,11 @@ def check(fp: pathlib.Path):
             if _hit:
                 _card_txt = _hit[0].read_text(encoding="utf-8")
                 break
+    # 独角戏卡面豁免(红队20260919缺陷025): 场景型含 独白/追踪/潜行/闪回/冥想/灾变
+    # → 门#16(对话占比)/#18(对话场景数)跳过,改用替代配额: 感官≥5/千字 + 心理≥3/千字
+    _mono_hit = re.search(r"场景型[:：]\s*([^\n]+)", _card_txt)
+    _mono_exempt = bool(_mono_hit and any(
+        k in _mono_hit.group(1) for k in ("独白", "追踪", "潜行", "闪回", "冥想", "灾变")))
     _peak = "峰章" in _card_txt
     _band = re.search(r"(\d{4})\s*[-—~至]\s*(\d{4})", _card_txt)
     _lo = int(_band.group(1)) if _band else 2400
@@ -334,7 +339,9 @@ def check(fp: pathlib.Path):
         dpct = dialog_chars / n * 100
         metrics["dia_char_pct"] = round(dpct, 1)
         _dia_fail = _PROFILE.get("对话下限", 35)
-        if dpct < _dia_fail:
+        if _mono_exempt:
+            warns.append(f"独角戏章型(卡面场景型豁免):门#16跳过,当前对话占比{dpct:.0f}%——替代配额见#17/#44b")
+        elif dpct < _dia_fail:
             issues.append(f"对话字数占比{dpct:.0f}%(<{_dia_fail:.0f}%,严重不足:角色必须开口说话!)")
         elif dpct < 40:
             warns.append(f"对话字数占比{dpct:.0f}%(<40%,偏低:目标40-55%;角色要多说话说废话说长话)")
@@ -349,8 +356,14 @@ def check(fp: pathlib.Path):
         psych_per_k = psych_count / n * 1000
         metrics["psych_per_k"] = round(psych_per_k, 2)
         _psy_warn = _PROFILE.get("心理下限", 2.0)
-        if psych_per_k < 0.5:
-            issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<1.0/千字,严重缺失:白金作家≥2/千字)")
+        if _mono_exempt:
+            # 独角戏章替代配额(025): 心理≥3/千字(替代对话密度)
+            if psych_per_k < 1.5:
+                issues.append(f"独角戏章心理活动{psych_per_k:.1f}/千字(<1.5,豁免章硬线:≥3.0/千字——独角戏全靠心理与感官撑)")
+            elif psych_per_k < 3.0:
+                warns.append(f"独角戏章心理活动{psych_per_k:.1f}/千字(<3.0,豁免章替代配额)")
+        elif psych_per_k < 0.5:
+            issues.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<0.5/千字,严重缺失:白金作家≥2/千字)")
         elif psych_per_k < _psy_warn:
             warns.append(f"心理活动{psych_count}处({psych_per_k:.1f}/千字,<2.0/千字,偏少)")
 
@@ -365,8 +378,8 @@ def check(fp: pathlib.Path):
             in_dialog = True
         elif not has_q and in_dialog:
             in_dialog = False
-    if dialog_scenes < 2 and n > 800:
-        issues.append(f"对话场景仅{dialog_scenes}个(<2,章内须至少2个独立对话场景)")
+    if dialog_scenes < 2 and n > 800 and not _mono_exempt:
+        issues.append(f"对话场景仅{dialog_scenes}个(<2,章内须至少2个独立对话场景;独角戏章型按卡面豁免)")
 
         # 19) 英文残留(连续≥3个拉丁字母)——.modern存在时跳过(科幻/现代书允许英文术语)
     if not MODERN_SETTING[0]:
@@ -968,8 +981,10 @@ def check(fp: pathlib.Path):
     _sense_pat = re.compile(r"闻到|听到|看到|看见|摸|尝|烫|凉|冰|热|酸|甜|咸|涩|腥|刺鼻|刺眼|刺耳|粗糙|光滑|柔软|坚硬|油腻|干涩|潮湿|发霉|发馊|发烫|冰凉|滚烫|火辣|酥麻|发痒|发疼|扎手|硌手|硌牙|咯牙|呛|噎|腥味|糊味|焦味|烟味|土腥|铁锈味|汗味|药味|消毒水")
     _sense_n = len(_sense_pat.findall(body))
     metrics["sense_per_k"] = round(_sense_n * 1000 / max(cjk_len(body), 1), 1)
-    if n > 1200 and _sense_n * 1000 / max(cjk_len(body), 1) < 3.0:
-        warns.append(f"感官词密度{metrics['sense_per_k']}/千字(<3.0=深度AI特征:缺乏感官锚点;人类白金>5)——每千字至少3个具体感官词(味/触/嗅/听,如'浆糊味''冰凉''硌手')")
+    _sense_floor = 5.0 if _mono_exempt else 3.0
+    if n > 1200 and _sense_n * 1000 / max(cjk_len(body), 1) < _sense_floor:
+        _mono_tag = "独角戏章替代配额" if _mono_exempt else "深度AI特征:缺乏感官锚点"
+        warns.append(f"感官词密度{metrics['sense_per_k']}/千字(<{_sense_floor}={_mono_tag};人类白金>5)——每千字至少{int(_sense_floor)}个具体感官词(味/触/嗅/听,如'浆糊味''冰凉''硌手')")
 
     # 44c) 对话标签多样性(红队20260919: 连续"他说"=AI指纹)
     _tag_repeats = len(re.findall(r"他[说问道]”[^“]{0,50}“[^“]{0,50}”他[说问道]", body))
