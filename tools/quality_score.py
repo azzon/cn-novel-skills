@@ -140,6 +140,13 @@ def cmd_json(root=ROOT):
 
 
 def main():
+    # QW-040: 空书友好提示
+    import pathlib as _pl
+    _ch = list(_pl.Path(__file__).resolve().parent.parent.glob('text/卷*/第*.md'))
+    if not _ch:
+        print('无章节可评(书根/text/卷*/第*.md为空)')
+        return 0
+
     args = [a for a in sys.argv[1:] if a != "--json"]
     as_json = "--json" in sys.argv
     if not args:

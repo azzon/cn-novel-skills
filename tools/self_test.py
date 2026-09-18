@@ -382,6 +382,24 @@ def test_redteam_canaries():
         shutil.rmtree(bk, ignore_errors=True)
 
 
+
+def test_import_smoke():
+    """全工具import冒烟(优化004: legacy_cards.py语法腐烂无人发现的事故防线)"""
+    import importlib, subprocess, sys
+    tools_dir = pathlib.Path(__file__).parent
+    failed = []
+    for py in tools_dir.glob('*.py'):
+        if py.name.startswith('_') or py.name == '__init__.py':
+            continue
+        r = subprocess.run([sys.executable, '-c', f'import py_compile; py_compile.compile(r"{py}", doraise=True)'],
+                          capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            failed.append(py.name)
+    ok = len(failed) == 0
+    case(f'全工具语法冒烟({len(list(tools_dir.glob("*.py")))}个)', ok,
+         f'语法错误: {failed}')
+    return ok
+
 def main():
     tests = [test_cn2num, test_fix_quotes, test_voice_check, test_book_root,
              test_card_check_nums, test_legacy_aphor_exemption, test_new_gates,
@@ -391,7 +409,7 @@ def main():
             test_goldmine_audit,
             test_genre_contract,
             test_redteam_canaries,
-            test_era_clean_regression]
+            test_era_clean_regression, test_import_smoke]
     for t in tests:
         try:
             t()

@@ -39,6 +39,11 @@ TEXT_ODD=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && $2 ~ /(^|\/)text\// && to
 STRAY_CH=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" && tolower($2) ~ /(^|\/)第[0-9]+章\.md$/ && $2 !~ /(^|\/)text\// {print $2}')   # 红队试产修复: 锚定basename开头,否则"冷读-第001章.md"误伤
 
 CARDS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$1=="A" || $1=="M" {if ($2 ~ /卡\/.*第[0-9]+章.*\.md$/ || $3 ~ /卡\/.*第[0-9]+章.*\.md$/) print $2}')
+# QW-015: skills变更时自动重装三树(消灭"检测到漂移但不修复"的窗口)
+if git diff --cached --name-only 2>/dev/null | grep -q "^skills/"; then
+    bash tools/install_skills.sh --silent 2>/dev/null || true
+fi
+
 # 红队git绕过#1: 门自身文件被staged=hook自免攻击面——须waivers登记hookself(人审)
 HOOK_SELF=$(echo "$STATUS_OUT" | awk -F'\t' '$1 ~ /^[AM]/ && ($2 ~ /^tools\/pre-commit-hook.sh$/ || $2 ~ /^\.githooks\// || $2 ~ /^tools\/(skill_protocol|check|gate_chapter|card_check|voice_check|pipeline)\.py$/) {print $2}')
 HOOKSELF_OK=0

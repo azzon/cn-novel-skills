@@ -20,11 +20,13 @@ def run(args):
     return subprocess.run([PY] + args, capture_output=True, text=True, cwd=ROOT)
 
 
-def check_block(name, args, fail_kw="FAIL]", pass_kw=None):
+def check_block(name, args, fail_kw="FAIL]", pass_kw=None, use_rc=False):
     r = run(args)
     out = r.stdout
     if r.returncode != 0 and "Traceback" in r.stderr:
         return (name, "FAIL", f"崩溃: {r.stderr.strip().splitlines()[-1][:60]}")
+    if use_rc and r.returncode not in (0, 2):  # QW-005: returncode判断(skills_check等)
+        return (name, "FAIL", f"exit={r.returncode}")
     if fail_kw and fail_kw in out:
         # FAIL 数量
         n = out.count("[FAIL]")
@@ -46,7 +48,7 @@ def main():
     blocks.append(check_block("多书隔离(isolation)", ["tools/book_isolation_check.py"]))
     blocks.append(check_block("全工序审计(process_audit)", ["tools/process_audit.py"] + ([str(book)] if book != ROOT else []), fail_kw="✗"))
     blocks.append(check_block("工具自测(self_test)", ["tools/self_test.py"], pass_kw="全部通过"))
-    blocks.append(check_block("技能库(skills_check)", ["tools/skills_check.py"]))
+    blocks.append(check_block("技能库(skills_check)", ["tools/skills_check.py"], use_rc=True))
     blocks.append(check_block("伏笔账(foreshadow_audit)", ["tools/foreshadow_audit.py", str(book)]))
     blocks.append(check_block("数字账(number_audit)", ["tools/number_audit.py", str(book)]))
     blocks.append(check_block("期待链(anticipation_audit)", ["tools/anticipation_audit.py", str(book)]))

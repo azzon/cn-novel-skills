@@ -1,6 +1,6 @@
 # CN Novel Skills
 
-从构思到审计的全流程AI协作长篇小说创作技能系统。73个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
+从构思到审计的全流程AI协作长篇小说创作技能系统。80个技能覆盖构思、写作、修订、审计、记账五大域，专为200万字级中文网络小说设计。
 
 ## 这是什么
 
@@ -52,7 +52,7 @@ ideate(30叶) → write(11叶) → revise(8叶) → audit(9叶) → ops(10叶)
 ```
 
 <details>
-<summary>全部73个技能清单</summary>
+<summary>全部80个技能清单</summary>
 
 **构思域 ideate**
 story-incubate · trial-write · market-scan · premise · theme-dossier · world-rules · world-power · world-map · world-economy · world-history · world-culture · iceberg-budget · char-bible · char-web · char-voice · romance-line · plot-spine · volume-outline · set-piece · opening-arc · unit-designer · foreshadow-plan · reward-economy · pacing-score · thread-weaver · positioning · naming(按需) · ideate-audit · author-persona · plot-freshness
@@ -98,7 +98,7 @@ ledger-update · timeline-keeper · pipeline-chapter · skill-sync · publish-pr
 
 ```
 cn-novel-skills/
-├── skills/          # 73个SKILL.md域结构(唯一事实源SSOT)
+├── skills/          # 80个SKILL.md域结构(唯一事实源SSOT)
 │   └── assets/      # 工艺载药包/术语微词典/产物模板
 ├── docs/            # 规格占位层(docs/NN溯源,待正式规格重建)
 ├── tools/           # 运行脚本+钩子
@@ -140,3 +140,16 @@ MIT
 - [oh-story-claudecode](https://github.com/zenstory-ai/oh-story-claudecode) - 中文网文全流程
 - [creative-writing-skills](https://github.com/haowjy/creative-writing-skills) - 英文AI协作写作
 - [story-skills](https://github.com/danjdewhurst/story-skills) - 确定性审计CLI
+
+## 快速开始(新人必读)
+
+```bash
+# 1. 安装Git钩子(必须!没有钩子=整个强制链不存在)
+bash tools/install_skills.sh
+
+# 2. 自检(确认环境正常)
+python3 tools/self_test.py
+
+# 3. 新书启动
+# 详见 docs/新书启动流程.md 和 docs/滚动前瞻模式.md
+```

@@ -1444,6 +1444,21 @@ def cmd_scores(args):
     return 0
 
 def main():
+    # QW-039: 参数友好错误
+    for _arg in sys.argv[1:]:
+        if _arg.isdigit() or _arg.startswith('--') or _arg in ('status','next','bundle','check','done','scores','produce'):
+            continue
+        # 检查是否是书根参数
+        if pathlib.Path(_arg).exists():
+            continue
+        # 检查是否是文件参数
+        if '/' in _arg or '.' in _arg:
+            continue
+        # 可能是错误输入
+        if _arg.replace('-','').isdigit():
+            print(f'参数错误: 章号须为正整数,收到"{_arg}"')
+            return 2
+
     args = sys.argv[1:]
     if not args:
         print(__doc__)
