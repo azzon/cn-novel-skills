@@ -38,7 +38,11 @@ def extract_from_chapter(n, book):
     # 1) 钩分布: 章末3行
     tail = [l.strip() for l in body.splitlines() if l.strip()][-3:]
     hook_text = " ".join(tail)[:40]
-    entries["钩分布"] = f"- 第{n:03d}章 [悬念] {hook_text}"
+    # 红队20260919: 硬编码[悬念]=anticipation_audit恒判非平淡假健康——按末行标点/信号词粗分型
+    _tl = tail[-1] if tail else ""
+    _tl = tail[-1] if tail else ""
+    _hook_type = ("对话切" if "\u201c" in _tl else ("悬念" if re.search(r"[?!…]$|突然|就在这时|下一秒", _tl) else "叙述收"))
+    entries["钩分布"] = f"- 第{n:03d}章 [{_hook_type}] {hook_text}"
 
     # 2) 时间线: 从卡提取时间+地点,从正文提取事件
     time_m = re.search(r"故事时间[:：]\s*(.+)", card_t) or re.search(r"(\d{4}年[^\n]{1,20})", body[:500])
@@ -85,6 +89,10 @@ def extract_from_chapter(n, book):
             entries["口碑账"] = f"- 第{n:03d}章: {sent.strip()[:40]}"
             break
 
+    # 9) 爽点管道(红队20260919: 卡"兑现Pn"→管道状态自动翻转——此前状态列纯手工,账可失真而红灯判据失真)
+    _pay_m = re.search(r"兑现\s*(P\d+)", card_t)
+    if _pay_m and (b / "ledgers" / "爽点管道.md").exists():
+        entries["爽点管道"] = f"兑现:{_pay_m.group(1)} 章:{n:03d}——将P行状态'充能'改'已兑',计划兑现章填实际章号"
     return entries, None
 
 

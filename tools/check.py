@@ -1087,6 +1087,84 @@ def check(fp: pathlib.Path):
             _inversions += 1
     if _inversions:
         warns.append(f"时序词疑似乱序{_inversions}处(后文'初N'小于前文)——核对叙事时间线或补回忆标记")
+
+    # ═══ 红队20260919文笔上限批(#67-#74,全WARN级): "不AI"之上还要"写得好" ═══
+
+    # 67) 泛动词密度(白金动词力: 蹭/挪/杵/瞟 vs 走/看/说淹死画面)——bigram词表防"走廊/好看"误伤
+    _narr_paras = [p for p in _para_list if "\u201c" not in p and '"' not in p]
+    _narr_txt = "".join(_narr_paras)
+    _weak_v = len(re.findall(r"走进|走出|走来|走到|说道|说了|说话|看了|看着|看向|站起|站住|坐下|拿起|放下|转头|点头|摇头|回头|走了|站了|坐了|看了看|想了一下", _narr_txt))
+    if _narr_txt and n > 800:
+        _wv_k = _weak_v / max(cjk_len(_narr_txt), 1) * 1000
+        if _wv_k > 12:
+            warns.append(f"泛动词密度{_wv_k:.0f}/千字(>12:走/看/说系淹没画面,白金用蹭/挪/杵/瞟)——修: line-polish轴1+工艺载药包动词轮换处方")
+
+    # 68) 段尾虚词轻尾(汉语重音在句尾,"了/的/着"收段=整段泄气)
+    _tail_weak = 0
+    _tail_total = 0
+    for _p in paras_all:
+        if cjk_len(_p) < 6:
+            continue
+        _tail_total += 1
+        _clean = re.sub(r"[。！？…\u201d\u300d\u300f\"\s]+$", "", _p)
+        if re.search(r"(了|的|着|呢|吧|吗|啊|起来|下去|过来)$", _clean):
+            _tail_weak += 1
+    if _tail_total >= 8 and _tail_weak / _tail_total > 0.45:
+        warns.append(f"段尾虚词轻尾{_tail_weak}/{_tail_total}段(>45%:'了/的/着'收段=重音丢失,段末应落名词/动词/数字)——修: line-polish轴3")
+
+    # 69) 段首连接词依赖(此时/接着/然后开段=段段顺滑=段段可跳)
+    _conn_heads = sum(1 for _p in paras_all if re.match(r"^(此时|这时|接着|然后|于是|随后|紧接着|与此同时|只见)", _p))
+    if _conn_heads >= 4:
+        warns.append(f"段首连接词开段{_conn_heads}次(≥4:此时/接着/然后=软开头依赖)——修: 段首三式轮换(动作直入/对白直入/短判断),scene-draft")
+
+    # 70) 单段超长(手机屏十行无喘息——300字巨段方差门测不出)
+    _mega = sum(1 for _p in paras_all if cjk_len(_p) >= 250)
+    if _mega:
+        warns.append(f"超长段{_mega}段(单段≥250字,手机屏十行无喘息)——修: 拆段或插动作拍,tighten")
+
+    # 71) 指代堆积(这个/那个>6/千字=具体名词失业)
+    _demon = len(re.findall(r"这个|那个|这些|那些|这种|那种", body))
+    _dem_k = _demon / max(n, 1) * 1000
+    if _dem_k > 6:
+        warns.append(f"指代词密度{_dem_k:.0f}/千字(>6:这个/那个堆积,换具体名词)——修: line-polish轴1")
+
+    # 72) 喻体复读(同章两次"像秤"式意象自我重复;复用#5明喻切片,剥名词语素假像)
+    _sim_spans = set()
+    _body_sim2 = re.sub(r"(神像|塑像|雕像|图像|摄像|录像|影像|画像|想象|像样|好像话|不像)", "", body)
+    for _p2 in SIMILE_PATTERNS:
+        for _m2 in re.finditer(_p2, _body_sim2):
+            _sim_spans.add(_m2.span())
+    _tenor_roots = {}
+    for _s2, _e2 in _sim_spans:
+        _frag = _body_sim2[_s2:_e2]
+        _mtenor = re.search(r"[一样的般似的仿佛]", _frag)
+        _tenor = _frag[_mtenor.end():].strip("一样般似的的") if _mtenor else _frag[:4]
+        _root = _tenor[:2]
+        if len(_root) >= 2 and not re.match(r"^[\d一二三四五六七八九十]", _root):
+            _tenor_roots[_root] = _tenor_roots.get(_root, 0) + 1
+    _dup_sim = {k: v for k, v in _tenor_roots.items() if v >= 2}
+    if _dup_sim:
+        warns.append(f"喻体复读{len(_dup_sim)}组({','.join(list(_dup_sim)[:3])}×2)——同章同喻体=意象自我重复,换喻体或删——修: line-polish轴1喻检三问")
+
+    # 73) 感官通道过载(五感杂拌:地板门#44b防缺,此门防滥——一章一主导感官)
+    _ch_lex = {
+        "嗅味": r"闻到|气味|味道|腥|糊味|焦味|烟味|土腥|铁锈味|汗味|药味|消毒水|香喷喷|臭",
+        "听觉": r"听到|听见|声响|声音|轰|嗡|吱呀|窸窣|咔哒|哐当|噼啪",
+        "触觉": r"摸到|摸着|烫|凉|冰凉|硌|粗糙|滑腻|潮湿|发麻|酥麻|扎手",
+        "视觉": r"看见|看到|瞧见|目光|视线|盯着|瞟",
+    }
+    _ch_hit = sum(1 for pat in _ch_lex.values() if re.search(pat, body))
+    if _ch_hit >= 4 and metrics.get("sense_per_k", 0) > 12:
+        warns.append(f"感官通道{_ch_hit}/4全开且密度{metrics.get('sense_per_k')}/千字(>12:五感杂拌=各通道浅尝辄止)——修: 一章一主导感官(卡2.7),scene-audit核对")
+
+    # 74) 对白标签动作轮换枯竭(躲开"他说"后改用"他笑了/皱眉/点头"三件套复读)
+    _labels = re.findall(r"([\u4e00-\u9fff]{1,4}(?:说道|说|问道|问|答道|答|笑道|叹道|骂道|嚷道|喊道))(?=[。:,])", "".join(_para_list))
+    if len(_labels) >= 8:
+        from collections import Counter as _Ctr
+        _top_label, _top_n = _Ctr(_labels).most_common(1)[0]
+        if _top_n / len(_labels) > 0.4:
+            warns.append(f"标签动作枯竭:'{_top_label}'占{_top_n}/{len(_labels)}(>40%:标签成了新指纹)——修: dialogue-voice标签动作池(每角色5个专属)")
+
     return fp, n, status, issues, warns, metrics
 
 

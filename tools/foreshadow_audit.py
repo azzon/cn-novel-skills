@@ -27,7 +27,7 @@ def parse_ledger(path):
         if not line.startswith("- ") or "|" not in line:
             continue
         head = line[2:]
-        mid = re.match(r"\[?(A-\d+|F-\d+)\]?\s*(.+?)\s*\|\s*(.+)", head)   # 1993审计: 账内实际用[F-1]方括号格式,原式永不匹配→恒报"0条健康"
+        mid = re.match(r"\[?(A-\d+|F-\d+|D-\d+)\]?\s*(.+?)\s*\|\s*(.+)", head)   # 1993审计: [F-1]方括号;红队20260919: D-n期待债级纳入(ledger-update承诺"期待债在foreshadow-audit清算"此前无解析)
         if not mid:
             continue
         fid, desc, rest = mid.group(1), mid.group(2), mid.group(3)

@@ -231,6 +231,15 @@ def cmd_aggregate(target):
             f.write(f"- {iss}\n")
     print(f"\n  报告: {report}")
     
+    # 红队20260919工效批: storm成本透明化(50agent×全目标≈25万字输入/章)
+    try:
+        _tp = pathlib.Path(target)
+        _tsz = _tp.stat().st_size if _tp.exists() else 0
+        _nag = len(all_scores)
+        _est = (_tsz + 1200) * _nag
+        print(f"\n成本估算: {_nag}agent × 目标{_tsz}B ≈ 输入{_est/10000:.1f}万字(5波全跑常态量级;峰章值得,日常章由焦点决定深挖维度)")
+    except Exception:
+        pass
     return 0 if verdict == "放行" else 1
 
 def cmd_gate(target):

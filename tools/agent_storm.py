@@ -115,6 +115,8 @@ def gen_wave_prompt(wave_n, agents, target, book, func_type):
         lines.append(f"{a['mission']}")
         lines.append("")
         lines.append(f"【操作】只读: {target}")
+        if wave_n == 4:
+            lines.append("【归并】你是处方师不是改稿人:输出带原文引句的修改处方(位置+改法+预期效果),禁直接改稿——执行者汇总裁决后单点实施(十人并发改同一章=互相覆盖,红队20260919工效批)")
         lines.append("【锚定】劣锚一(AI腔):'月光如水银泻地...'打分(须<7);劣锚二(流水账):'他早上起床...'打分(须<7)")
         lines.append("【纪律】引原文作证;禁空评;独立判断不受其他agent影响")
         lines.append(f"【输出】{a['lens']}维度评分(1-10)+最致命问题1个(引原文)+JSON行")

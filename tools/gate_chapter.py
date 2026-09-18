@@ -241,9 +241,22 @@ def main():
                 # 只卡>20字的时间叙述段;黄历断言/格言式短句属判断句开场(大审计-19: G9曾误杀正例)
                 problems.append("G9开场型: 首段时间状语开场——禁令生效(PREFIX/场景卡开场型字段),用对话/动作/异常直入")
 
+        # G10 标题门(红队20260919商业批:章名点击学(chapter-assemble)的机器半——目录页截断≈前12字,长度>16=WARN;剧透对照章摘要靠冷读)
+        _ttl = re.match(r"^第\d+章\s*(.{1,40})", body.strip().splitlines()[0] if body.strip() else "")
+        if _ttl:
+            _t2 = _ttl.group(1).strip()
+            if len(_t2) > 16:
+                warns.append(f"G10标题{len(_t2)}字(>16:目录页截断,核心信息压进前12字)——章名点击学8类型挑一型重起")
+
         # G1 字数硬底线(只卡新增章;存量章回炉是计划内工作)
+        # 红队20260919商业批: 平台参数化——商业计划.md有"平台:番茄"时硬线下调(番茄1500-2000字章不再系统性FAIL)
         cn = cjk_len(body)
-        if cn < 1500:
+        _g1_floor = 1500
+        _bk1 = book_root(p)
+        _bp = _bk1 / "商业计划.md"
+        if _bp.exists() and re.search(r"平台[:：]\s*番茄", _bp.read_text(encoding="utf-8")):
+            _g1_floor = 900   # 番茄快节奏;900=极端短章仍拦
+        if cn < _g1_floor:
             if mode == "new":
                 # 磨刀十七批: 书根waivers支持(g1/check/all豁免焚稿存根等夹具场景)
                 _bk = book_root(p)
@@ -259,7 +272,7 @@ def main():
                 if _wv_ok:
                     warns.append(f"G1字数{cn}(<2500)——书根waivers豁免(焚稿存根/夹具)")
                 else:
-                    problems.append(f"G1字数硬底线: 新章仅{cn}字(<2500硬线)——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
+                    problems.append(f"G1字数硬底线: 新章仅{cn}字(<{_g1_floor + 1600}硬线,平台{'番茄' if _g1_floor == 900 else '起点'})——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
             else:
                 warns.append(f"G1存量短章{cn}字(<2000)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
         elif cn < 2000:

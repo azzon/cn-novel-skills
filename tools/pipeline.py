@@ -31,7 +31,7 @@ LEDGERS = ROOT / "ledgers"
 def set_book(name):
     """切换书根: 卡目录按书布局自动探测(主书=text/卡,新书=<书>/卡)"""
     global BOOK, CARD_DIR, LEDGERS, PROGRESS
-    BOOK = ROOT if not name else ROOT / name
+    BOOK = ROOT if (not name or name == ROOT.name) else ROOT / name   # 红队20260919: 主书名归一,--book cn-novel-skills不再exit 2
     if not BOOK.is_dir():
         raise SystemExit(f"[exit 2] 书根不存在: {BOOK}")
     import glob as _g
@@ -510,6 +510,14 @@ def cmd_volume_close(args):
         print(f"  {icon} {name}")
 
     if all_pass:
+        # 红队20260919卷级批: 交棒卡(白金路线图自认volume-close未建项的补全——下卷首章重启规格)
+        _last_ch = read_text(cm.get(max(cm)), -400) if cm.get(max(cm)) else ""
+        _nextv = vol_num + 1
+        print(f"\n── 交棒卡(卷{vol_num}→卷{_nextv}) ──")
+        print("  [上卷末钩] 末章末400字已在上;下卷首章须承接此钩,禁回顾腔复述")
+        print("  [下卷首章重启三件事(opening-arc新卷模式)] ①重生钩:新冲突前300字首屏 ②旧线一句带过(搁进动作) ③新地图远景定场(说书体≤3句)")
+        print("  [重启三件套(volume-outline必填块3)] 若换图:随迁情感角色≥2/旧图回流安排/情感账户不清空")
+        print("  [反派递进表(char-web)] 卷%d的Boss比卷%d强在哪(三维)+威胁三场景排期——先填表再排下卷纲" % (_nextv, vol_num))
         print(f"\n✅ 卷{vol_num}交接检查全过。下一步: arc-review + 锚金丝雀 + 下卷立项")
     else:
         print(f"\n❌ 有未完成项,补齐后再交接")
@@ -538,6 +546,23 @@ def cmd_stats(args):
     return 0
 
 
+def cmd_resume(rest):
+    """断点续作一键恢复(红队20260919工效批): status→时刻卡关键行→下一章契约→续写纪律,替代continuation的4步手工串"""
+    cmd_status()
+    print("\n── resume 续写衔接 ──")
+    _tc = read_text(LEDGERS / "当前时刻卡.md")
+    for _key in ("当前时刻", "在场", "位置", "下一章"):
+        for _l in _tc.splitlines():
+            if _key in _l:
+                print(f"  {_l.strip()[:90]}")
+                break
+    cmx = chapter_map()
+    nxt = (max(cmx) + 1) if cmx else 1
+    print(f"  下一章: 第{nxt:03d}章 → python3 tools/pipeline.py bundle {nxt}")
+    print("  纪律: 读continuation技能全文; 先bundle再写; 禁重启穿帮(语气/位置/衣着/知情); 跨场景续写需手动读上一场景全文(bundle槽5只有末900字)")
+    return 0
+
+
 def cmd_status():
     stub_chapter_alert()
     hs = sync_hooks()
@@ -547,6 +572,23 @@ def cmd_status():
     _max_ch = max((_dm2 := {int(re.search(r'(\d+)', f.name).group()) for f in _fbk.glob('text/卷*/第*.md') if re.search(r'第(\d+)章', f.name)}), default=0) if _fbk.exists() else 0
     if _max_ch >= 10 and not _fab.exists():
         print("[红灯] 已达10章而无发行包.md(书名/简介/上架节奏)——不可上架,走publish-prep")
+    # 断更保护(红队20260919商业批): 存稿=已写-已发,book-plan红线运行时化
+    _pub = _fbk / "ledgers" / "发布进度.md"
+    if _pub.exists():
+        _pm = re.search(r"已发至[:：]?\s*第?(\d+)", _pub.read_text(encoding="utf-8"))
+        if _pm:
+            _daily = 2
+            _plan_f = _fbk / "商业计划.md"
+            if _plan_f.exists():
+                _dm = re.search(r"日更[:：]?\s*(\d+)", _plan_f.read_text(encoding="utf-8"))
+                if _dm:
+                    _daily = max(int(_dm.group(1)), 1)
+            _stock = maxn - int(_pm.group(1))
+            _days = _stock / _daily
+            if _days < 3:
+                print(f"[红灯] 存稿仅{_stock}章(≈{_days:.0f}天量,<3天=断更临界)——停一切重构,只产出新章")
+            elif _days < 7:
+                print(f"[WARN] 存稿{_stock}章(≈{_days:.0f}天量,<7天安全线)——book-plan三存一纪律")
     if hs:
         print(f"hook同步: {hs}")
     cm = chapter_map()
@@ -833,8 +875,14 @@ def cmd_bundle(args):
     # 5 上一章末尾(原文,禁摘要)
     prev = cm.get(n - 1)
     add("5上一章末尾(原文)", 900, read_text(prev, -900) if prev else "(本章为开篇,无上一章)")
-    # 6 当前时刻卡(全文,唯一整读账本)
-    add("6当前时刻卡", 1400, read_text(LEDGERS / "当前时刻卡.md"))  # 大审计-20: 934/500静默裁剪收口指令,P0
+    # 6 当前时刻卡(全文,唯一整读账本)——红队20260919: 剥"上一章末拍"行(与槽5原文重复,三源同事件白耗~1000字)
+    _tc_txt = read_text(LEDGERS / "当前时刻卡.md")
+    if prev:
+        _tc_lines = [l for l in _tc_txt.splitlines() if "末拍" not in l]
+        if len(_tc_lines) < len(_tc_txt.splitlines()):
+            _tc_lines.append("[上一章末拍→见槽5原文,禁复述]")
+        _tc_txt = "\n".join(_tc_lines)
+    add("6当前时刻卡", 1400, _tc_txt)  # 大审计-20: 934/500静默裁剪收口指令,P0
     # 7 圣经: 全书卡(修烂账:进度改由实扫)+卷摘要(不存在则用章摘要近窗,大审计-20)
     bible = read_text(BIBLE / "全书卡.md") if BIBLE else "(缺圣经目录——书根建圣经/,断点恢复与跨卷记忆靠它)"
     _volsum = (BIBLE / f"卷{int(re.search(r'\d+', exp).group())}章摘要.md") if (BIBLE and exp and re.search(r'\d+', exp)) else ((BIBLE / "卷摘要.md") if BIBLE else None)   # 磨刀十六批: 产物名统一;红队20260915: BIBLE可为None(书根隔离禁回退)
@@ -942,6 +990,13 @@ def cmd_bundle(args):
                       if l.strip().startswith("| P") and "充能" in l]
         add("11爽点管道(在充能)", 400, "\n".join(pipe_lines) or "(管道空——期待链红灯,先补P)")
 
+    # 红队20260919上限批: 焦点重排——卡焦点含伏笔/回收时,伏笔账从注意力谷区(槽8)提到卡后
+    _fm_focus = re.search(r"焦点\*?\*?[:：]\s*([^\n]+)", card_text)
+    if _fm_focus and re.search(r"伏笔|回收|兑现", _fm_focus.group(1)):
+        for _i, _it in enumerate(items):
+            if _it[0].startswith("8伏笔"):
+                items.insert(3, items.pop(_i))
+                break
     total = sum(x[1] for x in items)
     print("=== 注入预算报告(第{}章) ===".format(n))
     fm = re.search(r"焦点\*?\*?[:：]\s*([^\n]+)", card_text)
@@ -1218,6 +1273,28 @@ def cmd_done(args):
     _sb_ok = any(p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens) for p2 in _sb_paths)
     if not _sb_ok:
         (warns if revise else problems).append(f"章摘要未含第{n:03d}章(story-bible技能memory步)——落盘: {BOOK.name if BOOK != ROOT else 'story/60-圣经/'}/故事圣经.md")
+    else:
+        # 红队20260919上限批: 摘要质量对账——本章新埋伏笔编号未进摘要=跨卷回顾永久缺线
+        try:
+            _sb_hit = next((p2 for p2 in _sb_paths if p2.exists() and any(tk in p2.read_text(encoding="utf-8") for tk in _sb_tokens)), None)
+            _fs_txt = read_text(LEDGERS / "伏笔.md")
+            if _sb_hit and _fs_txt:
+                _chap_pat = re.compile(rf"第0?{n}章")
+                _new_ids = set()
+                for _fl in _fs_txt.splitlines():
+                    if _chap_pat.search(_fl):
+                        _new_ids.update(re.findall(r"([FAD]-\d+)", _fl))
+                if _new_ids:
+                    _sb_txt_hit = _sb_hit.read_text(encoding="utf-8")
+                    _miss_ids = [i for i in _new_ids if i not in _sb_txt_hit]
+                    if _miss_ids:
+                        warns.append(f"章摘要漏新线: {','.join(sorted(_miss_ids)[:4])} 本章埋设但摘要未提——bundle槽7将永久缺此线,补写摘要")
+        except Exception:
+            pass
+    # 红队20260919工效批: 账本半写检测(ledger-update中断=半账,done只拦缺账拦不住半账)
+    _journals = sorted(LEDGERS.glob(".ledger-journal-*.json")) if LEDGERS.exists() else []
+    if _journals:
+        warns.append(f"账本journal残留: {','.join(j.name for j in _journals[:3])}——上次ledger-update中断,核对后补齐账目并删journal文件")
         # P1-4 红队20260919长跑修复: 全书卡长度/新鲜度门(无门则跨卷失忆静默漂移)
         for _sb_path in [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md"]:
             if _sb_path.exists():
@@ -1470,6 +1547,8 @@ def main():
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()
+    if cmd == "resume":
+        return cmd_resume(rest)
     if cmd == "stats":
         return cmd_stats(args)
     if cmd == "batch":

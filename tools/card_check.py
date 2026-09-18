@@ -133,6 +133,11 @@ def main():
         if not _v or _v.startswith("（"):
             _msg = f"卡上「{_fld}」行未实填(占位/缺失)——工艺挂载(scene-discipline/cool-point)的落点,填了才算挂载过"
             (warns if "补录卡" in ct0 else issues).append(_msg)   # 补录卡=legacy_cards诚实欠账,降WARN;新卡FAIL
+    # 红队20260919上限批: 情绪/距离/主导感官三字段——旧卡不追杀(降WARN),新卡缺=情感工程挂载空转
+    for _fld2 in ("情绪", "距离", "主导感官"):
+        _m2 = re.search(rf"[-*]\s*\*\*{_fld2}\*\*[:：]", ct0)
+        if not _m2:
+            warns.append(f"卡缺「{_fld2}」行(红队20260919新字段:情感档位/叙事距离/主导感官)——旧卡降WARN可waivers;新卡必填(skill_protocol gen card已含)")
 
     from skill_protocol import scaffold_residue
     _res = scaffold_residue(ct0)
