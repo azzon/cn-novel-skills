@@ -1296,6 +1296,15 @@ def cmd_done(args):
             if not _has_next:
                 warns.append(f"第{n:03d}章距卷末≤5章而下一卷纲未落盘——滚动前瞻铁律: 卷末复盘→重排下一卷纲→再继续生产")
 
+    # 滚动前瞻+agent风暴gate(红队20260919): storm未完成或未放行=拒绝done
+    try:
+        import storm_orchestrate as _SO
+        _st_ok, _st_msg = _SO.cmd_gate(p)
+        if not _st_ok:
+            (problems if not revise else warns).append(f"Agent Storm未通过: {_st_msg}——跑 storm_orchestrate.py init/status/aggregate")
+    except ImportError:
+        pass  # 工具不存在时跳过(向后兼容)
+
     # 7 八账盖章(1993ch031事故升级: 新章验收缺账=FAIL,补账/后验=WARN)
     stamped = ledger_stamped(n)
     missing = [x for x in LEDGER_NAMES if x not in stamped]
