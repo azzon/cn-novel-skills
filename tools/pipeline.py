@@ -210,10 +210,12 @@ def _load_json_warn(path, default):
         return default
 
 
-def run_check_metrics(fp):
+def run_check_metrics(fp, gate_ver=None):
     _bd = pathlib.Path(fp).resolve()
     _flagpath = next((_bd.parents[i] / "text" / ".modern" for i in range(3) if (_bd.parents[i] / "text" / ".modern").exists()), None)
     flag = ["--modern"] if _flagpath else []   # 红队冷读可信: 原只认ROOT,多书仓里1993书会假FAIL
+    if gate_ver is not None:
+        flag += ["--gate-ver", str(gate_ver)]   # grandfathering: 存量章重测只对版本差内新门降WARN
     r = subprocess.run(["python3", "tools/check.py", *flag, "--metrics", str(fp)],
                        cwd=ROOT, capture_output=True, text=True)
     m = None
@@ -545,6 +547,25 @@ def cmd_stats(args):
         if scores:
             avg = round(sum(scores)/len(scores), 1)
             print(f"  {bk_dir.name}: {len(scores)}章冷读 均分{avg} 区间[{min(scores)}-{max(scores)}]")
+    return 0
+
+
+def cmd_publish(rest):
+    """登记发布进度(W4-10存量: 发布进度.md只读无写=存稿红灯永不激活)"""
+    nums = [a for a in rest if not a.startswith("--")]
+    if not nums:
+        print("用法: pipeline.py publish <已发至章号> ——登记后status存稿红灯生效")
+        return 2
+    n = int(nums[0])
+    import datetime
+    _pub = BOOK / "ledgers" / "发布进度.md"
+    _pub.parent.mkdir(parents=True, exist_ok=True)
+    _lines = [l for l in (_pub.read_text(encoding="utf-8").splitlines() if _pub.exists() else []) if not l.startswith("已发至")]
+    _lines.insert(0, f"已发至: 第{n:03d}章 ({datetime.date.today().isoformat()})")
+    _pub.write_text("\n".join(_lines) + "\n", encoding="utf-8")
+    _cm = chapter_map()
+    _stock = max(_cm) - n if _cm else -n
+    print(f"✅ 发布进度已登记: 已发至第{n:03d}章,存稿{_stock}章(存稿红灯按日更折算,status查看)")
     return 0
 
 
@@ -987,6 +1008,18 @@ def cmd_bundle(args):
             break
     add("10生活素材(变形后入文,禁原句照抄)", 1200, "\n".join(picked) + "\n[用法] 数字与事实可留用,表述必须重造;成句照抄=泄漏门FAIL")
 
+    # 账本自动化(W新批): 选材即回写"已用:第N章"——原纯手工,漏标=同素材反复注入
+    if picked and MATERIAL.exists():
+        _mtxt = MATERIAL.read_text(encoding="utf-8")
+        _mchanged = False
+        for _pk in picked:
+            _core = re.sub(r"^\[[^\]]+\]\s*", "", _pk)[:16]
+            if _core and _core in _mtxt and f"已用:第{n:03d}章" not in _mtxt.split(_core)[1][:80]:
+                _mtxt = _mtxt.replace(_core, _core + f"(已用:第{n:03d}章)", 1)
+                _mchanged = True
+        if _mchanged:
+            MATERIAL.write_text(_mtxt, encoding="utf-8")
+
     # 11 爽点管道(docs/爽点引擎): 在充能各条+型+距兑现章数——期待链的生成现场
     pipe_path = LEDGERS / "爽点管道.md"
     if pipe_path.exists():
@@ -1137,7 +1170,13 @@ def cmd_done(args):
         problems.append(f"章号落后: 已提交至第{cur_max_c}章,验收的是{n}——旧章改写用--revise,插章走arc-restructure")
 
     # 3 check.py
-    rc, out, met = run_check_metrics(p)
+    _prev_gv = None
+    if revise:
+        try:
+            _prev_gv = (_load_json_warn(SCORES, {"chapters": {}}).get("chapters", {}).get(str(n), {}) or {}).get("gate_version")
+        except Exception:
+            _prev_gv = None
+    rc, out, met = run_check_metrics(p, gate_ver=_prev_gv)
     print(out.rstrip())
     if rc != 0:
         problems.append("check.py存在FAIL(见上)")
@@ -1462,6 +1501,30 @@ def cmd_done(args):
                                   ensure_ascii=False) + "\n")
     except Exception:
         pass
+    # 账本自动化: 各账头部"更新至:NNN"元行回写(查鲜度不再全文扫)
+    try:
+        for _acc in LEDGER_NAMES:
+            _af = LEDGERS / _acc
+            if not _af.exists():
+                continue
+            _at = _af.read_text(encoding="utf-8")
+            _am = re.search(r"^更新至[:：]\s*(\d+)", _at, re.M)
+            if _am:
+                if int(_am.group(1)) < n:
+                    _at = _at[:_am.start()] + f"更新至:{n:03d}" + _at[_am.end():]
+                    _af.write_text(_at, encoding="utf-8")
+            elif _at.strip():
+                _af.write_text(f"更新至:{n:03d}\n" + _at, encoding="utf-8")
+    except Exception:
+        pass
+    # 账本自动化(W新批): done内嵌八账抽取——原只在produce步骤9,直接done的AI必漏抽
+    try:
+        _ex = subprocess.run([sys.executable, "tools/ledger_extract.py", str(n), "--book", str(BOOK.name)],
+                             capture_output=True, text=True, cwd=ROOT, timeout=60)
+        if _ex.returncode not in (0, 2):
+            warns.append(f"ledger_extract异常(可手工补跑): {(_ex.stderr or _ex.stdout)[-60:]}")
+    except Exception:
+        pass
     recalc_progress()
     scores_update(n, p, met, committed)
     # 范例段飞轮收割(done后自动——冷读高光回落风格包范例段库,喂给后续章)
@@ -1474,6 +1537,15 @@ def cmd_done(args):
     return 0
 
 # ---------------- scores ----------------
+def _gate_version():
+    """门版本号(延迟导入,避免循环依赖)"""
+    try:
+        import check as _chk
+        return _chk.GATE_VERSION
+    except Exception:
+        return None
+
+
 def scores_update(n, p, met, committed):
     data = {"_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
             "generated_at": "", "head_commit": "", "chapters": {}}
@@ -1491,7 +1563,8 @@ def scores_update(n, p, met, committed):
                "cjk": (met or {}).get("cjk"), "dia_char_pct": (met or {}).get("dia_char_pct"),
                "psych_per_k": (met or {}).get("psych_per_k"),
                "hook_signals": (met or {}).get("hook_signals"), "dup18": (met or {}).get("dup18"),
-               "check_status": (met or {}).get("status"), "check_fails": (met or {}).get("fails")})
+               "check_status": (met or {}).get("status"), "check_fails": (met or {}).get("fails"),
+               "gate_version": _gate_version()})   # grandfathering: 记录过门时版本
     card = card_for(n)
     if card:
         hv, budget, scene_type = card_fields(card)
@@ -1512,6 +1585,25 @@ def scores_update(n, p, met, committed):
     _atomic_write(SCORES, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
 
 def cmd_scores(args):
+    # 交叉验证(W新批): 机器分与冷读分20章滑窗背离>2=某套失真,写divergence红旗
+    try:
+        _sd = _load_json_warn(SCORES, {"chapters": {}})
+        _chs = _sd.get("chapters", {})
+        _pairs = []
+        for _k, _v in sorted(_chs.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else 0):
+            _cr = _v.get("cold_read")
+            _q = _v.get("quality_avg")
+            if _cr and _q:
+                _pairs.append((int(_k), _q / 10.0, float(_cr)))
+        if len(_pairs) >= 10:
+            _last = _pairs[-20:]
+            _mq = sum(p[1] for p in _last) / len(_last)
+            _cr = sum(p[2] for p in _last) / len(_last)
+            if abs(_mq - _cr) > 2:
+                _dir = "机器门测表面指标失真(收紧人工抽检)" if _mq > _cr else "冷读裁判漂移(跑anchor_canary复验)"
+                print(f"[红旗] divergence: 机器分{_mq:.1f} vs 冷读分{_cr:.1f}(20章滑窗背离>2)——{_dir}")
+    except Exception:
+        pass
     import check as CHK  # noqa: E402
     if (ROOT / "text" / ".modern").exists():
         CHK.MODERN_SETTING[0] = True
@@ -1580,6 +1672,8 @@ def main():
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()
+    if cmd == "publish":
+        return cmd_publish(rest)
     if cmd == "resume":
         return cmd_resume(rest)
     if cmd == "stats":

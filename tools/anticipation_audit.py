@@ -66,7 +66,7 @@ def main():
     if geng.exists():
         cur_n = entries[-1][0] if entries else 0
         for line in geng.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"-\s*(.+?)\s*\|.*用[:：]\s*第?(\d+)(?:章[^|]*)?\s*\|\s*状态[:：]\s*(.+)", line.strip())
+            m = re.match(r"-\s*(?:\[M-\d+\]\s*)?(.+?)\s*\|.*用[:：]\s*第?(\d+)(?:章[^|]*)?\s*\|\s*状态[:：]\s*(.+)", line.strip())   # 兼容[M-n]唯一ID(账本自动化批)
             if not m:
                 continue
             last, st = int(m.group(2)), m.group(3)

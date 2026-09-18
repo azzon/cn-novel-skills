@@ -91,6 +91,7 @@ def _load_profile(fp):
     return prof
           # 破折号 ——
 SIMILE_LIMIT = 3        # 明喻
+GATE_VERSION = 9        # 门版本号(W新批): 每次新增门+1;done --revise读scores里该章gate_version传--gate-ver,低于当前版的章对新门降WARN(grandfathering)
 SYSTEM_LINE_LIMIT = 4
 MIN_CHAPTER_CJK = 1800   # 缺陷9: 章字数硬线集中定义(原分散4文件)   # 【系统台词行
 NAME = ""
@@ -120,7 +121,7 @@ VOICE_NAMES, VOICE_BANS = _load_voice()
 def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
-def check(fp: pathlib.Path):
+def check(fp: pathlib.Path, gate_ver=None):
     MODERN_SETTING[0] = False  # P2-019: 重置进程级状态(防多书泄漏)
     global _PROFILE
     _PROFILE = _load_profile(fp)
@@ -1204,6 +1205,19 @@ def check(fp: pathlib.Path):
     _bang = re.findall(r"[！！]{2,}|[？？]{2,}|！\?|\?！|!!|\?\?", body)
     if len(_bang) >= 2:
         warns.append(f"感叹问号连用{len(_bang)}处(！！/？！堆叠=情绪靠标点不靠内容)——留一处最强的,其余改句式")
+    # grandfathering(W新批): 存量章(gate_ver<当前版)重测时,非核心FAIL降WARN——修旧章一个错字不再被新门拦死
+    if gate_ver is not None and gate_ver < GATE_VERSION:
+        _CORE = ("字数硬线", "骨架", "引号", "章末", "拼装疤", "金额", "时代错位词", "章级字数", "泄漏", "重复段")
+        _kept, _gf = [], []
+        for _msg in issues:
+            if any(k in _msg for k in _CORE):
+                _kept.append(_msg)
+            else:
+                _gf.append(_msg)
+        if _gf:
+            issues[:] = _kept
+            warns.append(f"[grandfathering] 门版本{gate_ver}→{GATE_VERSION}间新增门的{len(_gf)}项FAIL已降WARN(修旧章不拦死);新版全量过门跑: scores --recompute")
+            metrics["grandfathered"] = len(_gf)
     return fp, n, status, issues, warns, metrics
 
 
@@ -1290,6 +1304,14 @@ def main():
         args = [a for a in args if a != "--modern"]
         global MODERN_SETTING
         MODERN_SETTING[0] = True
+    _gv = None
+    if "--gate-ver" in args:
+        _gi = args.index("--gate-ver")
+        try:
+            _gv = int(args[_gi + 1])
+        except (ValueError, IndexError):
+            _gv = None
+        args = args[:_gi] + args[_gi + 2:]   # grandfathering: 剥除参数对(须在文件校验守卫前)
     if not args or args[0] in ("-h","--help"):
         print(__doc__); return 2
     for a in args:
@@ -1307,7 +1329,7 @@ def main():
         if len(args) < 2:
             print("用法: check.py --threads <目录>"); return 2
         return threads_mode(pathlib.Path(args[1]))
-    files = []
+    files = []   # _gv已在守卫前剥除解析
     for a in args:
         p = pathlib.Path(a)
         if p.is_dir():
@@ -1317,7 +1339,7 @@ def main():
     total_fail = 0
     total_warn = 0
     for fp in files:
-        fp, n, status, issues, warns, metrics = check(fp)
+        fp, n, status, issues, warns, metrics = check(fp, gate_ver=_gv)
         print(f"\n=== {fp.name} [{n}字] {status} ===")
         for i in issues: print(f"  [FAIL] {i}")
         for w in warns:  print(f"  [WARN] {w}")
