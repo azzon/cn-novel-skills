@@ -961,6 +961,29 @@ def check(fp: pathlib.Path):
         if long_n > 12:
             warns.append(f"长段{long_n}个(≥80字,规格≤12)——全章匀速感超标")
 
+    # 44b) 感官词密度(深度AI检测核心特征,红队20260919):
+    #      GPTZero/朱雀检测器重点特征——AI文本缺乏感官锚点,人类写作每千字≥5个感官词
+    _sense_pat = re.compile(r"闻到|听到|看到|看见|摸|尝|烫|凉|冰|热|酸|甜|咸|涩|腥|刺鼻|刺眼|刺耳|粗糙|光滑|柔软|坚硬|油腻|干涩|潮湿|发霉|发馊|发烫|冰凉|滚烫|火辣|酥麻|发痒|发疼|扎手|硌手|硌牙|咯牙|呛|噎|腥味|糊味|焦味|烟味|土腥|铁锈味|汗味|药味|消毒水")
+    _sense_n = len(_sense_pat.findall(body))
+    metrics["sense_per_k"] = round(_sense_n * 1000 / max(cjk_len(body), 1), 1)
+    if n > 1200 and _sense_n * 1000 / max(cjk_len(body), 1) < 3.0:
+        warns.append(f"感官词密度{metrics['sense_per_k']}/千字(<3.0=深度AI特征:缺乏感官锚点;人类白金>5)——每千字至少3个具体感官词(味/触/嗅/听,如'浆糊味''冰凉''硌手')")
+
+    # 44c) 对话标签多样性(红队20260919: 连续"他说"=AI指纹)
+    _tag_repeats = len(re.findall(r"他[说问道]”[^“]{0,50}“[^“]{0,50}”他[说问道]", body))
+    _tag_he_shuo = len(re.findall(r"他说", body))
+    metrics["said_count"] = _tag_he_shuo
+    if _tag_he_shuo > 5 and n > 1000:
+        warns.append(f"\"他说\"{_tag_he_shuo}次(>5=AI标签单调)——用动作/停顿/语气替代(把笔搁了/半天没吭声/应了一声)")
+
+    # 44d) 句长突发性(深度AI检测: 人类写作长短句剧烈切换)
+    if len(slens) >= 10:
+        _bursts = [abs(slens[i] - slens[i-1]) for i in range(1, len(slens))]
+        _burst_avg = sum(_bursts) / max(len(_bursts), 1)
+        metrics["burstiness"] = round(_burst_avg, 1)
+        if _burst_avg < 5:
+            warns.append(f"句长突发性{_burst_avg:.1f}(<5=AI匀速特征;人类参考>8)——长短句剧烈切换(一个5字短句后接一个30字长句)")
+
     # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
     #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
     _mem_pat = re.compile(r"想起|记得|当年|小时候|那时候|那年|上辈子|前世|又浮现|冒出来|飘过来|好像.*味道|那股.*味|熟悉的")
