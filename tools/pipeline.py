@@ -13,6 +13,7 @@ pipeline.py v2 —— 可执行流水线状态机(架构v2核心,见docs/ARCHITE
   done N [--revise] [--strict] 章验收:过则重算progress+scores并提示盖章;拒则列缺项
   scores [--recompute]         质量仪表scores.json(全量重算)
 仅用标准库。
+  另有: resume(断点续作) publish <N>(登记发布) volume-register <卷> <起> <止> volume-close <N>(卷末交接)
 """
 import sys, re, json, subprocess, pathlib
 
@@ -46,9 +47,11 @@ def set_book(name):
     # 红队20260915: 书根缺资产时禁回退主书(跨书污染实锤: 1993书bundle曾注入主书电子城素材+风格包)——缺=空+done报警
     BIBLE = (BOOK / "圣经") if (BOOK / "圣经").is_dir() else ((ROOT / "story" / "60-圣经") if BOOK == ROOT else None)
     STYLE = (BOOK / "风格包.md") if (BOOK / "风格包.md").exists() else ((ROOT / "story" / "50-风格包.md") if BOOK == ROOT else None)
-    # 红队技能库: 声口资产三分天下——统一单源: 书根声口卡.md优先,主书用story/60-圣经/声口卡.md(与voice_check同源)
-    _root_card = ROOT / "story" / "60-圣经" / "声口卡.md"
-    VOICE_TABLE = (BOOK / "声口卡.md") if (BOOK / "声口卡.md").exists() else (_root_card if BOOK == ROOT and _root_card.exists() else None)
+    # 红队技能库: 声口资产单源——终打磨: 探测链补声纹表新名(char-voice产物已改名,旧探测只认声口卡=恒None)
+    _voice_cands = [BOOK / "story" / "20-人物" / "声纹表.md", BOOK / "声口卡.md",
+                    BOOK / "story" / "60-圣经" / "声口卡.md",
+                    ROOT / "story" / "20-人物" / "声纹表.md", ROOT / "story" / "60-圣经" / "声口卡.md"]
+    VOICE_TABLE = next((c for c in _voice_cands if c.exists()), None)
     _mat_c = [c for c in ((BOOK / "素材库.md"), (BOOK / "story" / "素材库.md")) if c.exists()]
     MATERIAL = _mat_c[0] if _mat_c else None
     SCORES = BOOK / "scores.json" if BOOK != ROOT else ROOT / "scores.json"
@@ -569,6 +572,25 @@ def cmd_publish(rest):
     return 0
 
 
+def cmd_volume_register(rest):
+    """登记卷册表(W4存量: 卷册表无主,全链只查不建)——用法: volume-register <卷号> <起章> <止章>"""
+    nums = [a for a in rest if not a.startswith("--")]
+    if len(nums) != 3:
+        print("用法: pipeline.py volume-register <卷号> <起章> <止章>")
+        return 2
+    v, lo, hi = int(nums[0]), int(nums[1]), int(nums[2])
+    if hi <= lo:
+        print("[FAIL] 止章须大于起章"); return 1
+    _vf = BOOK / "story" / "30-情节" / "卷册表.md"
+    _vf.parent.mkdir(parents=True, exist_ok=True)
+    _lines = _vf.read_text(encoding="utf-8").splitlines() if _vf.exists() else ["# 卷册表(卷归属唯一权威,gate G4/done卷末义务据此判)", ""]
+    _lines = [l for l in _lines if not re.match(rf"^\|\s*卷{v}\s*\|", l) and not l.startswith(f"卷{v}:")]
+    _lines.append(f"| 卷{v} | {lo}-{hi} |")
+    _vf.write_text("\n".join(_lines) + "\n", encoding="utf-8")
+    print(f"✅ 卷册表已登记: 卷{v} → 第{lo:03d}-{hi:03d}章({_vf})")
+    return 0
+
+
 def cmd_resume(rest):
     """断点续作一键恢复(红队20260919工效批): status→时刻卡关键行→下一章契约→续写纪律,替代continuation的4步手工串"""
     cmd_status()
@@ -788,8 +810,8 @@ def cmd_bundle(args):
             _dm.append("素材库(world-economy)")
         if not _has("story/30-情节/卷册表.md"):
             _dm.append("卷册表(全书弧线+问题句)")
-        if not _has("story/60-圣经/声口卡.md"):
-            _dm.append("声口卡(char-voice)")
+        if not (_has("story/20-人物/声纹表.md") or _has("story/60-圣经/声口卡.md")):
+            _dm.append("声纹表(char-voice;终打磨: 原查旧名声口卡,产物已改名,开写门永远缺一件)")
         _o = (BOOK / "story/卷一纲.md") if BOOK != ROOT else (ROOT / "story/30-情节/卷一纲.md")
         _ot = _o.read_text(encoding="utf-8") if _o.exists() else ""
         if _ot and "名场面" not in _ot:
@@ -807,9 +829,9 @@ def cmd_bundle(args):
         missing.append("story/50-风格包.md")
     voice = VOICE_TABLE
     if voice is None and BOOK != ROOT:
-        print('[红灯] 书根缺声口卡.md——voice_check与bundle将空转;立声口卡(char-voice)')
+        print('[红灯] 书根缺声纹表.md——voice_check与bundle将空转;立声纹表(char-voice,旧名声口卡)')
     if voice is None:
-        print('[红灯] 声口卡未找到——voice_check与bundle将空转;立声口卡(char-voice)')
+        print('[红灯] 声纹表未找到——voice_check与bundle将空转;立声纹表(char-voice)')
         return 2
     if not voice.exists():
         missing.append("story/20-人物/声纹表.md")
@@ -1224,8 +1246,22 @@ def cmd_done(args):
         elif re.search(r"追读判定[:：]\s*不会翻", _crt):
             _fail = "冷读判定不会翻"
         if _fail:
-            (warns if (revise or post) else problems).append(
-                f"{_fail}——打回重写(reader-proxy),豁免走waivers[{'硬门' if hard_cold else '软门'}]")
+            # 终打磨: <5分=灾难级即使post/revise也FAIL(后验洗门底线)
+            try:
+                _cf = LEDGERS / ".cold_fails.json"
+                import json as _cj
+                _cfd = _cj.loads(_cf.read_text(encoding="utf-8")) if _cf.exists() else {}
+                _cfd[str(n)] = _cfd.get(str(n), 0) + 1
+                _cf.write_text(_cj.dumps(_cfd, ensure_ascii=False), encoding="utf-8")
+                if _cfd[str(n)] >= 3:
+                    problems.append(f"冷读打回已{_cfd[str(n)]}次(终打磨: 计数持久化)——按revise_loop升级阶梯: 整场重写或alt-takes换方向,禁第4次小修")
+            except Exception:
+                pass
+            if _sc and float(_sc.group(1)) < 5:
+                problems.append(f"{_fail}(<5=灾难线,后验/修订不降级)——打回重写(reader-proxy)")
+            else:
+                (warns if (revise or post) else problems).append(
+                    f"{_fail}——打回重写(reader-proxy),豁免走waivers[{'硬门' if hard_cold else '软门'}]")
         else:
             # 红队冷读可信度: 摘录verbatim绑定——报告引文/块引必须多数真在正文(防伪造报告/复制旧报告改号)
             _ch = re.sub(r"[\s\u201c\u201d\"]+", "", p.read_text(encoding="utf-8", errors="ignore"))
@@ -1672,6 +1708,8 @@ def main():
     cmd, rest = args[0], args[1:]
     if cmd == "status":
         return cmd_status()
+    if cmd == "volume-register":
+        return cmd_volume_register(rest)
     if cmd == "publish":
         return cmd_publish(rest)
     if cmd == "resume":

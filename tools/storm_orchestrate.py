@@ -100,6 +100,24 @@ def cmd_status(target):
         print(f"  🎉 全部完成! 跑: storm_orchestrate.py aggregate {target}")
     return 0
 
+def cmd_record_file(target, fpath):
+    """批量record: --file <jsonl> 每行 {"id":"A1","score":7.5,"issue":"..."}(终打磨: 50次手工调用降为1次)"""
+    import json as _json
+    rows = [l for l in pathlib.Path(fpath).read_text(encoding="utf-8").splitlines() if l.strip()]
+    ok = fail = 0
+    for l in rows:
+        try:
+            r = _json.loads(l)
+            rc = cmd_record(target, r["id"], r["score"], r.get("issue", "无"))
+            ok += 1 if rc == 0 else 0
+            fail += 0 if rc == 0 else 1
+        except Exception as e:
+            print(f"  [SKIP] 行解析失败: {e}")
+            fail += 1
+    print(f"批量record: 成功{ok} 失败{fail}")
+    return 0 if fail == 0 else 1
+
+
 def cmd_record(target, agent_id, score, issue):
     sp = storm_state_path(target)
     if not sp.exists():

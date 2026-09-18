@@ -6,6 +6,9 @@
 set -u
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
+_HOOK_TMP="/tmp/hook-$$"   # 终打磨: 进程级唯一名,防并行commit串档/symlink劫持(原固定名)
+mkdir -p "$_HOOK_TMP"
+trap 'rm -rf "$_HOOK_TMP" 2>/dev/null' EXIT
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; NC='\033[0m'
 FAIL=0
 
@@ -15,8 +18,8 @@ echo "════════════════════════�
 
 # quotepath=false: 否则默认配置下CJK路径被八进制转义,所有匹配失灵(audits/06 P0)
 # name-status: 必须看见删除(D)——ACM过滤曾使"git rm整卷"零阻力穿透(audits/13攻击4)
-if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff-filter=ACMRD 2>/tmp/gate_git_err.txt); then
-    echo -e "${RED}[FAIL] git diff失败(fail-closed): $(cat /tmp/gate_git_err.txt)${NC}"
+if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff-filter=ACMRD 2>$_HOOK_TMP/gate_git_err.txt); then
+    echo -e "${RED}[FAIL] git diff失败(fail-closed): $(cat $_HOOK_TMP/gate_git_err.txt)${NC}"
     exit 1
 fi
 
@@ -27,8 +30,8 @@ DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
 # 脚手架门(Python单点;磨刀十三批H0修复: 失败立即exit——此前只置FAIL会被'无变更跳过'分支exit 0吞掉)
-if ! python3 tools/skill_protocol.py audit-cards > /tmp/hook_scaffold.txt 2>&1; then
-    cat /tmp/hook_scaffold.txt
+if ! python3 tools/skill_protocol.py audit-cards > $_HOOK_TMP/hook_scaffold.txt 2>&1; then
+    cat $_HOOK_TMP/hook_scaffold.txt
     echo -e "${RED}  ❌ 脚手架门未过(骨架残留/缺指纹)${NC}"
     exit 1
 fi
@@ -90,23 +93,23 @@ waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
 # ── A. 韧性门(整批一次: 章号重复/标题重复/卷归属/跨章查重/字数/时序) ──
 # gate_chapter.py只认第一个模式词;新增/修改必须分两次调用,否则第二个模式词被当成路径(读空=0字假FAIL)
 GATE_FAIL_ALL=0
-: > /tmp/gate_ch_out.txt
+: > $_HOOK_TMP/gate_ch_out.txt
 if [ -n "$NEW_CH" ]; then
-    python3 tools/gate_chapter.py new $NEW_CH >> /tmp/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
+    python3 tools/gate_chapter.py new $NEW_CH >> $_HOOK_TMP/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
 fi
 if [ -n "$MOD_CH" ]; then
-    python3 tools/gate_chapter.py modified $MOD_CH >> /tmp/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
+    python3 tools/gate_chapter.py modified $MOD_CH >> $_HOOK_TMP/gate_ch_out.txt 2>&1 || GATE_FAIL_ALL=1
 fi
 if [ -n "$NEW_CH" ] || [ -n "$MOD_CH" ]; then
     echo ""
     echo "── 韧性门(章号/标题/卷归属/跨章查重/字数/时序) ──"
     if [ "$GATE_FAIL_ALL" != "0" ]; then
         echo -e "${RED}  [FAIL] 韧性门未过:${NC}"
-        grep '\[FAIL\]' /tmp/gate_ch_out.txt | head -6 | sed 's/^/    /'
+        grep '\[FAIL\]' $_HOOK_TMP/gate_ch_out.txt | head -6 | sed 's/^/    /'
         FAIL=1
     else
         echo -e "${GREEN}  [PASS] staged全部章节通过${NC}"
-        grep '\[WARN\]' /tmp/gate_ch_out.txt | sort | uniq -c | sed 's/^/    /'
+        grep '\[WARN\]' $_HOOK_TMP/gate_ch_out.txt | sort | uniq -c | sed 's/^/    /'
     fi
 fi
 
@@ -284,9 +287,9 @@ fi
 # ── F. 技能库一致性门(skills/为SSOT) ──
 # W6: 工具自测从SKILLS_STAGED门内解嵌——只改tools/*.py不碰skills/时自测永不触发
 if git diff --cached --name-only | grep -qE "^tools/.*\.py$"; then
-      if ! python3 tools/self_test.py > /tmp/st_out.txt 2>&1; then
+      if ! python3 tools/self_test.py > $_HOOK_TMP/st_out.txt 2>&1; then
         echo -e "${RED}  [FAIL] 工具自测(self_test)未过——tools/*.py变更触发:${NC}"
-        grep "✗" /tmp/st_out.txt | head -3 | sed 's/^/    /'
+        grep "✗" $_HOOK_TMP/st_out.txt | head -3 | sed 's/^/    /'
         FAIL=1
       fi
 fi
@@ -294,11 +297,11 @@ fi
 if [ -n "$SKILLS_STAGED" ]; then
     echo ""
     echo "── 技能库一致性门 ──"
-    if python3 tools/skills_check.py > /tmp/sc_out.txt 2>&1; then
+    if python3 tools/skills_check.py > $_HOOK_TMP/sc_out.txt 2>&1; then
         echo -e "${GREEN}  [PASS] skills_check${NC}"
     else
         echo -e "${RED}  [FAIL] 技能库体检未过:${NC}"
-        grep -E "^ -|问题" /tmp/sc_out.txt | head -5 | sed 's/^/    /'
+        grep -E "^ -|问题" $_HOOK_TMP/sc_out.txt | head -5 | sed 's/^/    /'
         FAIL=1
     fi
 fi

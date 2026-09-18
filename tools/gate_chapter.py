@@ -202,9 +202,11 @@ def main():
     n_new_staged = len([p for p in staged
                         if parse_num(p) is not None and parse_num(p) not in existing_nums])
     jump_cap = max_existing + n_new_staged
-    # G8语料: 存量章(排除staged)按段预切
+    # G8语料: 存量章(排除staged)按段预切——终打磨: 限最近30章(按章号降序取尾;跨章贴入是近期行为,300章时每次门O(全书)IO无必要)
+    _g8_files = sorted([p2 for p2 in files if parse_num(p2) is not None],
+                       key=parse_num, reverse=True)[:30]
     corpus_paras = {}
-    for p2 in files:
+    for p2 in _g8_files:
         if str(p2.resolve()) in staged_paths:
             continue
         try:
