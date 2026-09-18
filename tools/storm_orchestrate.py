@@ -124,8 +124,13 @@ def cmd_record(target, agent_id, score, issue):
     
     sp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✅ {agent_id} score={score} issue={issue[:40]}")
-    
-    # 红队20260919漏洞9修复: Wave1全完成时,自动把攻击结果注入Wave2的prompt
+
+    # 盲区015修复: Wave1完成时自动注入Wave2 prompt
+    try:
+        if agent_id.startswith("A") and wdata.get("complete"):
+            _inject_wave1_results(state, target, sp)
+    except Exception as _e:
+        print(f"  [WARN] Wave1注入Wave2失败: {_e}")
     return 0
 
 def cmd_aggregate(target):
@@ -151,14 +156,19 @@ def cmd_aggregate(target):
     
     avg = sum(all_scores) / len(all_scores)
     
-    # Gate判定
+    # 盲区017修复: 分波判定——Wave1(原稿)是打回依据,Wave4(修复后)只作参考
     verdict = "放行"
     reasons = []
     
-    # 规则1: 均值≥7.0
-    if avg < 7.0:
+    # 规则1(核心): Wave1攻击波均值≥6.0(原稿质量,不可被修复波稀释)
+    w1_avg = wave_scores.get("1", 10)
+    if w1_avg < 6.0:
         verdict = "打回"
-        reasons.append(f"总均分{avg:.1f}<7.0")
+        reasons.append(f"Wave1攻击波(原稿)均分{w1_avg:.1f}<6.0")
+    
+    # 规则1b: 全部50agent均值(参考,不作打回依据)
+    if avg < 7.0:
+        reasons.append(f"参考: 总均分{avg:.1f}<7.0")
     
     # 规则2: 任一wave均值≤5.0
     for wn, ws in wave_scores.items():

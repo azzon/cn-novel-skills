@@ -986,6 +986,15 @@ def check(fp: pathlib.Path):
         if _burst_avg < 5:
             warns.append(f"句长突发性{_burst_avg:.1f}(<5=AI匀速特征;人类参考>8)——长短句剧烈切换(一个5字短句后接一个30字长句)")
 
+    # 盲区001修复: 金额一致性检查(同章同名科目两个不同值=FAIL)
+    _money_entries = {}
+    for _mm in re.finditer(r'(本金|利息|余额|欠款|缺口|收入|支出|手术费|工分)[^0-9]{0,4}([0-9.]+)', body):
+        _subj = _mm.group(1)
+        _val = float(_mm.group(2))
+        if _subj in _money_entries and abs(_money_entries[_subj] - _val) > 0.01:
+            issues.append(f'金额矛盾: {_subj}出现{_money_entries[_subj]}和{_val}两个不同值——商业文数字穿帮')
+        _money_entries[_subj] = _val
+
     # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
     #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
     _mem_pat = re.compile(r"想起.{0,10}(味|声|光|触|温度|气味|声音|画面)|记得.{0,10}(味|声|触)|小时候.{0,20}(味|声|热|冷)|那年.{0,15}(味|声|雪|雨|热)|上辈子.{0,10}(味|声)|熟悉的.{0,8}(味|声|触)")
@@ -1049,6 +1058,7 @@ def check(fp: pathlib.Path):
 
     # 66) 日期顺序(1993ch032事故: 初九段落排在初七之前)——同族时序词乱序WARN,近处有回忆标记则豁免
     _time_toks = [(mm.start(), mm.group(1)) for mm in re.finditer(r"初([一二三四五六七八九十\d])", body)]
+    
     def _cn_day(x):
         _m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
         return _m.get(x, int(x) if x.isdigit() else None)
