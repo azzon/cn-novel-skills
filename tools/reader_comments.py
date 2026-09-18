@@ -10,6 +10,8 @@ import re, sys, pathlib, random
 PAT_HOOK = re.compile(r"[?！!]|——|…|突然|忽然|就在这时|却见|赫然|竟是|一声|来了|开门|转身")
 PAT_REACT = re.compile(r"震惊|惊呆|哗然|炸了|轰动|全县|传遍|议论|傻眼|服了|倒吸|看傻|围观|打听|排队|传开|念叨|拍大腿|将信将疑|看热闹|人人皆知")
 PAT_MONEY = re.compile(r"\d+[块元万毛分]")
+PAT_MEM = re.compile(r"想起|记得|当年|小时候|那时候|那年|上辈子|前世|又浮现|冒出来")
+PAT_SOCIAL = re.compile(r"拍桌|拍腿|倒吸|炸了|全场|都愣了|鸦雀无声|哄一声|鼓掌|愣住|看傻|哗然")
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] in ("--help", "-h"):
@@ -40,10 +42,12 @@ def main():
         pool.insert(0, ("路人", "路过。"))
     for i, (who, txt) in enumerate(pool[:5]):
         print(f"  [{who}]: {txt}")
-    # 追读率预估(启发式)
-    score = min(10, hook*2 + react + (2 if money >= 2 else 0))
+    # 追读率预估(启发式+三引擎v2: 记忆碎片/社交货币/超短段)
+    mem = len(PAT_MEM.findall(t))
+    social = len(PAT_SOCIAL.findall(t))
+    score = min(10, hook*2 + react + (2 if money >= 2 else 0) + (1 if mem >= 2 else 0) + (1 if social >= 2 else 0))
     ret = 60 + score * 3.5
-    print(f"\n  追读率预估: {ret:.0f}% (钩{hook}+扩散{react}+账面{money} → score {score}/10)")
+    print(f"\n  追读率预估: {ret:.0f}% (钩{hook}+扩散{react}+账面{money}+记忆{mem}+社交{social} → score {score}/10)")
     return 0
 
 if __name__ == "__main__":

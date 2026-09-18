@@ -245,12 +245,15 @@ def check(fp: pathlib.Path):
         if c > 0:
             issues.append(f"自评词「{w}」{c}次(写效果,不写评价)")
 
-    # 13) 段落长度方差(反匀速,布防总表B3)
+    # 13) 段落长度方差(反匀速+反AI指纹,白金标准>50)
+    #     红队20260918: AI生成文本段长方差普遍<25=平台AI检测高风险;阈值从20→35(WARN)/25(FAIL)
     plens = [cjk_len(p) for p in paras]
     if len(plens) >= 12:
         psd = statistics.pstdev(plens)
-        if psd < 20:
-            warns.append(f"段落长度方差过小({psd:.0f}),段落匀速感(注意长短段错落)")
+        if psd < 25:
+            issues.append(f"段落长度方差{psd:.0f}(<25=AI指纹高危:平台AI检测将标记;白金参考>50)——强制混入1-3个超短段(≤5字)+2-3个长段(≥80字)")
+        elif psd < 35:
+            warns.append(f"段落长度方差{psd:.0f}(<35=偏AI指纹;白金参考>50)——注意长短段错落")
 
     # 14) 对话占比(场景化率代理,布防总表B4)
     dl = [l for l in body_lines if ('"' in l or '\u201c' in l or '「' in l or '\u201d' in l or l.strip().startswith('"'))]
@@ -955,6 +958,30 @@ def check(fp: pathlib.Path):
             warns.append(f"段均字数{avg_pl:.0f}(规格≤30,漂移审计2期)——长段拆分/多留短句段")
         if long_n > 6:
             warns.append(f"长段{long_n}个(≥110字,规格≤3)——整章匀速感超标,拆段")
+
+    # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
+    #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
+    _mem_pat = re.compile(r"想起|记得|当年|小时候|那时候|那年|上辈子|前世|又浮现|冒出来|飘过来|好像.*味道|那股.*味|熟悉的")
+    _mem_n = len(_mem_pat.findall(body))
+    metrics["mem_fragments"] = _mem_n
+    _mem_per_k = _mem_n * 1000 / max(cjk_len(body), 1)
+    metrics["mem_per_k"] = round(_mem_per_k, 2)
+    if n > 1500 and _mem_per_k < 0.5:
+        warns.append(f"记忆碎片{ _mem_n}处({_mem_per_k:.1f}/千字,<0.5=代入感缺失)——每千字至少1条主角感官记忆闪回(气味/声音/触觉/画面,非情节)")
+
+    # 46) 社交货币场面(付费意愿引擎,红队20260918): 每3章至少1个"读者会截图"的高光拍
+    #     启发式: 含拍桌/倒吸/炸了/围观/议论/全群/全场/都愣了/鸦雀无声/同时的段落数
+    _social_pat = re.compile(r"拍桌|拍腿|倒吸|炸了|轰动|全场|全群|都愣了|鸦雀无声|同时看|齐刷刷|哄一声|一起笑|哄堂|鼓掌|掌声|愣住|看傻|哗然")
+    _social_n = len(_social_pat.findall(body))
+    metrics["social_beats"] = _social_n
+    if n > 1500 and _social_n < 2:
+        warns.append(f"社交货币拍{_social_n}处(<2=付费意愿弱)——每章至少2个'读者会截图发群'的高光时刻(拍桌/全场愣住/围观炸了)")
+
+    # 47) 超短段存在性(反AI指纹,红队20260918): 每章≥2个≤5字独立段
+    _ultrashort = [p for p in paras if 0 < cjk_len(p) <= 5]
+    metrics["ultrashort_paras"] = len(_ultrashort)
+    if n > 1200 and len(_ultrashort) < 2:
+        warns.append(f"超短段{len(_ultrashort)}个(<2=AI指纹匀速感)——每章至少2个独立成段的超短句(≤5字,如'有了。''就是它。')")
 
     # 44) 旁白判词刻度(冷读3期: 收束腔逐章加重)——启发式:段尾抽象总结句式,只计数进METRICS
     aphor_pat = re.compile(
