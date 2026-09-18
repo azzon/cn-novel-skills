@@ -251,7 +251,7 @@ def check(fp: pathlib.Path):
     if len(plens) >= 12:
         psd = statistics.pstdev(plens)
         if psd < 25:
-            issues.append(f"段落长度方差{psd:.0f}(<25=AI指纹高危:平台AI检测将标记;白金参考>50)——强制混入1-3个超短段(≤5字)+2-3个长段(≥80字)")
+            issues.append(f"段落长度方差{psd:.0f}(<25=AI指纹高危:平台AI检测将标记;白金参考>50)——长段(80-200字)约占段落10-15%+超短段3-5个")
         elif psd < 35:
             warns.append(f"段落长度方差{psd:.0f}(<35=偏AI指纹;白金参考>50)——注意长短段错落")
 
@@ -947,17 +947,19 @@ def check(fp: pathlib.Path):
 
 
 
-    # 43) 段落形态刻度(漂移审计2期: 17-20章段均>30红/长段超配)——只进METRICS+WARN,不FAIL
+    # 43) 段落形态刻度(红队20260918修复: 均值豁免长段,消除与门13互相否决的振荡)
+    #     段均只对<80字段落计算(长段=蓄压工具,不计入日常节奏);长段配额从≤3放宽到≤12(80-200字区间)
     para_lens = [cjk_len(x) for x in paras]
     if para_lens:
-        avg_pl = sum(para_lens) / len(para_lens)
-        long_n = sum(1 for L in para_lens if L >= 110)
+        short_lens = [L for L in para_lens if L < 80]  # 豁免长段
+        avg_pl = sum(short_lens) / max(len(short_lens), 1)
+        long_n = sum(1 for L in para_lens if L >= 80)
         metrics["avg_para_len"] = round(avg_pl, 1)
         metrics["long_paras"] = long_n
         if avg_pl > 34:
-            warns.append(f"段均字数{avg_pl:.0f}(规格≤30,漂移审计2期)——长段拆分/多留短句段")
-        if long_n > 6:
-            warns.append(f"长段{long_n}个(≥110字,规格≤3)——整章匀速感超标,拆段")
+            warns.append(f"短段均值{avg_pl:.0f}(<80字段均,规格≤30)——多留短句段")
+        if long_n > 12:
+            warns.append(f"长段{long_n}个(≥80字,规格≤12)——全章匀速感超标")
 
     # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
     #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
