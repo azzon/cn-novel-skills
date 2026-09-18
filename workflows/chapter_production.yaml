@@ -128,7 +128,7 @@ phases:
           bash tools/fix_quotes.py <书根>/text/卷X/第NNN章.md   # 引号三重修复先于门
           python3 tools/check.py --modern <书根>/text/卷X/第NNN章.md
           python3 tools/gate_chapter.py <书根>/text/卷X/第NNN章.md
-          python3 tools/voice_check.py <书根>/text/卷X/第NNN章.md --card <书根>/声口卡.md
+          python3 tools/voice_check.py <书根>/text/卷X/第NNN章.md --card <书根>/story/20-人物/声纹表.md
           python3 tools/card_check.py NNN --volume X
         gate:
           - "check.py FAIL=0"
@@ -200,7 +200,7 @@ phases:
         name: "卷末义务(仅当本章=卷末章,1993审计新增)"
         type: manual
         gate:
-          - "arc-review卷级连读审查落盘(audit/*连读审查*.md)——done卷末门+hook会拦"
+          - "arc-review卷级连读审查落盘(story/audit/卷级连读-卷N.md.md)——done卷末门+hook会拦"
           - "人物圣经卷末快照更新(本卷关系位移/欲望缺口落点/钱刻度末值)"
           - "漂移审计本期已做(若满10章)"
           - "premise-fit复检: 本卷欲望引擎是否兑现立项承诺(无金手指书查时代红利引擎与缺口阶梯)"

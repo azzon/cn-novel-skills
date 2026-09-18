@@ -75,7 +75,7 @@ def _load_profile(fp):
     """沿目录向上搜题材配置(磨刀十八批S7: 书根配置须对书根内任意章节生效,不限text/一级)"""
     prof = {}
     cur = pathlib.Path(fp).resolve().parent
-    for _ in range(5):
+    for _ in range(3):   # W6验证:原5层越过书根串他书配置(书根=text的父目录);text下最多2层到书根,3层兜底
         if (cur / "text" / ".modern").exists() and not MODERN_SETTING[0]:
             MODERN_SETTING[0] = True   # 红队一致性: text/.modern只有pipeline读,check裸跑曾误FAIL"电话"
         cfg = cur / "题材配置.md"
@@ -141,7 +141,7 @@ def check(fp: pathlib.Path):
     _mono_exempt = bool(_mono_hit and any(
         k in _mono_hit.group(1) for k in ("独白", "追踪", "潜行", "闪回", "冥想", "灾变")))
     _peak = "峰章" in _card_txt
-    _band = re.search(r"(\d{4})\s*[-—~至]\s*(\d{4})", _card_txt)
+    _band = re.search(r"字数带[:：]?\s*(\d{4})\s*[-—~至]\s*(\d{4})", _card_txt) or re.search(r"(?<!\d)([12]\d{3})\s*[-—~至]\s*([12]\d{3})(?!\d)(?!\s*年)", _card_txt)
     _lo = int(_band.group(1)) if _band else 2400
     _hi = (5200 if _peak else (int(_band.group(2)) if _band else 2800))
     lines = raw.splitlines()
@@ -222,7 +222,7 @@ def check(fp: pathlib.Path):
             warns.append(f"段落开头「{k}…」{c}次(注意句式雷同)")
 
     # 9) 句长方差(反均匀;std<6 视为节奏单一)
-    sents = re.split(r"[。!?\n]", body)
+    sents = re.split(r"[。！?！?\n]", body)   # W6验证:缺全角！？→首句长度虚高
     slens = [cjk_len(s) for s in sents if cjk_len(s) > 0]
     if len(slens) >= 20:
         sd = statistics.pstdev(slens)
@@ -295,10 +295,10 @@ def check(fp: pathlib.Path):
 
     # 14.4) 装饰性修辞总密度 v2:去除与#5重复计算的模式,只加新出现的
     sim_extra = 0  # P1-018: SIMILE_PATTERNS已覆盖宛如/恍若,不重复计数
-    for pat in [r"宛如", r"恍若"]:  # 只加#5未覆盖的
+    for pat in [r"宛如", r"恍若"]:  # 观察口径:SIMILE_PATTERNS已含二者,W6验证双计——不再计入FAIL
         sim_extra += len(re.findall(pat, body))
     personif = len(re.findall(r"[推拉扛拽]着一?(?:一整个|整个)", body))
-    if sim + sim_extra + personif > SIMILE_LIMIT:
+    if sim + personif > SIMILE_LIMIT:
         issues.append(f"装饰性修辞{sim+sim_extra+personif}处(明喻{sim+sim_extra}+拟人{personif},上限{SIMILE_LIMIT})——AI标志:每个描写点挂比喻;真实作者白描为主")
 
     # 14.5) 工程词泄漏(正文出现元层词汇=脱稿事故)
@@ -404,11 +404,17 @@ def check(fp: pathlib.Path):
 
     # 21) 时代错位词(现代/外文混入正文;--modern 跳过——现代背景专用)
     if not MODERN_SETTING[0]:
-        MODERN_WORDS = ["照片", "电话", "手机", "电脑", "电视", "咖啡", "沙发", "卡车", "地铁", "公园", "超市", "公交", "电梯"]
-        for w in MODERN_WORDS:
+        MODERN_HARD = ["手机", "电脑", "电视", "地铁", "超市", "电梯", "咖啡", "沙发"]   # 硬错位词
+        MODERN_SOFT = ["照片", "电话", "公园", "公交", "卡车"]   # 民国合法词(W6验证:公园/照片晚清民国存在,FAIL冤枉)
+        for w in MODERN_HARD:
             if w in body:
                 issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
                 break
+        else:
+            for w in MODERN_SOFT:
+                if w in body:
+                    warns.append(f"疑似时代错位词「{w}」(晚清民国可合法,按本书年代自检)")
+                    break
 
     # 22) 角色语音同质化检测 + 23) 声纹禁词(从死代码中恢复)
     speaker_sents = {}
@@ -497,7 +503,7 @@ def check(fp: pathlib.Path):
 
     # 29) 首句长度(红队E转换规则1:第一句≤10字,扔事件碎片不递画面)
     if body_lines:
-        first_sent = re.split(r'[。!?\n]', body_lines[0])[0]
+        first_sent = re.split(r'[。！?！?\n]', body_lines[0])[0]
         fl = cjk_len(first_sent)
         if fl > 25:
             warns.append(f"首句{fl}字(>25,白金开篇首句≤10字碎片式:『头七,第三夜。』式,不递画面扔事件)")
@@ -518,7 +524,7 @@ def check(fp: pathlib.Path):
         issues.append(f"爽感扩散密度{metrics['react_density']}/千字(<1.0=温吞红线)——爽点兑现处必须有人围观/震惊/传开,装逼没人看=白装(卷一15章实测0.4/千字=索然无味根因)")
 
     # 30c) 转折密度门(同上:每章≥2次价值翻转,只装1事件的"全流程章"=又短又慢)
-    _flip_pat = re.compile(r"却|竟然|忽然|没想到|谁知|反倒|一夜之间")
+    _flip_pat = re.compile(r"(?<![冷推忘罢了])却(?!于)|竟然|忽然|没想到|谁知|反倒|一夜之间")   # W6验证:裸"却"匹配冷却/推却灌水flip
     _flip_n = len(_flip_pat.findall(body))
     metrics["flips"] = _flip_n
     if _flip_n < 2:
@@ -565,8 +571,7 @@ def check(fp: pathlib.Path):
         _mhits = re.findall(
             r"[一两二三四五六七八九十百千]{1,10}(?:千|万|块|元|毛|两|贯|文|石)[一两二三四五六七八九十百零点五]{0,8}"
             r"|\d+(?:\.\d+)?(?:块|元|毛|两|贯|文)", body)
-        _mhits = [h for h in _mhits
-                  if "千万" not in h and not re.search(r"年|月|日|次|遍|岁|分钟|度|号|名|个|位|回|斤|亩", h)]
+        _mhits = [h for h in _mhits if "千万" not in h]
         money = len(_mhits)
         metrics["money_sample"] = ",".join(_mhits[:6])
         metrics["money_count"] = money
@@ -796,7 +801,7 @@ def check(fp: pathlib.Path):
                     _ts_points.append((_pi, _mo * 100 + _dy, f"{_mo}月{_m.group(2)}日"))
             except ValueError:
                 pass
-    _TRANSITION = ("转眼", "一晃", "入夏", "入秋", "开春", "月底", "月初", "过了", "两个月的", "一个月后", "半个月")
+    _TRANSITION = ("转眼", "一晃", "入夏", "入秋", "开春", "月底", "月初", "过了半天", "两个月的", "一个月后", "半个月")
     for _a, _b in zip(_ts_points, _ts_points[1:]):
         _diff = (_b[1] // 100 - _a[1] // 100) * 30 + (_b[1] % 100 - _a[1] % 100)
         if _diff > 7:
@@ -905,7 +910,7 @@ def check(fp: pathlib.Path):
     # 46) 近似重复(大审计-11:变体逃逸拼接残留)——段间shingle Jaccard>0.85=FAIL
     def _shingles(s, k=10):
         c = re.sub(r"⟪[^⟫]*⟫", "", s)  # 继承#15的⟪⟫刻意反复豁免(大审计-18 D4)
-        c = re.sub(r"[\s，。！？；：、“”]", "", s)
+        c = re.sub(r"[\s，。！？；：、“”]", "", c)   # W6验证:原从原s重算覆盖⟪⟫剥除=豁免死亡
         return {c[i:i+k] for i in range(max(0, len(c)-k+1))}
     def _jac(a, b):
         u = len(a | b)
@@ -992,6 +997,8 @@ def check(fp: pathlib.Path):
     metrics["said_count"] = _tag_he_shuo
     if _tag_he_shuo > 5 and n > 1000:
         warns.append(f"\"他说\"{_tag_he_shuo}次(>5=AI标签单调)——用动作/停顿/语气替代(把笔搁了/半天没吭声/应了一声)")
+    if _tag_repeats and n > 1000:
+        warns.append(f"连续\"他说\"往返{_tag_repeats}处(问-答-他说复读机式标签)——拆一轮插动作(W6验证:此计数原为死代码)")
 
     # 44d) 句长突发性(深度AI检测: 人类写作长短句剧烈切换)
     if len(slens) >= 10:
@@ -1072,7 +1079,7 @@ def check(fp: pathlib.Path):
         issues.append(f"编辑残渣{len(_scars)}处(「{_scars[0][:8]}…」)——自我更正句流入正文,按最终稿改写")
 
     # 66) 日期顺序(1993ch032事故: 初九段落排在初七之前)——同族时序词乱序WARN,近处有回忆标记则豁免
-    _time_toks = [(mm.start(), mm.group(1)) for mm in re.finditer(r"初([一二三四五六七八九十\d])", body)]
+    _time_toks = [(mm.start(), mm.group(1)) for mm in re.finditer(r"初([一二三四五六七八九十]{1,2}|\d{1,2})", body)]
     
     def _cn_day(x):
         _m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
@@ -1091,7 +1098,7 @@ def check(fp: pathlib.Path):
     # ═══ 红队20260919文笔上限批(#67-#74,全WARN级): "不AI"之上还要"写得好" ═══
 
     # 67) 泛动词密度(白金动词力: 蹭/挪/杵/瞟 vs 走/看/说淹死画面)——bigram词表防"走廊/好看"误伤
-    _narr_paras = [p for p in _para_list if "\u201c" not in p and '"' not in p]
+    _narr_paras = [p for p in paras_all if "\u201c" not in p and '"' not in p]   # W6验证:原用_para_list(空行分段),单换行排版时恒空=门静默失效
     _narr_txt = "".join(_narr_paras)
     _weak_v = len(re.findall(r"走进|走出|走来|走到|说道|说了|说话|看了|看着|看向|站起|站住|坐下|拿起|放下|转头|点头|摇头|回头|走了|站了|坐了|看了看|想了一下", _narr_txt))
     if _narr_txt and n > 800:
@@ -1137,8 +1144,10 @@ def check(fp: pathlib.Path):
     _tenor_roots = {}
     for _s2, _e2 in _sim_spans:
         _frag = _body_sim2[_s2:_e2]
-        _mtenor = re.search(r"[一样的般似的仿佛]", _frag)
-        _tenor = _frag[_mtenor.end():].strip("一样般似的的") if _mtenor else _frag[:4]
+        _mtenor = re.search(r"像([一样的]?)", _frag)
+        if not _mtenor:
+            continue   # W6验证:宛如/恍若无尾标记,frag[:4]='宛如'→root恒'宛如'误聚类;只对"像X"式提取喻体
+        _tenor = _frag[_mtenor.end():].strip("一样般的的")
         _root = _tenor[:2]
         if len(_root) >= 2 and not re.match(r"^[\d一二三四五六七八九十]", _root):
             _tenor_roots[_root] = _tenor_roots.get(_root, 0) + 1
@@ -1158,13 +1167,30 @@ def check(fp: pathlib.Path):
         warns.append(f"感官通道{_ch_hit}/4全开且密度{metrics.get('sense_per_k')}/千字(>12:五感杂拌=各通道浅尝辄止)——修: 一章一主导感官(卡2.7),scene-audit核对")
 
     # 74) 对白标签动作轮换枯竭(躲开"他说"后改用"他笑了/皱眉/点头"三件套复读)
-    _labels = re.findall(r"([\u4e00-\u9fff]{1,4}(?:说道|说|问道|问|答道|答|笑道|叹道|骂道|嚷道|喊道))(?=[。:,])", "".join(_para_list))
+    _labels = [x for x in re.findall(r"([\u4e00-\u9fff]{1,4})(?:说道|问道|答道|笑道|叹道|骂道|嚷道|喊道)(?=[。:,])", "".join(_para_list)) if x[-2:] not in ("小说","传说","话本","评书") and len(x) <= 4]   # W6验证:词尾"小说。"吞入污染top标签
     if len(_labels) >= 8:
         from collections import Counter as _Ctr
         _top_label, _top_n = _Ctr(_labels).most_common(1)[0]
         if _top_n / len(_labels) > 0.4:
             warns.append(f"标签动作枯竭:'{_top_label}'占{_top_n}/{len(_labels)}(>40%:标签成了新指纹)——修: dialogue-voice标签动作池(每角色5个专属)")
 
+    # ═══ 红队20260919十波批: 文本卫生四门(#75-78,全WARN) ═══
+    # 75) 错别字高置信(的地得/在再误用——只收高置信模式防误报)
+    _typos = re.findall(r"跑的飞快|走的太急|说的太难听|在也|在说一遍|应当做主|想再法", body)
+    if _typos:
+        warns.append(f"疑似错别字{len(_typos)}处({','.join(_typos[:3])})——'的/得''再/在'核查,fix_quotes族工具不管错字")
+    # 76) 全角半角混排
+    _fw = re.findall(r"[０-９Ａ-Ｚａ-ｚ]|[\u4e00-\u9fa5][,.:;!?]", body)
+    if len(_fw) > 3:
+        warns.append(f"全角半角混排{len(_fw)}处(全角数字字母/汉字后半角标点)——统一半角数字+全角标点")
+    # 77) 省略号变体归一
+    _ell = re.findall(r"\.\.\.|。{2,}|…(?!\u2026)[^\u2026]|····", body)
+    if _ell:
+        warns.append(f"省略号变体{len(_ell)}处(…/.../。。。。)——规范为中文双省略号'……'")
+    # 78) 破折号变体
+    _dash = re.findall(r"--|－－|———", body)
+    if _dash:
+        warns.append(f"破折号变体{len(_dash)}处(--/－－/———)——规范为中文双破折号'——'")
     return fp, n, status, issues, warns, metrics
 
 
@@ -1193,7 +1219,7 @@ def threads_mode(folder: pathlib.Path):
             body = "\n".join(l for l in f.read_text(encoding="utf-8").splitlines()
                              if l.strip() and not l.startswith("#"))
             counts.append(body.count(kw))
-        matrix[name] = counts
+        matrix[len(matrix)] = (name, counts)   # W6验证:同名灰线dict键覆盖致zip错位
         print(f"{kw:<10}" + "".join(f"{c:>5}" for c in counts))
     # 断线预警:某灰线最近GAP_LIMIT章未出现(且此前出现过)
     GAP_LIMIT = 10

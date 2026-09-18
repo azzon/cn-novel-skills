@@ -15,7 +15,7 @@ description: 修订域入口与编排器——轴制润色/整场重写/扩写/�
 | 打回了/结构不对/卡改了 | scene-rewrite(须有修订指令) |
 | 太薄/字数不够/某拍太快 | beat-expand(四类合法内容) |
 | 太拖/有水/没人看 | tighten(三问删法) |
-| AI味/太装 | 句级违例→line-polish;通篇腔调→de-ai(八类清除) |
+| AI味/太装 | 句级违例→line-polish;通篇腔调→de-ai(十一类清除) |
 | 不好笑/太贫/该认真没认真 | tone-shift(事件不变) |
 | 对话不行/一个味/没潜台词 | dialogue-doctor |
 | 整卷重排/删章并章 | arc-restructure(须审计依据) |

@@ -65,7 +65,7 @@ def chapter_stamps_ok(book, n):
                                if not (("(" in r and "=" in r)   # 恒等式行: 目标(说明) = A ± B
                                        or (r.count("|") >= 3 and extract_vals(r.split("|")[2])))][:1])
     rule("人物状态", lambda rs: [r for r in rs if _clean_len(r) < 6 or PLACEHOLDER.search(r)][:1])
-    rule("伏笔", lambda rs: [r for r in rs if not re.match(r"\[?[FA]-\d+\]?", r)][:1])
+    rule("伏笔", lambda rs: [r for r in rs if not re.match(r"\[?[FADZ]-\d+\]?", r)][:1])
     for plain in ("梗", "线弦", "口碑账"):
         rule(plain, lambda rs: [r for r in rs if _clean_len(r) < 8 or PLACEHOLDER.search(r)][:1])
     rule("类型轮换", lambda rs: [r for r in rs

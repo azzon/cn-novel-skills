@@ -62,16 +62,16 @@ LEDGER_NAMES = ["伏笔", "梗", "钩分布", "类型轮换", "人物状态", "�
 
 PREFIX = (
     "【生成纪律】单位=一个场景,目标字数按卡带(2400-5000)。对话40-55%,心理>=2/千字(少而准,与风格卡一致)。"
-    "正文禁工程词(伏笔/爽点/beat等元层词不入小说文本;PREFIX和卡内可用);情绪禁告知;明喻<=3,破折号<=3,警句<=1/场景;首句禁时间状语开场(与前两章错型)。"
+    "正文禁工程词(伏笔/爽点/beat等元层词不入小说文本;PREFIX和卡内可用);情绪禁告知;明喻<=3,破折号<=3,警句每章<=2方差优先;首句禁时间状语开场(与前两章错型)。"
     "【生活气正向(上限定式)】每章1个本书专属物件(可复现道具);钱过手写面额与谁的钱;"
     "对话跑题一次;季节落在具体物上(风掀榜纸,非'天气热');称呼带关系史(用本书声口卡人名与关系称谓)。"
     "季节落在具体物上(风掀榜纸/汗浸票据),禁写'天气很热';称呼带关系史(以'叔/姨/哥'带关系相称,不写姓名全称——用本书声口卡里的人)。"
     "【生活气硬指标】金额>=2(1处参与情绪运算),感官>=3通道,闲笔>=1(>=60字),每章1轮家常对话。"
     "【情绪纪律】高情感拍减速到秒级三连微拍,单拍<=15字。"
     "【段落形态】长段不计入段均:每场景2-4个长段(80-200字,蓄压/织线/闲笔用);每场景1-2个超短段(≤5字);其余段落均≤30字;禁连续5段字数接近。"
-    "【章末】必钩,形态与上两章轮换;警句式收尾每卷<=1/3;禁旁白判词与排比宣言,收在动作/物件/对话。"
+    "【章末】必钩,形态与上两章轮换;警句式收尾每卷<=1/3(照旧);禁旁白判词与排比宣言,收在动作/物件/对话。"
     "【反AI指纹(平台检测硬红线)】段长方差>40(方法见【段落形态】);禁连续5段字数接近(±15字内);对话标签多变(说/回/喊/嘟囔/没接话,禁连续“他说”)。【感官锚点律(深度AI检测核心)】每千字≥3个具体感官词(浆糊味/冰凉/硌手/发霉/消毒水/铁锈味等),味觉触觉嗅觉优先;禁只写视觉。【代入感引擎】每千字≥1条主角感官记忆闪回(气味/声音/触觉画面,非情节复述,如'忽然想起小时候外婆灶台的柴火味')。【付费意愿引擎】每章≥2个“读者会截图发群”的高光拍(全场愣住/拍桌叫好/炸了围观);章末必须让读者生理性想翻下一章。【防同构】对白禁复盘腔;讲解问答每章<=1次;章末禁议论;本章至少一处失控/失败/意外。"
-    "【对白声口】漏不要聚:废话率>=30%,句碎片化,语气词>=8/千字,答非所问>=15%;配角警句同章<=1枚;该角色禁词绝不入其台词(查声口卡)。"
+    "【对白声口】漏不要聚:废话率>=30%,句碎片化,语气词>=8/千字,答非所问>=15%;配角警句同章<=1枚(全书警句每章<=2口径的配角子配额);该角色禁词绝不入其台词(查声口卡)。"
     "【数字表】卡上数字逐一入正文,口语可数值不可变。"
     "【峰后禁释】情感峰值段后,下一段=动作/物件/沉默/环境;禁叙述者解释。"
     "每场景必须有人想要不同的东西(阻碍);只写本卡,Forbid绝对不写;价值反转必须发生;对白遮名可辨。"
@@ -340,7 +340,8 @@ def cmd_batch(args):
         rc, out, _ = run_check_metrics(body)
         if rc != 0:
             row["阻塞"].append("check未过")
-        rc2, gout = run_gate("modified", [str(body)])
+        _is_new = "?? " in git("status", "--porcelain", "--", str(body.relative_to(ROOT)))[1] if body.exists() else False
+        rc2, gout = run_gate("new" if _is_new else "modified", [str(body)])
         if rc2 != 0:
             row["阻塞"].append("gate未过")
         dr = cold_read_for(n)
@@ -354,7 +355,7 @@ def cmd_batch(args):
 
     print("\n═══ 生产看板 ═══")
     for r in board:
-        flag = "🟢" if r["状态"] == "READY" else ("🟡" if r["状态"] == "OK" else "🔴")
+        flag = "🟢" if r["状态"] == "READY" else "🔴"   # W6验证:状态只可能READY/BLOCKED,🟡OK分支不可达
         line = f"{flag} 第{r['章']:03d}章 {r['状态']}"
         if "字数" in r:
             line += f" {r['字数']}字"
@@ -431,7 +432,8 @@ def cmd_produce(args):
                            capture_output=True, text=True, cwd=ROOT)
         steps.append(("voice", "OK" if "PASS" in rv.stdout else "FAIL", ""))
         # 7. card_check
-        cc = subprocess.run([sys.executable, "tools/card_check.py", str(n), "--volume", "1", "--book", str(BOOK.name)],
+        _expv = re.search(r"卷(\d+)", str(body.parent)) if 'body' in dir() else None
+        cc = subprocess.run([sys.executable, "tools/card_check.py", str(n), "--volume", _expv.group(1) if _expv else "1", "--book", str(BOOK.name)],
                            capture_output=True, text=True, cwd=ROOT)
         steps.append(("card_check", "OK" if cc.returncode == 0 else "FAIL", cc.stdout.strip()[-20:] if cc.stdout else ""))
 
@@ -496,7 +498,7 @@ def cmd_volume_close(args):
     fban = BOOK / "ledgers" / "伏笔.md"
     ft = fban.read_text(encoding="utf-8") if fban.exists() else ""
     unfired = [l for l in ft.splitlines() if "充能" in l and "第" in l]
-    checks.append((f"在跑伏笔({len(unfired)}条)", len(unfired) > 0))
+    checks.append((f"在跑伏笔({len(unfired)}条,全清=良性)", True))   # W6验证:原len>0把全回收干净卷误判FAIL;在跑数改advisory,是否留种由卷纲定
 
     # 4) 香火账/数字账结算
     for acc_name in ("香火账", "数字账"):
@@ -511,7 +513,7 @@ def cmd_volume_close(args):
 
     if all_pass:
         # 红队20260919卷级批: 交棒卡(白金路线图自认volume-close未建项的补全——下卷首章重启规格)
-        _last_ch = read_text(cm.get(max(cm)), -400) if cm.get(max(cm)) else ""
+        _last_ch = read_text(cm.get(n), -400) if cm.get(n) else ""   # W6验证:取卷末章n而非全书max(cm)
         _nextv = vol_num + 1
         print(f"\n── 交棒卡(卷{vol_num}→卷{_nextv}) ──")
         print("  [上卷末钩] 末章末400字已在上;下卷首章须承接此钩,禁回顾腔复述")
@@ -583,18 +585,29 @@ def cmd_status():
                 _dm = re.search(r"日更[:：]?\s*(\d+)", _plan_f.read_text(encoding="utf-8"))
                 if _dm:
                     _daily = max(int(_dm.group(1)), 1)
-            _stock = maxn - int(_pm.group(1))
-            _days = _stock / _daily
-            if _days < 3:
-                print(f"[红灯] 存稿仅{_stock}章(≈{_days:.0f}天量,<3天=断更临界)——停一切重构,只产出新章")
-            elif _days < 7:
-                print(f"[WARN] 存稿{_stock}章(≈{_days:.0f}天量,<7天安全线)——book-plan三存一纪律")
     if hs:
         print(f"hook同步: {hs}")
     cm = chapter_map()
     vols = G.scan_volumes(list(cm.values()))
     maxn = max(cm) if cm else 0
     nxt = maxn + 1
+    # 存稿红灯(断更保护,依赖maxn——W6验证:原位引用未定义maxn必崩)
+    _pub = _fbk / "ledgers" / "发布进度.md"
+    if _pub.exists():
+        _pm = re.search(r"已发至[:：]?\s*第?(\d+)", _pub.read_text(encoding="utf-8"))
+        if _pm:
+            _daily = 2
+            _plan_f = _fbk / "商业计划.md"
+            if _plan_f.exists():
+                _dm = re.search(r"日更[:：]?\s*(\d+)", _plan_f.read_text(encoding="utf-8"))
+                if _dm:
+                    _daily = max(int(_dm.group(1)), 1)
+            _stock = maxn - int(_pm.group(1))
+            _days = _stock / _daily
+            if _days < 3:
+                print(f"[红灯] 存稿仅{_stock}章(≈{_days:.0f}天量,<3天=断更临界)——停一切重构,只产出新章")
+            elif _days < 7:
+                print(f"[WARN] 存稿{_stock}章(≈{_days:.0f}天量,<7天安全线)——book-plan三存一纪律")
     pg = progress_data()
     print(f"进度: max={maxn} next={nxt} 卷={vols}")
     # 结构同构门(advisory,大审计-08/11): 跨章开场/收尾/场景数分布
@@ -652,7 +665,7 @@ def cmd_status():
     mat_left = (len([l for l in read_text(MATERIAL).splitlines()
                      if l.strip().startswith(("- ", "  - ")) and "已用:" not in l]) if MATERIAL and MATERIAL.exists() else 0)
     est = mat_left // 3 if mat_left else 0
-    if mat_left < 30:
+    if mat_left < 30 and maxn > 0:   # W4推演:零起步0章0条即红灯=误伤,首章不拦
         print(f"[红灯] 素材库仅剩{mat_left}条(约{est}章耗尽)——立即扩容(world-economy/行业经营库)")
         print(f"       扩容建议: 按当前卷的场景类型补充(查卷纲场景型分布);每10章扩20条=长跑稳态")
     else:
@@ -687,7 +700,10 @@ def cmd_next(args):
                     return 1
     cm = chapter_map()
     maxn = max(cm) if cm else 0
-    n = int(args[0]) if args else maxn + 1
+    try:
+        n = int(args[0]) if args else maxn + 1
+    except ValueError:
+        print(f"[exit 2] 章号须为整数: {args[0]}"); return 2
     vols = G.scan_volumes(list(cm.values()))
     exp = G.expected_volume(n, vols)
     if n in cm:
@@ -698,7 +714,6 @@ def cmd_next(args):
         return 2
     # 滚动前瞻模式(与skill_protocol gen card共享;缺陷19: 此处为第二道防线)——防一次排完900章(纯瀑布死法)
     # 卷纲锁死当前卷,卡只做本卷内next~next+9;跨卷须先跑卷末复盘+下一卷纲
-    _vol_end = _is_volend if '_is_volend' in dir() else None
     if maxn > 0 and n > maxn + 10:
         print(f"[前瞻窗口] 第{n:03d}章超出前瞻窗口(next+10)——滚动前瞻模式: 卡只做5-10章远")
         print(f"  当前max={maxn},窗口={maxn+1}~{maxn+10};要排更远须: ①写完窗口内章 ②卷末复盘 ③下一卷纲")
@@ -723,7 +738,7 @@ def cmd_next(args):
     if card:
         print(f"[已有卡] {card.relative_to(ROOT)}——可直接进bundle")
     else:
-        print("[缺卡] 先填卡;bundle/done会被前置缺失拦截")
+        print(f"[缺卡] 先填卡: python3 tools/skill_protocol.py gen card {n} --book {BOOK.name if BOOK != ROOT else '(主书)'} → 按scene-card技能填空;bundle/done会被前置缺失拦截")
         return 2
     return 0
 
@@ -1007,7 +1022,7 @@ def cmd_bundle(args):
         flag = " !" if used > cap else ""
         print(f"  {name}: {used}/{cap}字{flag}")
     # 红队20260919长跑修复: 槽位上限总和~13900>旧硬上限10200=结构性必然FAIL→提至15500
-    print(f"  合计: {total}字 (硬上限15500" + (",超限!" if total > 14000 else ",OK") + ")")
+    print(f"  合计: {total}字 (硬上限15500" + (",超限!" if total > 14000 else ",OK") + ")" + ("——14000以上代理读数质量劣化带,建议先压缩账本" if total > 14000 else ""))
     if total > 15500:
         print("[FAIL] 注入包超硬上限15500字——先跑ledger_compact/伏笔归档再生成(磨刀十五批: 原超限仍return 0=注入静默截断)")
         return 1
@@ -1087,7 +1102,9 @@ def cmd_check(args):
 # ---------------- done ----------------
 def cmd_done(args):
     revise = "--revise" in args
-    strict = "--strict" in args
+    strict = "--strict" in args   # W6验证: 此前解析后未用,峰章"必走--strict"落空
+    if strict:
+        revise = False   # strict=全门硬验收,禁一切降级
     nums = [a for a in args if not a.startswith("--")]
     if not nums:
         print("用法: pipeline.py done N [--revise] [--strict]"); return 2
@@ -1295,7 +1312,7 @@ def cmd_done(args):
     _journals = sorted(LEDGERS.glob(".ledger-journal-*.json")) if LEDGERS.exists() else []
     if _journals:
         warns.append(f"账本journal残留: {','.join(j.name for j in _journals[:3])}——上次ledger-update中断,核对后补齐账目并删journal文件")
-        # P1-4 红队20260919长跑修复: 全书卡长度/新鲜度门(无门则跨卷失忆静默漂移)
+    # P1-4 红队20260919长跑修复: 全书卡长度/新鲜度门(无门则跨卷失忆静默漂移;W6验证:原嵌进if _journals永不执行)
         for _sb_path in [BOOK / "故事圣经.md", BOOK / "story" / "60-圣经" / "故事圣经.md"]:
             if _sb_path.exists():
                 _sbt = _sb_path.read_text(encoding="utf-8")
@@ -1395,9 +1412,9 @@ def cmd_done(args):
             else:
                 warns.append(f"Agent Storm未通过(非关键章降级WARN): {_st_msg}")
     except ImportError:
-        warns.append("storm_orchestrate.py不可用(非阻塞)")
+        problems.append("storm_orchestrate.py不可用=storm门被破坏(fail-closed,红队20260919W5:删文件即可拔门)")  # W6验证属实:ImportError降WARN=删脚本即永久放行
     except Exception as _e:
-        warns.append(f"storm gate异常(非阻塞): {_e}")  # 漏洞1: 不再静默跳过
+        problems.append(f"storm gate异常(非阻塞→fail-closed): {_e}")
 
     # 缺陷7修复: 场景卡版本控制(done时自动备份到.git快照区)
     _card_bak = BOOK / "卡" / f".bak-{n:03d}"

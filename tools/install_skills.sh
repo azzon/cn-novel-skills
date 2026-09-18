@@ -48,7 +48,7 @@ if [ -d "$ROOT/.zcode" ]; then
     name=$(basename "$d")
     if ! echo "$DOMAINS" | grep -qx "$name"; then
       find "$ROOT/skills" -mindepth 2 -maxdepth 2 -type d -name "$name" | grep -q . || {
-        rm -rf "$d"; echo "清理孤儿[$Z]: $name"
+        mkdir -p "$Z/.orphans"; mv "$d" "$Z/.orphans/$name"; echo "孤儿隔离(不删除,W6): $name → .orphans/"
       }
     fi
   done

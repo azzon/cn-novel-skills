@@ -47,3 +47,17 @@ gen脚手架(卡/冷读) → 填空(残留（填）=提交层拦截) → 指纹(
 3. 对应写作技能排点纪律更新(cool-point/era-goldmine等)+install_skills.sh重装
 
 **用户第二次说同一件事=系统失败**,记入story/audit/大审计并写明上次为什么没拦住。禁止只改当前书内容不动系统——书是产物,系统才是资产。
+
+## 工作流入口速查（红队20260919十波批W9:新执行者不知从哪个yaml开始）
+
+- 章节生产: `workflows/chapter_production.yaml`（卡→写→验→storm→冷读→done）
+- 新书立项: `workflows/book_design.yaml`
+- 周期审计: `workflows/periodic.yaml`（每10章/卷末/月度）
+- 上架发布: `workflows/publish.yaml`
+
+## 打勾规则（ch002执行率33%事故的操作层堵法）
+
+1. 每章开工先跑 `python3 tools/skill_protocol.py list <章号> --book <书根>` 生成打勾表(格式由工具定,禁手建);
+2. 打勾必须附产物路径(工具/文件),无引用=自证,audit拦;
+3. 每章必新开记录块,禁沿用上章文件(1993ch031事故);
+4. 峰章/卷首末 done 必带 `--strict`(全门硬验收,禁降级)。

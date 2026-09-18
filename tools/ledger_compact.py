@@ -20,48 +20,38 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 ARCHIVE_MAX = 500  # 缺陷18: 归档区上限
 
 def fold(path, keep_pred, archive_head, dry=False):
-    """按谓词把行分两组,归档组移到 archive_head 区尾"""
+    """按谓词把行分两组,归档组移到 archive_head 区尾(归档区置于活跃区前,账本读取协议=取尾取最新)"""
     if not path.exists():
         return 0
     lines = path.read_text(encoding="utf-8").splitlines()
     full = "\n".join(lines)
     if archive_head in full:
-        # P0-033: 二次折叠有bug(头区重复+数据损坏),修复前禁用
-        return 0
-        arch_zone_end = full.find("\n\n", arch_zone_start)
-        # 统计归档区之后的活跃行数
-        after_arch = full[arch_zone_end:] if arch_zone_end > 0 else ""
-        active_lines = [l for l in after_arch.split("\n") if l.strip().startswith("- ")]
-        if len(active_lines) < 40:   # 活跃区<40行=健康,不折
+        # 二次折叠(W6修复: 旧版引用未定义arch_zone_start=死代码): 只对活跃区折,旧归档块原样保留
+        head_i = next(i for i, l in enumerate(lines) if archive_head in l)
+        zone_end = head_i
+        while zone_end < len(lines) and lines[zone_end].strip():
+            zone_end += 1
+        old_block = lines[head_i:zone_end]
+        active = lines[zone_end:]
+        na_idx = [i for i, l in enumerate(active) if keep_pred(l)]
+        if not na_idx:
             return 0
-        # 二次折叠: 把归档区后的活跃区中可折叠行追加进归档区
-        head = lines[:arch_zone_start.count("\n") + 1]
-        existing_arch = []
-        active = []
-        in_arch = False
-        for l in lines:
-            if archive_head in l:
-                in_arch = True
-                continue
-            if in_arch and l.strip() == "":
-                in_arch = False
-                continue
-            if in_arch:
-                existing_arch.append(l)
-            elif l.strip().startswith("- "):
-                active.append(l)
-            else:
-                head.append(l)
-        # 对活跃区应用谓词,可折的追加到归档区
-        new_arch = [l for l in active if keep_pred(l)]
-        active = [l for l in active if not keep_pred(l)]
-        if not new_arch:
-            return 0
-        arch = existing_arch + new_arch
-        # 重写
-        out = head + ["", archive_head, f"(累计{len(arch)}条,二次折叠于本周期;全文在git历史)"] + arch + [""] + active
+        na_set = set(na_idx)
+        kept = [l for i, l in enumerate(active) if i not in na_set]
+        new_arch = [active[i] for i in na_idx]
+        # ARCHIVE_MAX: 归档区超上限时丢最旧(全文在git历史)
+        old_arch_rows = [l for l in old_block if l.strip().startswith("- ")]
+        total_arch = old_arch_rows + new_arch
+        if len(total_arch) > ARCHIVE_MAX:
+            total_arch = total_arch[-ARCHIVE_MAX:]
+        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史)"] + total_arch + [""] + kept
         if not dry:
+            _before = path.read_text(encoding="utf-8")
             path.write_text("\n".join(out) + "\n", encoding="utf-8")
+            if not _tail_check(path, out):
+                path.write_text(_before, encoding="utf-8")
+                print(f"  [自检失败已回滚] {path.name}: 最大章不在尾部,折叠中止")
+                return 0
         return len(new_arch)
     head, active, arch = [], [], []
     for l in lines:
@@ -71,22 +61,25 @@ def fold(path, keep_pred, archive_head, dry=False):
             head.append(l)
     if not arch:
         return 0
-    # 红队20260915: 归档区必须置于活跃区之前——账本读取协议是"取尾部=取最新",
-    # 归档在尾部会让近窗注入喂到旧账(story_time从090跳回030实测)
+    if len(arch) > ARCHIVE_MAX:
+        arch = arch[-ARCHIVE_MAX:]
     out = head + ["", archive_head, f"(共{len(arch)}条,压缩于本周期;全文在git历史)"] + arch + [""] + active
     if not dry:
         _before = path.read_text(encoding="utf-8")
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
-        # 写后自检: 全文最大章号必须仍在尾部60行内(防活性反转),失败即回滚
-        import re as _re
-        _allch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", path.read_text(encoding="utf-8"))]
-        _tailch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", "\n".join(out[-60:]))]
-        if _allch and _tailch and max(_allch) not in _tailch:
+        if not _tail_check(path, out):
             path.write_text(_before, encoding="utf-8")
             print(f"  [自检失败已回滚] {path.name}: 最大章在归档区,折叠中止——人工处理")
             return 0
     return len(arch)
 
+
+def _tail_check(path, out, window=60):
+    """写后自检: 全文最大章号必须仍在尾部window行内(防活性反转)"""
+    import re as _re
+    _allch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", "\n".join(out))]
+    _tailch = [int(x) for x in _re.findall(r"第0?(\d{1,3})章", "\n".join(out[-window:]))]
+    return not (_allch and _tailch and max(_allch) not in _tailch)
 
 def keep_tail(path, prefix, keep, archive_head, dry=False):
     if not path.exists():
@@ -96,40 +89,47 @@ def keep_tail(path, prefix, keep, archive_head, dry=False):
     idx = [i for i, l in enumerate(lines) if l.strip().startswith(prefix)]
     if len(idx) <= keep:
         return 0
-    # P0-034修复: 二次折叠有灾难性重复bug(条目×2/头×3),在修复前禁用
     if archive_head in full:
-        return 0  # 已折叠过,跳过(等二次折叠修复后再启用)
-    # 红队20260919长跑修复: 归档头存在时,检查归档区之后的行是否超keep
-    if archive_head in full:
-        arch_pos = full.find(archive_head)
-        after = full[arch_pos:]
-        after_idx = [i for i, l in enumerate(after.split("\n")) if l.strip().startswith(prefix)]
-        if len(after_idx) <= keep:
+        # 二次keep_tail(W6修复: 旧版after含旧归档行→重折旧行=灾难性条目×2): 活跃区=归档块(到第一个空行)之后
+        head_i = next(i for i, l in enumerate(lines) if archive_head in l)
+        zone_end = head_i
+        while zone_end < len(lines) and lines[zone_end].strip():
+            zone_end += 1
+        old_block = lines[head_i:zone_end]
+        active = lines[zone_end:]
+        a_idx = [i for i, l in enumerate(active) if l.strip().startswith(prefix)]
+        if len(a_idx) <= keep:
             return 0
-        # 二次keep_tail: 对归档区之后的行再执行
-        lines_after = after.split("\n")
-        fold_n = len(after_idx) - keep
-        fold_set = set(after_idx[:fold_n])
-        kept = [l for i, l in enumerate(lines_after) if i not in fold_set]
-        arch = [lines_after[i] for i in sorted(fold_set)]
-        # 合并旧归档+新归档
-        old_arch_start = full.find(archive_head)
-        old_arch_end = full.find("\n\n", old_arch_start)
-        old_arch_block = full[old_arch_start:old_arch_end] if old_arch_end > 0 else full[old_arch_start:]
-        pre = full[:old_arch_start].split("\n")
-        out = pre + ["", archive_head, f"(累计折叠;全文在git历史)"] + old_arch_block.split("\n")[2:] + arch + kept
+        fold_n = len(a_idx) - keep
+        fold_set = set(a_idx[:fold_n])
+        new_arch = [active[i] for i in sorted(fold_set)]
+        kept = [l for i, l in enumerate(active) if i not in fold_set]
+        old_rows = [l for l in old_block if l.strip().startswith(prefix)]
+        total_arch = old_rows + new_arch
+        if len(total_arch) > ARCHIVE_MAX:
+            total_arch = total_arch[-ARCHIVE_MAX:]
+        out = lines[:head_i] + [archive_head, f"(共{len(total_arch)}条,滚动归档;全文在git历史)"] + total_arch + [""] + kept
         if not dry:
+            _before = path.read_text(encoding="utf-8")
             path.write_text("\n".join(out) + "\n", encoding="utf-8")
+            if not _tail_check(path, out):
+                path.write_text(_before, encoding="utf-8")
+                print(f"  [自检失败已回滚] {path.name}: 最大章不在尾部,折叠中止")
+                return 0
         return fold_n
     fold_n = len(idx) - keep
-    fold_set = set(idx[:fold_n])           # 旧行删除,移文末归档区(修:首版把旧行留原位,新行反被压底)
+    fold_set = set(idx[:fold_n])
     kept = [l for i, l in enumerate(lines) if i not in fold_set]
     arch = [lines[i] for i in sorted(fold_set)]
     out = ["", archive_head, f"(前{fold_n}条折叠;全文在git历史)"] + arch + [""] + kept  # P1-035: 归档区在前,活跃区在后
     if not dry:
+        _before = path.read_text(encoding="utf-8")
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
+        if not _tail_check(path, out):
+            path.write_text(_before, encoding="utf-8")
+            print(f"  [自检失败已回滚] {path.name}: 最大章在归档区,折叠中止——人工处理")
+            return 0
     return fold_n
-
 
 def main():
     args = sys.argv[1:]
@@ -149,7 +149,8 @@ def main():
     total += keep_tail(L / "时间线.md", "- 第", 60, "## 前史(折叠)", dry)  # 幂等:已折则查活跃区
     total += keep_tail(L / "线弦.md", "- 第", 40, "## 归档(线弦·折叠)", dry)
     total += keep_tail(L / "类型轮换.md", "- 第", 60, "## 归档(类型轮换·折叠)", dry)
-    total += keep_tail(L / "技能执行记录.md", "# 技能执行记录", 30, "## 归档(技能记录·折叠)", dry)
+    # W6验证:原前缀"# 技能执行记录"只命中标题行=永久no-op,改"- "
+    total += keep_tail(L / "技能执行记录.md", "- ", 30, "## 归档(技能记录·折叠)", dry)
     # 数字账/口碑账: 结构化行(非"第N章"前缀),按行数保尾
     for _fname, _keep_n in [("数字账.md", 200), ("口碑账.md", 100)]:
         _fp = L / _fname

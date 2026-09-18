@@ -32,7 +32,7 @@ def main():
     comments = []
     if hook: comments.append(("催更党", "这章结尾憋死人,下一章呢?!"))
     if react >= 2: comments.append(("爽点党", "这波围观看得舒服,就该这么写!"))
-    if react == 0: comments.append("路人甲", "")
+    if react == 0: comments.append(("路人甲", "没感觉,划走了。"))   # W6验证:缺元组括号react==0必TypeError
     if money >= 3: comments.append(("经营党", "数字看得踏实,这作者的账不会崩。"))
     if dial / max(cn/1000,1) < 30: comments.append(("对话党", "叙述有点多,想看人说话。"))
     names = ["老书虫", "白嫖党", "追更中", "夜班工人", "小学生他爹"]

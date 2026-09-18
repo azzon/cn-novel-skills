@@ -105,7 +105,18 @@ def cmd_record(target, agent_id, score, issue):
     if not sp.exists():
         print("❌ Storm未初始化"); return 1
     state = json.loads(sp.read_text(encoding="utf-8"))
-    
+    # W6验证修复: verdict_locked只写不读——aggregate后仍可改分而gate读旧verdict
+    if state.get("verdict_locked"):
+        print("❌ verdict已锁定(aggregate已跑)——改分须先重跑aggregate重算;直接record会被gate忽略")
+        return 1
+    # W6验证修复: 分数无范围校验(负数/100入账操纵均值)
+    try:
+        _sc = float(score)
+    except (TypeError, ValueError):
+        print(f"❌ 分数非法: {score}"); return 1
+    if not (0 <= _sc <= 10):
+        print(f"❌ 分数超范围(0-10): {score}"); return 1
+
     found = False
     for wn, wdata in state["waves"].items():
         if agent_id in wdata["agents"]:
@@ -122,7 +133,9 @@ def cmd_record(target, agent_id, score, issue):
         print(f"❌ Agent {agent_id} 不存在(有效ID: A1-A10,D1-D10,J1-J10,C1-C10,G1-G10)")
         return 1
     
-    sp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    _tmp = sp.with_suffix(".tmp")   # W6验证:裸write_text断电=json损坏且无兜底
+    _tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    _tmp.replace(sp)
     print(f"  ✅ {agent_id} score={score} issue={issue[:40]}")
 
     # 盲区015修复: Wave1完成时自动注入Wave2 prompt
@@ -293,7 +306,9 @@ def _inject_wave1_results(state, target, sp):
             charges.append("  " + aid + "(" + a["role"] + "): " + str(a["issue"]))
     if not charges:
         return
-    wave2_file = sp.parent / "storm" / ("chapter-" + target.stem[:20] + "-wave2.md")
+    import re as _re
+    _stem = _re.sub(r"[^\w]", "-", target.stem)[:20]   # W6验证:与agent_storm落盘名同清洗,否则exists()恒假静默失败
+    wave2_file = sp.parent / "storm" / ("chapter-" + _stem + "-wave2.md")
     if wave2_file.exists():
         t = wave2_file.read_text(encoding="utf-8")
         NL = chr(10)

@@ -106,7 +106,7 @@ def expected_volume(n, volumes):
     """章号→期望卷: 声明表优先(story/30-情节/卷册表.md);未声明则落入区间用该卷;大于所有max→末卷顺写"""
     if not volumes:
         return None
-    decl = volume_decl()
+    decl = volume_decl(book)
     for v, (lo, hi) in decl.items():
         if lo <= n <= hi:
             return v
@@ -254,7 +254,7 @@ def main():
         _g1_floor = 1500
         _bk1 = book_root(p)
         _bp = _bk1 / "商业计划.md"
-        if _bp.exists() and re.search(r"平台[:：]\s*番茄", _bp.read_text(encoding="utf-8")):
+        if _bp.exists() and re.search(r"^平台[:：]\s*番茄", _bp.read_text(encoding="utf-8"), re.M):   # W6验证:原search全文,竞品对比提及即误降
             _g1_floor = 900   # 番茄快节奏;900=极端短章仍拦
         if cn < _g1_floor:
             if mode == "new":
@@ -266,13 +266,13 @@ def main():
                     for _l in _wv.read_text(encoding="utf-8").splitlines():
                         import re as _re
                         if _re.match(rf"- ch0*{n}:", _l.strip()):
-                            if _re.search(r"(g1|check|all)", _l):
+                            if _re.search(r"(^|[;:，,\s])(g1|check|all)([;:)，,\s]|$)", _l):   # W6验证:原子串search,g1命中g10、理由含check误开
                                 _wv_ok = True
                             break
                 if _wv_ok:
                     warns.append(f"G1字数{cn}(<2500)——书根waivers豁免(焚稿存根/夹具)")
                 else:
-                    problems.append(f"G1字数硬底线: 新章仅{cn}字(<{_g1_floor + 1600}硬线,平台{'番茄' if _g1_floor == 900 else '起点'})——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
+                    problems.append(f"G1字数硬底线: 新章仅{cn}字(<{_g1_floor}硬线,平台{'番茄' if _g1_floor == 900 else '起点'})——骨架未回填禁入库,走血肉遍(beat-expand)扩写。章节短=场景浅=无画面感(用户核心反馈)")
             else:
                 warns.append(f"G1存量短章{cn}字(<2000)——已列入回炉清单(beat-expand),修文可入库,扩写前不得作为首发库存")
         elif cn < 2000:

@@ -39,7 +39,7 @@ def chapter_files():
 
 def check_metrics(fp):
     """跑单章check.py,解析METRICS行"""
-    r = run([sys.executable, "tools/check.py", "--modern", "--metrics", "--scene" if False else fp])
+    r = run([sys.executable, "tools/check.py", "--modern", "--metrics", fp])   # W6验证:原"--scene" if False死旗标,场景门永不入基线
     if isinstance(fp, pathlib.Path):
         fp = str(fp)
     m = None

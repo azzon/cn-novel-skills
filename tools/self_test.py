@@ -439,7 +439,7 @@ def main():
             test_goldmine_audit,
             test_genre_contract,
             test_redteam_canaries,
-            test_era_clean_regression, test_mono_exempt, test_import_smoke]
+            test_era_clean_regression, test_mono_exempt, test_era1993, test_import_smoke]
     for t in tests:
         try:
             t()

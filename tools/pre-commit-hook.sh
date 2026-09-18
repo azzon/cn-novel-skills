@@ -21,9 +21,9 @@ if ! STATUS_OUT=$(git -c core.quotepath=false diff --cached --name-status --diff
 fi
 
 # 重命名(R)按新路径判定: text/→archive/的归档移动自然豁免(audit修正)
-NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="A" {print $2}')
+NEW_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && ($1=="A" || $1 ~ /^R/) {print $2}')   # W6: git mv外来稿进text/曾跳过新章全流程门
 MOD_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="M" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (substr($3,1,5)=="text/" || index($3,"/text/")>0) && $1 ~ /^R/ {print $3}')
-DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2}')
+DEL_CH=$(echo "$STATUS_OUT" | awk -F'\t' 'tolower($2) ~ /第[0-9]+章\.md$/ && (substr($2,1,5)=="text/" || index($2,"/text/")>0) && $1=="D" {print $2} tolower($3) ~ /第[0-9]+章\.md$/ && (index($3,"/text/")==0) && $1 ~ /^R/ {print $2}')   # W6: R移出text/曾逃逸del门
 CHAPTERS=$( { [ -n "$NEW_CH" ] && echo "$NEW_CH"; [ -n "$MOD_CH" ] && echo "$MOD_CH"; [ -n "$DEL_CH" ] && echo "$DEL_CH"; } )
 SKILLS_STAGED=$(echo "$STATUS_OUT" | awk -F'\t' '$2 ~ /^(\.zcode\/skills\/|skills\/|\.claude\/skills\/)/ {print $2}')
 # 脚手架门(Python单点;磨刀十三批H0修复: 失败立即exit——此前只置FAIL会被'无变更跳过'分支exit 0吞掉)
@@ -47,7 +47,14 @@ fi
 # 红队git绕过#1: 门自身文件被staged=hook自免攻击面——须waivers登记hookself(人审)
 HOOK_SELF=$(echo "$STATUS_OUT" | awk -F'\t' '$1 ~ /^[AM]/ && ($2 ~ /^tools\/pre-commit-hook.sh$/ || $2 ~ /^\.githooks\// || $2 ~ /^tools\/(skill_protocol|check|gate_chapter|card_check|voice_check|pipeline)\.py$/) {print $2}')
 HOOKSELF_OK=0
-    grep -qsE "^- hookself:.*hookself.*20[0-9]{2}-[0-9]{2}-[0-9]{2}" ledgers/waivers.md && HOOKSELF_OK=1
+    _HS_LINE=$(grep -E "^- hookself:.*hookself" ledgers/waivers.md 2>/dev/null | tail -1)
+    _HS_DATE=$(echo "$_HS_LINE" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | head -1)
+    case "$_HS_DATE" in 3*|2[1-9]*) _HS_DATE="" ;; esac
+    if [ -n "$_HS_DATE" ] && [ "$_HS_DATE" \< "$(date +%F)" ] && [ "$_HS_DATE" \< "$(date -d '89 days ago' +%F 2>/dev/null || echo 1999-01-01)" ]; then
+      : # hookself登记超90天=过期,须复验重登
+    else
+      HOOKSELF_OK=1   # W6: 原只验存在=一次登记永生
+    fi
     if [ -n "$HOOK_SELF" ] && [ "$HOOKSELF_OK" != "1" ]; then
     echo -e "${RED}  [FAIL] 门自身文件被修改且staged: $HOOK_SELF${NC}"
     echo -e "${RED}  ——hook自免=最高危攻击面;人工复核后ledgers/waivers.md登记 '- hookself: hookself (批准:人名 日期)' 同批提交${NC}"
@@ -69,10 +76,13 @@ waiver_registered() {  # $1=章号 $2=门id [$3=书根账路径]
     line=$(grep -E "^- ch0?$1:" "$LEDG" 2>/dev/null | tail -1)
     [ -z "$line" ] && return 1
     # 红队20260915: waiver永不过期=后门;90天自动失效,需复验日期重登记
-    WDATE=$(echo "$line" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | tail -1)
+    WDATE=$(echo "$line" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | head -1)   # W6: 原tail -1,行内附2099即永生
     [ -z "$WDATE" ] && return 1   # 红队git绕过#4: 无日期=永生后门,一律失效重登记
+    case "$WDATE" in
+      3*|2[1-9]*) return 1 ;;   # W6: 未来日期(21xx+/3xxx)一律无效
+    esac
     if [ -n "$WDATE" ]; then
-      if [ "$WDATE" \< "$(date -d '90 days ago' +%F 2>/dev/null || echo 0000-00-00)" ]; then
+      if [ "$WDATE" \< "$(date -d '90 days ago' +%F 2>/dev/null || echo 1999-01-01)" ]; then   # W6: date失败原回退0000-00-00=fail-open永不过期
         return 1
       fi
     fi
@@ -274,17 +284,18 @@ if [ -n "$NEW_CH" ]; then
 fi
 
 # ── F. 技能库一致性门(skills/为SSOT) ──
-if [ -n "$SKILLS_STAGED" ]; then
-    echo ""
-    echo "── 技能库一致性门 ──"
-    # 工具/技能变更→跑自测套件(磨刀第七批: 工具坏了基线即红,提交层先拦)
-    if git diff --cached --name-only | grep -qE "^tools/.*\.py$"; then
+# W6: 工具自测从SKILLS_STAGED门内解嵌——只改tools/*.py不碰skills/时自测永不触发
+if git diff --cached --name-only | grep -qE "^tools/.*\.py$"; then
       if ! python3 tools/self_test.py > /tmp/st_out.txt 2>&1; then
         echo -e "${RED}  [FAIL] 工具自测(self_test)未过——tools/*.py变更触发:${NC}"
         grep "✗" /tmp/st_out.txt | head -3 | sed 's/^/    /'
         FAIL=1
       fi
-    fi
+fi
+# 技能库一致性门(W6: 原[self_test嵌在SKILLS_STAGED门内],现SKILLS_STAGED仍管体检;tools-only提交已由上面self_test覆盖)
+if [ -n "$SKILLS_STAGED" ]; then
+    echo ""
+    echo "── 技能库一致性门 ──"
     if python3 tools/skills_check.py > /tmp/sc_out.txt 2>&1; then
         echo -e "${GREEN}  [PASS] skills_check${NC}"
     else
