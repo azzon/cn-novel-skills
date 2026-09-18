@@ -26,9 +26,8 @@ def fold(path, keep_pred, archive_head, dry=False):
     lines = path.read_text(encoding="utf-8").splitlines()
     full = "\n".join(lines)
     if archive_head in full:
-        # 红队20260919长跑修复: 归档区已存在≠永久免疫——活跃区再次堆积>阈值时允许二次折叠
-        # (旧逻辑:归档头存在即return 0,900章时账本裸涨830章)
-        arch_zone_start = full.find(archive_head)
+        # P0-033: 二次折叠有bug(头区重复+数据损坏),修复前禁用
+        return 0
         arch_zone_end = full.find("\n\n", arch_zone_start)
         # 统计归档区之后的活跃行数
         after_arch = full[arch_zone_end:] if arch_zone_end > 0 else ""
@@ -97,6 +96,9 @@ def keep_tail(path, prefix, keep, archive_head, dry=False):
     idx = [i for i, l in enumerate(lines) if l.strip().startswith(prefix)]
     if len(idx) <= keep:
         return 0
+    # P0-034修复: 二次折叠有灾难性重复bug(条目×2/头×3),在修复前禁用
+    if archive_head in full:
+        return 0  # 已折叠过,跳过(等二次折叠修复后再启用)
     # 红队20260919长跑修复: 归档头存在时,检查归档区之后的行是否超keep
     if archive_head in full:
         arch_pos = full.find(archive_head)
@@ -123,7 +125,7 @@ def keep_tail(path, prefix, keep, archive_head, dry=False):
     fold_set = set(idx[:fold_n])           # 旧行删除,移文末归档区(修:首版把旧行留原位,新行反被压底)
     kept = [l for i, l in enumerate(lines) if i not in fold_set]
     arch = [lines[i] for i in sorted(fold_set)]
-    out = kept + ["", archive_head, f"(前{fold_n}条折叠;全文在git历史)"] + arch
+    out = ["", archive_head, f"(前{fold_n}条折叠;全文在git历史)"] + arch + [""] + kept  # P1-035: 归档区在前,活跃区在后
     if not dry:
         path.write_text("\n".join(out) + "\n", encoding="utf-8")
     return fold_n

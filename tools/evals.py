@@ -116,7 +116,7 @@ def collect(book_root=ROOT, only_files=None):
     # 全工具语法门(防坏提交: 本项目hook不查py语法,曾发生PREFIX断裂被提交)
     import py_compile
     syn = "OK"
-    for tool in ["pipeline.py", "check.py", "gate_chapter.py", "structure_check.py", "skills_check.py", "evals.py"]:
+    for tool in "pipeline.py", "check.py", "gate_chapter.py", "structure_check.py", "skills_check.py", "evals.py", "skill_protocol.py", "storm_orchestrate.py", "ledger_compact.py", "card_check.py":
         try:
             py_compile.compile(str(ROOT / "tools" / tool), doraise=True)
         except py_compile.PyCompileError as e:

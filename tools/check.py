@@ -121,6 +121,7 @@ def cjk_len(text):
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
 def check(fp: pathlib.Path):
+    MODERN_SETTING[0] = False  # P2-019: 重置进程级状态(防多书泄漏)
     global _PROFILE
     _PROFILE = _load_profile(fp)
     raw = fp.read_text(encoding="utf-8-sig")
@@ -288,7 +289,7 @@ def check(fp: pathlib.Path):
         warns.append(f"章内原样重复1处(「{list(dup_set)[0][:18]}…」)——检查是否补丁残留")
 
     # 14.4) 装饰性修辞总密度 v2:去除与#5重复计算的模式,只加新出现的
-    sim_extra = 0
+    sim_extra = 0  # P1-018: SIMILE_PATTERNS已覆盖宛如/恍若,不重复计数
     for pat in [r"宛如", r"恍若"]:  # 只加#5未覆盖的
         sim_extra += len(re.findall(pat, body))
     personif = len(re.findall(r"[推拉扛拽]着一?(?:一整个|整个)", body))
@@ -742,7 +743,7 @@ def check(fp: pathlib.Path):
             _qfirst = _i + 1   # 首个失衡段(正差=缺右引号起点,负差=多右引号)
     if _qbal != 0:
         _dir = "缺右引号" if _qbal > 0 else "多右引号"
-        issues.append(f"引号不闭合(FAIL): 净{_dir}{abs(_qbal)}个,首异常段第{_qfirst}段——跨段悬空引号(ch45事故形状)")
+        issues.append(f"引号不闭合(可能为合法跨段对白,检查格式): 净{_dir}{abs(_qbal)}个,首异常段第{_qfirst}段——跨段悬空引号(ch45事故形状)")
 
     # 63) 离场者发言门(大审计-32 N4: ch35"走了的老主顾又站回来说话"事故——对话空间连续性)
     # 通用捕获(不依赖名单——ch35事故主角"老主顾"正是无名配角);排除泛指主语

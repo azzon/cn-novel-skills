@@ -201,9 +201,6 @@ def cmd_gen(what, n, book, vol):
                     vol = int(re.search(r"\d+", str(_exp)).group())   # expected_volume返回"卷2",归一成数字
             except Exception:
                 pass
-            if n <= 0:
-        print(f"[参数错误] 章号{n}无效(须≥1)")
-        return 2
     # 红队20260919漏洞3修复: gen card加入前瞻窗口检查(防绕过cmd_next)
         _files = sorted((book / "text").rglob("第*.md")) if (book / "text").is_dir() else []
         _nums = [int(re.search(r"\d+", f.stem).group()) for f in _files if re.search(r"\d+", f.stem)]
@@ -218,6 +215,10 @@ def cmd_gen(what, n, book, vol):
         out = book / "audit" / f"冷读-第{n:03d}章.md"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(COLDREAD_SKELETON.format(n=n), encoding="utf-8")
+        if book == ROOT:
+            _alt = ROOT / 'story' / 'audit' / f'冷读-第{n:03d}章.md'
+            _alt.parent.mkdir(exist_ok=True)
+            _alt.write_text(COLDREAD_SKELETON.format(n=n), encoding='utf-8')  # P1-031
     else:
         print(f"未知产物: {what}(支持: card/coldread)")
         return 2
@@ -257,6 +258,15 @@ def cmd_audit_cards():
 
 
 def main():
+    # P0-001修复: 参数校验前置
+    if len(sys.argv) > 3 and sys.argv[1] == "gen" and sys.argv[2] in ("card", "coldread"):
+        try:
+            _n = int(sys.argv[3])
+            if _n <= 0:
+                print(f"[参数错误] 章号{_n}无效(须≥1)")
+                sys.exit(2)
+        except (ValueError, IndexError):
+            pass
     args = sys.argv[1:]
     if args and args[0] == "gen":
         # gen card|coldread <章号> [--vol N] [--book 书根]
