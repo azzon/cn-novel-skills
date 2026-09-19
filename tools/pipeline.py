@@ -709,6 +709,21 @@ def cmd_status():
         if maxn % 20 == 0:
             print('[REMIND] 第' + str(maxn) + '章为20的倍数——连续性守卫到期')
         print(f"下一动作: pipeline.py next {nxt}")
+    # 磨刀七批(上限): 钩强度趋势(冷读机器行COLDREAD-METRICS,近5章)
+    try:
+        _hist = []
+        _sh = BOOK / "ledgers" / "scores_history.jsonl"
+        if _sh.exists():
+            for l in _sh.read_text(encoding="utf-8").splitlines():
+                if "钩强度" in l:
+                    _mh = re.search(r"钩强度[:：]\s*(\d+(?:\.\d)?)", l)
+                    _mc = re.search(r"第(\d{3})章", l)
+                    if _mh and _mc: _hist.append((_mc.group(1), float(_mh.group(1))))
+        if _hist:
+            print("钩强度趋势(近5): " + " ".join(f"ch{k}:{v}" for k, v in _hist[-5:]))
+    except Exception:
+        pass
+
     # 磨刀六批: 债务面板
     try:
         _bl = BOOK / "ledgers" / "storm-backlog.md"
@@ -903,6 +918,19 @@ def cmd_bundle(args):
         _tics = [l.strip() for l in _tics_f.read_text(encoding="utf-8").splitlines() if l.strip()][:20]
         if _tics:
             add("1b全书签名禁复用", 400, "【反AI签名】以下词组已在全书多章出现,本章至多出现1次,优先用同义新表达: " + "、".join(_tics))
+    # 磨刀七批(上限): 范例段few-shot——最近3段冷读收割的最佳段注入,文风天花板正向拉
+    _flyf = BOOK / "风格包范例段库.md"
+    if _flyf.exists():
+        _segs = [l.strip()[1:].strip() for l in _flyf.read_text(encoding="utf-8").splitlines()
+                 if l.strip().startswith("- (第") and len(l) > 80]
+        if _segs:
+            _pick = _segs[-3:]
+            add("1c范例段few-shot", 700, "【文风上限样张】以下是全书冷读收割的最佳段,本章文风向其对标(学其感官落点与账理温度,禁抄其内容):\n" + "\n---\n".join(_pick))
+    _negf = BOOK / "audit" / "反面样张.md"
+    if _negf.exists():
+        _neg = [l.strip() for l in _negf.read_text(encoding="utf-8").splitlines() if l.strip().startswith("- ")][:6]
+        if _neg:
+            add("1d反面样张", 300, "【禁仿写】以下句式已被判AI味/说教,出现即打回:\n" + "\n".join(_neg))
     add("2场景卡(全文)", 1600, read_text(card))  # 大审计-20: 收口卡700被裁
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带

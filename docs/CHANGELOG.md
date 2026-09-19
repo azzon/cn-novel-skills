@@ -1,3 +1,5 @@
+- 20260919 磨刀七批(上限:本书好看): bundle注入范例段few-shot(近3段最佳段对标文风)+反面样张禁仿写库建档注入+升格环≤1轮→≤2轮(≥8.5提前停)+alt-takes扩面(每章心跳拍必走)+check方差WARN阈值书级可配(gate-tuning.json,waiver升级为参数的机制)+记忆词表再扩(身体反应型闪回)+fingerprint 2-3字签名段+storm status净问题/修复迭代显示+status钩强度趋势面板(待scores_history接通COLDREAD-METRICS数据源)
+
 - 20260919 磨刀六批(续审计52项发现): 15处实施——docs/periodic的v1 storm文案与脚本全量升v2(6处)+pre-commit块稿白名单+done范例段飞轮回流管道(冷读最强段→风格包库→bundle)+status债务面板(storm债21/指标债7/waiver19一眼可见)+漂移审计第3期起账+block check-block段首签名检测+冷读骨架AI味一票否决提示+ledger-update素材标记纪律+status死代码自审修复;37项登记后续批次(块卡骨架化/evals用例/语气词带参数化/fingerprint粒度等)
 
 - 20260919 磨刀五批(AI味专项): 全书级AI指纹检测器tools/book_fingerprint.py(房间纹4字n-gram跨章/章末形状分布/排比三连/明喻律/标签单调/金句连收——21章实测风险分30/100,20条房间纹:"忽然想起"16章"陈灶生把"17章火声簿触摸50处) + **根因判定:门致模板化**——记忆碎片门正则只认"想起X"句式,模型为过门每章机械复写 → 修复: mem门多形态认可(对话引出/器物触发/身体反应)+房间纹反作弊(命中audit/book-tics.txt的闪回句不计入)+check.py新门#80排比三连#81章末金句连收+bundle注入"全书签名禁复用清单"(每章至多1次)+storm_roles A4/D6/G9对照指纹报告+reader-proxy AI味一票否决硬线+scene-draft主角句式反签名三纪律

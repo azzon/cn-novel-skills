@@ -99,6 +99,17 @@ def main():
                 run += 1
                 if run >= 3: tri.append((n, "连续超短段×3: " + p[:10])); break
             else: run = 0
+    # 2-3字签名(磨刀七批: 4字粒度盲区——"心里明白"级短签名)
+    short_sig = collections.Counter()
+    short_docs = {}
+    for n, t in texts.items():
+        s3 = re.sub(r"[\s\u201c\u201d\"。，！？；：、—…]+", "", t)
+        short_docs[n] = {s3[i:i+3] for i in range(len(s3) - 2)}
+    common3 = set.intersection(*short_docs.values()) if short_docs else set()
+    report.append("\n## ③b 2-3字签名(全书每章都出现的3字组合)")
+    for g in sorted(common3)[:12]:
+        report.append(f"- 「{g}」 21章")
+
     report.append("\n## ④ 排比三连/同头超短段连发")
     for n, m in tri: report.append(f"- 第{n:03d}章: {m[:20]}")
 

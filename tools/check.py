@@ -255,13 +255,24 @@ def check(fp: pathlib.Path, gate_ver=None):
 
     # 13) 段落长度方差(反匀速+反AI指纹,白金标准>50)
     #     红队20260918: AI生成文本段长方差普遍<25=平台AI检测高风险;阈值从20→35(WARN)/25(FAIL)
+    #     磨刀七批: WARN阈值可配(audit/gate-tuning.json的variance_warn)——waiver高频项升级为书级参数
+    _VAR_WARN = 35
+    try:
+        _cur13 = pathlib.Path(p).resolve().parent
+        for _ in range(4):
+            _tf13 = _cur13 / "audit" / "gate-tuning.json"
+            if _tf13.exists():
+                _VAR_WARN = float(json.loads(_tf13.read_text(encoding="utf-8")).get("variance_warn", 35)); break
+            _cur13 = _cur13.parent
+    except Exception:
+        pass
     plens = [cjk_len(p) for p in paras]
     if len(plens) >= 12:
         psd = statistics.pstdev(plens)
         if psd < 25:
             issues.append(f"段落长度方差{psd:.0f}(<25=AI指纹高危:平台AI检测将标记;白金参考>50)——长段(80-200字)约占段落10-15%+超短段3-5个")
-        elif psd < 35:
-            warns.append(f"段落长度方差{psd:.0f}(<35=偏AI指纹;白金参考>50)——注意长短段错落")
+        elif psd < _VAR_WARN:
+            warns.append(f"段落长度方差{psd:.0f}(<{_VAR_WARN:.0f}=偏AI指纹;白金参考>50)——注意长短段错落")
 
     # 14) 对话占比(场景化率代理,布防总表B4)
     dl = [l for l in body_lines if ('"' in l or '\u201c' in l or '「' in l or '\u201d' in l or l.strip().startswith('"'))]
