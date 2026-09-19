@@ -109,6 +109,13 @@ def cmd_check_block(book, draft):
         warns.append(f"对白段占比{dia_pct:.0f}%(<38)——对白驱动不足")
     # 4 切点候选(duanzhang): 超短段+问句/感叹收尾的段=张力峰
     cuts = [p[:24] for p in paras if 0 < len(re.findall(r"[\u4e00-\u9fff]", p)) <= 6]
+    # W11-1 章配额模拟: 破折号<=3/明喻<=3每场——块全文达标但单场超标=切出必FAIL
+    for m in re.finditer(r'【场(\d)[^】]*】([\s\S]*?)(?=【场\d|$)', body):
+        sc, txt = m.group(1), m.group(2)
+        dash = txt.count('——')
+        sim = len(re.findall(r'像[^。，!?\n]{1,10}一样|像一|仿佛|如同', txt))
+        if dash > 3: problems.append(f'场{sc} 破折号{dash}处(>3)——切出为章必FAIL')
+        if sim > 3: problems.append(f'场{sc} 明喻{sim}处(>3)——切出为章必FAIL')
     print(f"═══ 块级卫生: {draft.name} ({cjk}字,{len(paras)}段) ═══")
     for x in problems: print(f"  [FAIL] {x}")
     for x in warns: print(f"  [WARN] {x}")
