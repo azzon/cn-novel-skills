@@ -196,9 +196,9 @@
         "J2": {
           "role": "数据分析师",
           "lens": "量化",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "净问题5条已修2;最重体量仅及1/4预算"
         },
         "J3": {
           "role": "读者代表",
@@ -210,51 +210,51 @@
         "J4": {
           "role": "平台审核员",
           "lens": "合规",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 9.3,
+          "issue": "无敏感限流风险"
         },
         "J5": {
           "role": "编辑(情节线)",
           "lens": "情节",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "场3与场5两度收买节拍同型,场5略重复(处方:场5改试探非收买)"
         },
         "J6": {
           "role": "编辑(人物线)",
           "lens": "人物",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "谭伯弧扎实;阿彪娟姨偏工具人(处方:各加一拍私事)"
         },
         "J7": {
           "role": "编辑(文笔线)",
           "lens": "文笔",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.8,
+          "issue": "最强段025手抖锅不抖+年轮意象"
         },
         "J8": {
           "role": "编辑(商业线)",
           "lens": "商业",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.6,
+          "issue": "025排队为付费高潮截图点;027钩强"
         },
         "J9": {
           "role": "心理顾问",
           "lens": "情绪",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.8,
+          "issue": "峰在场4场5微降回钩场6悬念收,峰后未泄"
         },
         "J10": {
           "role": "终审法官",
           "lens": "终审",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "敲槌:准进波4修复,体量集中扩场4禁注水"
         },
         "J11": {
           "role": "连读审读官",
@@ -271,7 +271,7 @@
           "issue": "周钱同走算账商腔靠语气词分;钱仅一场(处方:钱加一个商人专属动作)"
         }
       },
-      "complete": false
+      "complete": true
     },
     "4": {
       "label": "修复波(工匠·定向改进)",
