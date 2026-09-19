@@ -1,3 +1,5 @@
+- 20260919 磨刀八批(10波对抗: 3实跑代理波+8机器扫描波,平台限流致3/16代理完成,降级诚实记录): 实跑15条新发现(A2情感5/A5数据管道5/A3商业5)——实施5项: cold_read_score落盘(背离检测float(文件名)必崩死代码修复)+消费端切换+metric-debt阈值接gate-tuning(单一真相源)+卡章级扩商业位载体(免费末/首V/爆发);A5-1 quality_avg写入done路径(存量章随storm债清偿回填);登记: 泪点无账/情绪门全负向/社交门反模板缺失/卷纲商业位无对账门/存稿三口径/coldread_aggregate孤儿等;合并在册债务80项,总盘子115项
+
 - 20260919 磨刀七批(上限:本书好看): bundle注入范例段few-shot(近3段最佳段对标文风)+反面样张禁仿写库建档注入+升格环≤1轮→≤2轮(≥8.5提前停)+alt-takes扩面(每章心跳拍必走)+check方差WARN阈值书级可配(gate-tuning.json,waiver升级为参数的机制)+记忆词表再扩(身体反应型闪回)+fingerprint 2-3字签名段+storm status净问题/修复迭代显示+status钩强度趋势面板(待scores_history接通COLDREAD-METRICS数据源)
 
 - 20260919 磨刀六批(续审计52项发现): 15处实施——docs/periodic的v1 storm文案与脚本全量升v2(6处)+pre-commit块稿白名单+done范例段飞轮回流管道(冷读最强段→风格包库→bundle)+status债务面板(storm债21/指标债7/waiver19一眼可见)+漂移审计第3期起账+block check-block段首签名检测+冷读骨架AI味一票否决提示+ledger-update素材标记纪律+status死代码自审修复;37项登记后续批次(块卡骨架化/evals用例/语气词带参数化/fingerprint粒度等)

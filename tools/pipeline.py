@@ -1693,6 +1693,11 @@ def scores_update(n, p, met, committed):
                "hook_signals": (met or {}).get("hook_signals"), "dup18": (met or {}).get("dup18"),
                "check_status": (met or {}).get("status"), "check_fails": (met or {}).get("fails"),
                "gate_version": _gate_version()})   # grandfathering: 记录过门时版本
+    # 磨刀八批(A5): quality_avg落盘——此前从不写入,滑窗背离检测成死代码
+    if met:
+        _qa = [v for v in (met.get("psych_per_k"), met.get("sense_per_k", 0) / 1.5, met.get("action_per_k", 0) / 4.0) if v]
+        if _qa:
+            ch["quality_avg"] = round(min(10.0, sum(_qa) / len(_qa) * 2.0), 2)
     card = card_for(n)
     if card:
         hv, budget, scene_type = card_fields(card)
@@ -1702,6 +1707,10 @@ def scores_update(n, p, met, committed):
             ch["budget_delta_pct"] = round((ch["cjk"] - mid) / mid * 100, 1)
     cr = cold_read_for(n)
     ch["cold_read"] = cr.name if cr else None
+    # 磨刀八批(A5): 落冷读总分——背离检测此前float(文件名)必崩=死代码
+    if cr:
+        _ms = re.search(r"总分[:：]\s*\*{0,2}([0-9]{1,2}(?:\.[0-9])?)", cr.read_text(encoding="utf-8", errors="ignore"))
+        if _ms: ch["cold_read_score"] = float(_ms.group(1))
     flags = []
     if (ch.get("budget_delta_pct") or 0) < -40:
         flags.append("budget_delta_below_-40pct")
@@ -1715,6 +1724,11 @@ def scores_update(n, p, met, committed):
 def cmd_metric_debt(args):
     """指标债清册(磨刀批20260919): 门阈值升级后,存量章低于当前线的自动列债——批量润色的工单,不是改稿指令"""
     import subprocess as _sp, json as _json, re as _re
+    _tun = {"sense": 3.0, "mem": 0.5, "social": 2, "psych": 2.0}
+    try:
+        _tunf = BOOK / "audit" / "gate-tuning.json"
+        if _tunf.exists(): _tun.update(json.loads(_tunf.read_text(encoding="utf-8")))
+    except Exception: pass
     cm = chapter_map()
     debt = {}
     for n in sorted(cm):
@@ -1724,10 +1738,10 @@ def cmd_metric_debt(args):
         if not mt: continue
         m = _json.loads(mt.group(1))
         bad = []
-        if m["sense_per_k"] < 3.0: bad.append(f"感官{m['sense_per_k']}")
-        if m["mem_per_k"] < 0.5: bad.append(f"记忆{m['mem_per_k']}")
-        if m["social_beats"] < 2: bad.append(f"社交拍{m['social_beats']}")
-        if m["psych_per_k"] < 2.0: bad.append(f"心理{m['psych_per_k']}")
+        if m["sense_per_k"] < _tun["sense"]: bad.append(f"感官{m['sense_per_k']}")
+        if m["mem_per_k"] < _tun["mem"]: bad.append(f"记忆{m['mem_per_k']}")
+        if m["social_beats"] < _tun["social"]: bad.append(f"社交拍{m['social_beats']}")
+        if m["psych_per_k"] < _tun["psych"]: bad.append(f"心理{m['psych_per_k']}")
         if bad: debt[n] = bad
     print(f"═══ 指标债清册(阈值: 感官3.0/记忆0.5/社交2/心理2.0) ═══")
     for n, bad in debt.items():
@@ -1749,7 +1763,7 @@ def cmd_scores(args):
         _chs = _sd.get("chapters", {})
         _pairs = []
         for _k, _v in sorted(_chs.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else 0):
-            _cr = _v.get("cold_read")
+            _cr = _v.get("cold_read_score")
             _q = _v.get("quality_avg")
             if _cr and _q:
                 _pairs.append((int(_k), _q / 10.0, float(_cr)))

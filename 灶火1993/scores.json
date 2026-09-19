@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-19T11:06:28",
-  "head_commit": "9bcebda",
+  "generated_at": "2026-09-19T12:21:57",
+  "head_commit": "6a173d6",
   "chapters": {
     "1": {
       "path": "灶火1993/text/卷1/第001章.md",
@@ -23,7 +23,7 @@
     },
     "2": {
       "path": "灶火1993/text/卷1/第002章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2488,
       "dia_char_pct": 47.1,
       "psych_per_k": 2.41,
@@ -31,15 +31,14 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第002章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第002章.md"
     },
     "3": {
       "path": "灶火1993/text/卷1/第003章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2443,
       "dia_char_pct": 41.8,
       "psych_per_k": 4.09,
@@ -47,19 +46,17 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": [
         2400,
         2800
       ],
       "budget_delta_pct": -6.0,
-      "cold_read": "冷读-第003章.md",
-      "drift_flags": []
+      "cold_read": "冷读-第003章.md"
     },
     "4": {
       "path": "灶火1993/text/卷1/第004章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2591,
       "dia_char_pct": 47.0,
       "psych_per_k": 3.47,
@@ -67,19 +64,17 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": [
         3250,
         4000
       ],
       "budget_delta_pct": -28.5,
-      "cold_read": "冷读-第004章.md",
-      "drift_flags": []
+      "cold_read": "冷读-第004章.md"
     },
     "5": {
       "path": "灶火1993/text/卷1/第005章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2552,
       "dia_char_pct": 44.3,
       "psych_per_k": 2.74,
@@ -87,19 +82,17 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": [
         2400,
         2800
       ],
       "budget_delta_pct": -1.8,
-      "cold_read": "冷读-第005章.md",
-      "drift_flags": []
+      "cold_read": "冷读-第005章.md"
     },
     "6": {
       "path": "灶火1993/text/卷1/第006章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2456,
       "dia_char_pct": 54.7,
       "psych_per_k": 2.44,
@@ -107,15 +100,14 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第006章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第006章.md"
     },
     "7": {
       "path": "灶火1993/text/卷1/第007章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2442,
       "dia_char_pct": 44.3,
       "psych_per_k": 2.87,
@@ -123,15 +115,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第007章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第007章.md"
     },
     "8": {
       "path": "灶火1993/text/卷1/第008章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2457,
       "dia_char_pct": 44.4,
       "psych_per_k": 2.04,
@@ -139,15 +130,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第008章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第008章.md"
     },
     "9": {
       "path": "灶火1993/text/卷1/第009章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2427,
       "dia_char_pct": 42.3,
       "psych_per_k": 2.88,
@@ -155,15 +145,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第009章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第009章.md"
     },
     "10": {
       "path": "灶火1993/text/卷1/第010章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2415,
       "dia_char_pct": 53.6,
       "psych_per_k": 2.9,
@@ -171,15 +160,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第010章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第010章.md"
     },
     "11": {
       "path": "灶火1993/text/卷1/第011章.md",
-      "committed": true,
+      "volume": "卷1",
       "cjk": 2122,
       "dia_char_pct": 40.1,
       "psych_per_k": 3.3,
@@ -187,15 +175,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第011章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第011章.md"
     },
     "12": {
       "path": "灶火1993/text/卷1/第012章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2122,
       "dia_char_pct": 68.9,
       "psych_per_k": 4.71,
@@ -203,15 +190,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第012章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第012章.md"
     },
     "13": {
       "path": "灶火1993/text/卷1/第013章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2095,
       "dia_char_pct": 64.7,
       "psych_per_k": 2.39,
@@ -219,15 +205,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第013章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第013章.md"
     },
     "14": {
       "path": "灶火1993/text/卷1/第014章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 1912,
       "dia_char_pct": 67.5,
       "psych_per_k": 3.14,
@@ -235,15 +220,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第014章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第014章.md"
     },
     "15": {
       "path": "灶火1993/text/卷1/第015章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2316,
       "dia_char_pct": 50.8,
       "psych_per_k": 3.45,
@@ -251,15 +235,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第015章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第015章.md"
     },
     "16": {
       "path": "灶火1993/text/卷1/第016章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2444,
       "dia_char_pct": 72.1,
       "psych_per_k": 2.45,
@@ -267,15 +250,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第016章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第016章.md"
     },
     "17": {
       "path": "灶火1993/text/卷1/第017章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2451,
       "dia_char_pct": 62.5,
       "psych_per_k": 3.67,
@@ -283,15 +265,14 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第017章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第017章.md"
     },
     "18": {
       "path": "灶火1993/text/卷1/第018章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2800,
       "dia_char_pct": 43.6,
       "psych_per_k": 2.86,
@@ -299,15 +280,14 @@
       "dup18": 0,
       "check_status": "PASS",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第018章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第018章.md"
     },
     "19": {
       "path": "灶火1993/text/卷1/第019章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2413,
       "dia_char_pct": 41.1,
       "psych_per_k": 2.49,
@@ -315,15 +295,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第019章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第019章.md"
     },
     "20": {
       "path": "灶火1993/text/卷1/第020章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 3203,
       "dia_char_pct": 62.2,
       "psych_per_k": 2.5,
@@ -331,15 +310,14 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第020章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第020章.md"
     },
     "21": {
       "path": "灶火1993/text/卷1/第021章.md",
-      "committed": false,
+      "volume": "卷1",
       "cjk": 2797,
       "dia_char_pct": 58.8,
       "psych_per_k": 2.15,
@@ -347,11 +325,10 @@
       "dup18": 0,
       "check_status": "WARN",
       "check_fails": 0,
-      "gate_version": 9,
       "hook_level_from_card": null,
       "card_budget": null,
-      "cold_read": "冷读-第021章.md",
-      "drift_flags": []
+      "budget_delta_pct": null,
+      "cold_read": "冷读-第021章.md"
     }
   }
 }
