@@ -169,19 +169,19 @@
         "D11": {
           "role": "时代辩护人",
           "lens": "年代合法性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "十万南巡后业主可成立;时代辩护过"
         },
         "D12": {
           "role": "感官辩护人",
           "lens": "感官调节",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "对白主导章感官配额流派内合理"
         }
       },
-      "complete": false
+      "complete": true
     },
     "3": {
       "label": "仲裁波(评审·综合判定)",
@@ -369,16 +369,16 @@
         "G1": {
           "role": "质量守门员",
           "lens": "全项",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 5.5,
+          "issue": "A8体量31%未闭环(唯一);余5项闭环"
         },
         "G2": {
           "role": "回归测试员",
           "lens": "副作用",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "无修复新伤;存量听火归属穿帮(已修)"
         },
         "G3": {
           "role": "风格一致性守卫",
@@ -439,16 +439,16 @@
         "G11": {
           "role": "迭代终验官",
           "lens": "修复验证",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "11条全验最弱C9=6.5(已换血补修)"
         },
         "G12": {
           "role": "台账对账守卫",
           "lens": "过程链",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 4.0,
+          "issue": "块账缺+伏笔止021(已建块账七钩回填)"
         }
       },
       "complete": false
