@@ -130,7 +130,10 @@ def cmd_storm_stamp(book, a, b, block_state):
     import storm_orchestrate as SO
     ok = 0
     for n in range(a, b + 1):
-        ch = book / "text" / "卷1" / f"第{n:03d}章.md"
+        ch = None
+        for _v in (book / "text").iterdir():
+            if _v.is_dir() and (_v / f"第{n:03d}章.md").exists():
+                ch = _v / f"第{n:03d}章.md"; break   # 磨刀十批B1: 卷1硬编码→全卷扫描
         if not ch.exists():
             print(f"  [SKIP] 第{n:03d}章未切分落盘"); continue
         sp = SO.storm_state_path(ch)
