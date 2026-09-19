@@ -469,9 +469,6 @@
     }
   ],
   "repair_iters": 1,
-  "verdict": "放行",
-  "verdict_locked": true,
-  "state_fingerprint": "105d7695e17b",
-  "verdict_score": 7.6,
-  "verdict_reasons": []
+  "verdict": null,
+  "verdict_locked": false
 }
