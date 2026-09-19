@@ -1,3 +1,5 @@
+- 20260919 用户令二批(全波审计强制化): storm角色表v2(10→12角色/波,60agent,新增时代事实/感官锚点/连读衔接/声纹裁判/迭代终验/台账对账六角色+全角色checklist清单入prompt) + storm_orchestrate新增repair(净问题修复迭代,verify>=7.0才闭环)/backlog(全书债务清册)/selftest(5断言引擎自测) + gate侧角色覆盖硬门(v1旧审计一律作废) + pipeline done非关键章降级口子拔除(每章必跑全波,债务拦done) + workflow/skill_protocol/AGENTS.md同步
+
 # CHANGELOG(决策记录——每红队批次一条,主题可检索)
 
 - 20260919 终打磨批: 遗留收口9件(hook mktemp化防串档/post模式冷读<5灾难线/storm record --file批量/打回计数持久化/.done_hashes闭环/G8语料限窗30章/volume-register命令/docstring补全/开写门与VOICE_TABLE声纹表改名同步——E2E冒烟抓到的真残留) + scene-draft三reference流程入口 + 全链E2E冒烟(合成书gen→bundle→check→done→volume-close→publish→aggregate全链无崩溃)

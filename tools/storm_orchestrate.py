@@ -14,19 +14,26 @@
   4. aggregate: 汇总所有结果,给出最终gate判定
   5. gate: pipeline done时调用——storm未完成=拒绝done
 
-用法:
-  python3 tools/storm_orchestrate.py init <章文件> [--book 书根]
-  python3 tools/storm_orchestrate.py status <章文件>
-  python3 tools/storm_orchestrate.py record <章文件> <agent_id> <score> "<致命问题>"
-  python3 tools/storm_orchestrate.py aggregate <章文件>
+用法(20260919用户令二批: 每章必跑全波v2+修复迭代):
+  python3 tools/storm_orchestrate.py init <章文件>            # 初始化(v2角色表12×5=60agent)+prompt
+  python3 tools/storm_orchestrate.py status <章文件>          # 进度
+  python3 tools/storm_orchestrate.py record <章文件> <id> <score> "<问题>"   # 或 --file <jsonl>批量
+  python3 tools/storm_orchestrate.py repair <章文件> --file <jsonl>          # 修复迭代批: {"id":"A1","action":..,"verify":8.0}
+  python3 tools/storm_orchestrate.py aggregate <章文件>       # 汇总: 角色覆盖校验+净问题闭环判定
+  python3 tools/storm_orchestrate.py gate <章文件>            # pipeline done调用
+  python3 tools/storm_orchestrate.py backlog <书根>           # 债务清册(每章必须v2全波放行)
+  python3 tools/storm_orchestrate.py selftest                 # 引擎自测(5断言)
+硬门: ①角色覆盖(v1旧state=债务) ②Wave1净问题(<6.5)须verify>=7.0 ③守卫波≥7.0 ④迭代>3轮升级重写
 """
 import sys, pathlib, json, re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 
-# 导入agent_storm的角色定义
-from agent_storm import WAVES
+# v2角色注册表(20260919用户令: 每章必跑全波+角色增强+修复迭代到通过)
+from storm_roles import WAVES, STORM_ROLE_VERSION, all_role_ids
+
+VALID_ID_MSG = "有效ID: " + ", ".join(f"{w}:{'-'.join(ids[:1])}..{ids[-1]}" for w, ids in all_role_ids().items())
 
 def storm_state_path(target):
     """storm状态文件路径"""
@@ -43,7 +50,10 @@ def cmd_init(target):
     state = {
         "target": str(target),
         "started": True,
+        "role_version": STORM_ROLE_VERSION,
         "waves": {},
+        "repairs": [],      # 修复迭代: {"id":..,"action":..,"verify":..}——每条净问题须verify>=7.0
+        "repair_iters": 0,  # 迭代批次数(>3轮=升级整场重写)
         "verdict": None,
     }
     for wn, (label, agents) in WAVES.items():
@@ -148,7 +158,7 @@ def cmd_record(target, agent_id, score, issue):
             break
     
     if not found:
-        print(f"❌ Agent {agent_id} 不存在(有效ID: A1-A10,D1-D10,J1-J10,C1-C10,G1-G10)")
+        print(f"❌ Agent {agent_id} 不存在({VALID_ID_MSG})")
         return 1
     
     _tmp = sp.with_suffix(".tmp")   # W6验证:裸write_text断电=json损坏且无兜底
@@ -203,7 +213,22 @@ def cmd_aggregate(target):
     if not sp.exists():
         print("❌ Storm未初始化"); return 1
     state = json.loads(sp.read_text(encoding="utf-8"))
-    
+
+    # v2硬门①: 角色覆盖校验——旧state(10角色v1)或角色缺失=覆盖不足,拒绝aggregate(债务)
+    _want = all_role_ids()
+    for wn, ids in _want.items():
+        wdata = state.get("waves", {}).get(wn)
+        if not wdata:
+            print(f"❌ 角色覆盖不足: Wave{wn}整个缺失(角色表{STORM_ROLE_VERSION})——重新init+全波执行")
+            return 1
+        _missing = [i for i in ids if i not in wdata["agents"]]
+        if _missing:
+            print(f"❌ 角色覆盖不足: Wave{wn}缺{','.join(_missing)}(角色表{STORM_ROLE_VERSION})——v1旧审计不算数,重新init+补派")
+            return 1
+    if state.get("role_version") != STORM_ROLE_VERSION:
+        print(f"❌ 角色表版本不符(state={state.get('role_version')} vs {STORM_ROLE_VERSION})——重新init")
+        return 1
+
     # 检查完成度
     all_scores = []
     all_issues = []
@@ -263,6 +288,24 @@ def cmd_aggregate(target):
         if w5_avg < 7.0:
             verdict = "打回"
             reasons.append(f"守卫波均分{w5_avg:.1f}<7.0")
+
+    # v2硬门②: 修复迭代闭环——Wave1净问题(评分<6.5)必须逐条修复并被验证>=7.0
+    repairs = state.get("repairs", [])
+    _rep_map = {}
+    for r in repairs:
+        if float(r.get("verify", 0)) >= 7.0:
+            _rep_map.setdefault(r.get("id"), []).append(r)
+    w1_agents = state["waves"].get("1", {}).get("agents", {})
+    _unresolved = []
+    for aid in sorted(w1_agents.keys()):
+        a = w1_agents[aid]
+        if a.get("score") is not None and a["score"] < 6.5 and aid not in _rep_map:
+            _unresolved.append(f"{aid}({a['role']})={a['score']}")
+    if _unresolved:
+        verdict = "打回"
+        reasons.append(f"净问题未修复迭代到位({len(_unresolved)}条): {'; '.join(_unresolved[:6])}——跑 repair 命令记录修复+验证分,再重跑aggregate")
+    if state.get("repair_iters", 0) > 3:
+        reasons.append("警告: 修复迭代已超3轮——按修订阶梯应升级整场重写(scene-rewrite/alt-takes换方向),禁第4轮小修")
     
     # 输出
     print(f"═══ Storm汇总: {target.name} ═══\n")
@@ -315,19 +358,141 @@ def cmd_aggregate(target):
     return 0 if verdict == "放行" else 1
 
 def cmd_gate(target):
-    """pipeline done调用: storm未完成或未放行=拒绝"""
+    """pipeline done调用: storm未完成或未放行=拒绝。v2: 角色覆盖不足(v1旧审计)=债务,同样拒绝"""
     sp = storm_state_path(target)
     if not sp.exists():
         return False, "storm未初始化"
     state = json.loads(sp.read_text(encoding="utf-8"))
     if state.get("verdict") is None:
         return False, "storm未aggregate(结果未汇总)"
+    # v2硬门①(gate侧复检): 角色表版本+覆盖——旧10角色审计不算数(防绕过aggregate用旧verdict)
+    if state.get("role_version") != STORM_ROLE_VERSION:
+        return False, (f"storm角色表版本不符(state={state.get('role_version')} vs {STORM_ROLE_VERSION})"
+                       f"——v1旧审计已作废,重新init+全波执行(债务清册: backlog)")
+    _want = all_role_ids()
+    for wn, ids in _want.items():
+        _have = state.get("waves", {}).get(wn, {}).get("agents", {})
+        _missing = [i for i in ids if i not in _have]
+        if _missing:
+            return False, f"storm角色覆盖不足: Wave{wn}缺{','.join(_missing)}——重新init+补派全波"
     if state["verdict"] != "放行":
         reasons = "; ".join(state.get("verdict_reasons", []))
         return False, f"storm判定={state['verdict']}({reasons})"
-    return True, f"storm✅({state.get('verdict_score')}分)"
+    return True, f"storm✅({state.get('verdict_score')}分,角色表{STORM_ROLE_VERSION})"
 
 
+
+
+def cmd_repair_file(target, fpath):
+    """记录修复迭代批: --file <jsonl> 每行 {"id":"A1","action":"修了什么","verify":8.2}
+    verify>=7.0才算该净问题被真实验证修复(<7.0=假修复,aggregate仍打回)"""
+    import json as _json
+    sp = storm_state_path(target)
+    if not sp.exists():
+        print("❌ Storm未初始化"); return 1
+    state = json.loads(sp.read_text(encoding="utf-8"))
+    w1_ids = set(state.get("waves", {}).get("1", {}).get("agents", {}).keys())
+    ok = fail = 0
+    for l in pathlib.Path(fpath).read_text(encoding="utf-8").splitlines():
+        if not l.strip():
+            continue
+        try:
+            r = _json.loads(l)
+            if r["id"] not in w1_ids:
+                print(f"  [SKIP] {r['id']} 不是Wave1攻击id——修复只针对净问题源"); fail += 1; continue
+            state["repairs"].append({"id": r["id"], "action": str(r.get("action", ""))[:300],
+                                     "verify": float(r.get("verify", 0)), "verified_by": r.get("verified_by", "G11")})
+            ok += 1
+        except Exception as e:
+            print(f"  [SKIP] 行解析失败: {e}"); fail += 1
+    state["repair_iters"] = state.get("repair_iters", 0) + 1
+    state["verdict_locked"] = False  # 修复批后解锁,须重跑aggregate重算
+    _tmp = sp.with_suffix(".tmp")
+    _tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    _tmp.replace(sp)
+    print(f"修复批#{state['repair_iters']}: 录入{ok}条 失败{fail}——重跑 aggregate 重算verdict(verify>=7.0的净问题视为已修复)")
+    return 0 if fail == 0 else 1
+
+
+def cmd_backlog(book):
+    """债务清册: 全书每章必须有v2全波storm放行——不足者列入 ledgers/storm-backlog.md"""
+    book = pathlib.Path(book)
+    chapters = sorted(book.glob("text" + "/" + "卷*" + "/" + "第*章.md"))
+    if not chapters:
+        print("未发现章节文件"); return 1
+    debt, ok = [], []
+    for ch in chapters:
+        st = storm_state_path(ch)
+        good = False
+        if st.exists():
+            try:
+                s = json.loads(st.read_text(encoding="utf-8"))
+                good = (s.get("verdict") == "放行" and s.get("role_version") == STORM_ROLE_VERSION)
+            except Exception:
+                good = False
+        (ok if good else debt).append(ch)
+    print(f"═══ Storm债务清册(角色表{STORM_ROLE_VERSION}) ═══")
+    print(f"  已达标: {len(ok)}章  债务: {len(debt)}章")
+    for d in debt:
+        print(f"  ❌ {d.name}")
+    if debt:
+        out = book / "ledgers" / "storm-backlog.md"
+        out.write_text("# Storm债务清册(v2全波60agent标准)\n\n每章必须全波审计+修复迭代到放行。\n\n- " +
+                       "\n- ".join(str(d.relative_to(book)) for d in debt) + "\n", encoding="utf-8")
+        print(f"\n  清册落盘: {out}——按章清偿: init→派发全波→repair记录修复→aggregate→gate")
+    return 0
+
+
+def cmd_selftest():
+    """引擎自测: 在/tmp合成书里走完 init→record→repair→aggregate→gate 全链断言"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        book = pathlib.Path(td) / "t"
+        chp = book / "text" / "卷1"
+        chp.mkdir(parents=True)
+        ch = chp / "第001章.md"
+        ch.write_text("#001 测试\n" + "他推门进来。" * 200, encoding="utf-8")
+        def _run(*a):
+            # target紧跟子命令,选项随后(record --file 的target必须在前)
+            return subprocess.run([sys.executable, str(ROOT / "tools" / "storm_orchestrate.py")] + list(a),
+                                  capture_output=True, text=True)
+        import subprocess
+        T = str(ch)
+        r = _run("init", T); assert r.returncode == 0, r.stdout + r.stderr
+        # 覆盖不足gate: 未record须拒
+        r = _run("gate", T); assert r.returncode != 0, "空state应拒"
+        # 全量record通过
+        rows = []
+        for wn in ("1", "2", "3", "4", "5"):
+            for aid in all_role_ids()[wn]:
+                rows.append({"id": aid, "score": 7.5, "issue": "无"})
+        f = pathlib.Path(td) / "all.jsonl"
+        f.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in rows), encoding="utf-8")
+        r = _run("record", T, "--file", str(f)); assert r.returncode == 0, r.stdout[-500:]
+        r = _run("aggregate", T); assert r.returncode == 0, "全7.5应放行: " + r.stdout[-500:]
+        r = _run("gate", T); assert r.returncode == 0, r.stdout
+        # 净问题打回→repair→重算放行
+        _run("init", T)  # 重置
+        rows = []
+        for wn in ("1", "2", "3", "4", "5"):
+            for aid in all_role_ids()[wn]:
+                sc, iss = (5.0, "时间线穿帮") if (wn == "1" and aid == "A3") else (7.5, "无")
+                rows.append({"id": aid, "score": sc, "issue": iss})
+        f.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in rows), encoding="utf-8")
+        _run("record", T, "--file", str(f))
+        r = _run("aggregate", T); assert r.returncode != 0, "净问题未修复应打回"
+        rf = pathlib.Path(td) / "rep.jsonl"
+        rf.write_text(json.dumps({"id": "A3", "action": "修时序", "verify": 8.0}, ensure_ascii=False), encoding="utf-8")
+        r = _run("repair", T, "--file", str(rf)); assert r.returncode == 0, r.stdout
+        r = _run("aggregate", T); assert r.returncode == 0, "修复验证后应放行: " + r.stdout[-500:]
+        # 假修复(verify<7)仍打回
+        _run("init", T)
+        _run("record", T, "--file", str(f))
+        rf.write_text(json.dumps({"id": "A3", "action": "只声明没修", "verify": 6.0}, ensure_ascii=False), encoding="utf-8")
+        _run("repair", T, "--file", str(rf))
+        r = _run("aggregate", T); assert r.returncode != 0, "假修复应打回"
+    print("✅ selftest 5项断言全过: 覆盖不足拒/全绿放行/净问题打回/修复验证放行/假修复打回")
+    return 0
 
 
 def main():
@@ -349,6 +514,12 @@ def main():
         ok, msg = cmd_gate(pathlib.Path(sys.argv[2]))
         print(("✅ " if ok else "❌ ") + msg)
         return 0 if ok else 1
+    elif cmd == "repair" and "--file" in sys.argv:
+        return cmd_repair_file(pathlib.Path(sys.argv[2]), sys.argv[sys.argv.index("--file") + 1])
+    elif cmd == "backlog" and len(sys.argv) > 2:
+        return cmd_backlog(sys.argv[2])
+    elif cmd == "selftest":
+        return cmd_selftest()
     else:
         print(__doc__); return 2
 

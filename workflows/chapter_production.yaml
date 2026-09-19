@@ -100,15 +100,16 @@ phases:
           - "跳读≤2处"
           - "追读欲不是无所谓"
       - id: agent_storm_chapter
-        name: "五波agent风暴(红队20260919: 每章≥5波×10=50 subagent红蓝对抗)"
+        name: "五波agent风暴v2(20260919用户令二批: 每章必跑12×5=60 subagent全波+修复迭代到放行,非峰章不降级)"
         type: script
-        script: "python3 tools/agent_storm.py chapter <正文文件> --book <书根>"
-        # 红队20260919用户令: 每章全5波,不设条件跳过
+        script: "python3 tools/storm_orchestrate.py init <正文文件> --book <书根> && 按prompt派发60agent && python3 tools/storm_orchestrate.py record <正文文件> --file <wave结果.jsonl> && python3 tools/storm_orchestrate.py repair <正文文件> --file <修复验证.jsonl> && python3 tools/storm_orchestrate.py aggregate <正文文件>"
+        # v2硬门: 角色覆盖校验(12角色/波) + 净问题(评分<6.5)必须repair且verify>=7.0 + 迭代>3轮升级重写
         gate:
-          - "Wave1-5全派发(50 agent/章)"
+          - "Wave1-5全派发(60 agent/章,角色表v2覆盖校验)"
+          - "Wave1攻击波净问题逐条repair记录修复+验证分>=7.0(G11迭代终验官)"
           - "Wave3仲裁波终审法官判定'放行'"
           - "Wave5守卫波G10放行官签字"
-          - "任一wave发现致命问题→revise_loop修复→重跑该wave"
+          - "gate未放行→revise_loop修复→repair登记→重跑aggregate,直到放行(禁跳过)"
 
       - id: elevation_loop
         name: "升格环(磨刀十八批提上限: 过门≠结束——冷读<9.0触发定向润色一轮再评,上限≤1轮)"

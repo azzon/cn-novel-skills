@@ -1470,18 +1470,13 @@ def cmd_done(args):
             if not _has_next:
                 warns.append(f"第{n:03d}章距卷末≤5章而下一卷纲未落盘——滚动前瞻铁律: 卷末复盘→重排下一卷纲→再继续生产")
 
-    # 滚动前瞻+agent风暴gate(红队20260919): storm未完成或未放行=拒绝done
-    # 红队20260919漏洞1-2修复: storm gate不降级+不静默跳过
+    # 滚动前瞻+agent风暴gate(红队20260919;20260919用户令二批: 全波审计每章强制,降级口子拔除)
+    # storm未完成或未放行=拒绝done——任何章无豁免(非关键章降级已废除,债务走backlog清偿)
     try:
         import storm_orchestrate as _SO
         _st_ok, _st_msg = _SO.cmd_gate(p)
         if not _st_ok:
-            # P1-003修复: 非关键章(非峰章/非卷首末)可waiver降级
-            _is_critical = (n % 5 == 0 or n == 1 or _is_volend)
-            if _is_critical:
-                problems.append(f"Agent Storm未通过: {_st_msg}")
-            else:
-                warns.append(f"Agent Storm未通过(非关键章降级WARN): {_st_msg}")
+            problems.append(f"Agent Storm未通过: {_st_msg}——每章必跑全波({getattr(_SO, 'STORM_ROLE_VERSION', 'v2')}),存量章债务: python3 tools/storm_orchestrate.py backlog <书根>")
     except ImportError:
         problems.append("storm_orchestrate.py不可用=storm门被破坏(fail-closed,红队20260919W5:删文件即可拔门)")  # W6验证属实:ImportError降WARN=删脚本即永久放行
     except Exception as _e:

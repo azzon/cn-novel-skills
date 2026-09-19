@@ -8,6 +8,7 @@
 2. **type=agent 步骤执行前必读技能**。工作流(workflows/*.yaml)每个 agent 步骤的 skill 字段指向 SKILL.md——执行前读全文,按产出物规范执行。完成后在 `ledgers/技能执行记录.md` 打勾。**"我知道怎么写"不构成跳过理由**:技能里的字段清单/格式约定/查重要求,凭记忆必漏(ch002 实测漏 70%)。
 3. **type=script 步骤必须真实执行命令**,禁止"等效手写"脚本逻辑。
 4. **每章生产开单**:`pipeline.py --book <书根> done <N>` 会审计技能执行率,未全勾=problems 拦截。
+5. **每章必跑全波storm审计(20260919用户令二批,非峰章不降级)**:v2角色表12×5=60subagent(新增时代事实/感官锚点/连读衔接/声纹/迭代终验/台账对账六角色);Wave1净问题(评分<6.5)必须 `storm_orchestrate.py repair` 逐条登记修复且验证分≥7.0(G11迭代终验官),重跑aggregate直到放行;迭代>3轮=升级整场重写。存量章债务: `storm_orchestrate.py backlog <书根>` 清册,清偿前重done会被拦。
 5. **每个产出物必跑agent风暴**。章/设计文件/卷纲/系统变更——所有产出物过 `python3 tools/agent_storm.py <类型> <文件>` 全5波×10=50 subagent红蓝对抗。不设条件跳过。
 
 
@@ -16,7 +17,7 @@
 ```
 gen脚手架(卡/冷读) → 填空(残留（填）=提交层拦截) → 指纹(generated-by,从零手写=拦截)
 → bundle注入落盘(ledgers/生成记录.md,无记录=done拦截) → 正文
-→ 四门(check/gate/voice/card) + pre-commit全链
+→ 四门(check/gate/voice/card) + 全波storm审计v2(60agent+修复迭代到放行) + pre-commit全链
 → done验: 技能执行记录全勾(缺记录/未全勾=拦截) + 章摘要(story-bible) + 人物圣经演进层 + 生成记录 + 八账
 → periodic四账审计(伏笔/数字/期待链/就绪度)
 ```

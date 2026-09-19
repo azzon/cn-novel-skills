@@ -56,6 +56,9 @@ def cmd_list(n, book, wf_path=None):
     for sid, name, typ, skill in steps():
         f = skill_file(str(skill))
         ev = " → 产物: (路径或exit码,红队20260915: 打勾不带产物引用=自证,audit会拦)" if sid in ("scene_card", "draft", "cold_read", "ledger", "memory", "done", "commit") else ""
+        if sid == "agent_storm_chapter":
+            rows.append(f"- [ ] {sid}(五波风暴v2: 60subagent全波+净问题修复迭代到gate放行,非峰章不降级(20260919用户令二批)) [script步骤:真实执行命令后勾——预勾=审计失真(磨刀十三批H2)]{ev}")
+            continue
         if typ == "script":
             rows.append(f"- [ ] {sid}({name}) [script步骤:真实执行命令后勾——预勾=审计失真(磨刀十三批H2)]{ev}")
         elif f:

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """agent_storm.py 多波次subagent风暴编排器(红队20260919)
 
-用户需求: 每个功能不少于5波次,每波次不少于10个subagents,多角度多维红蓝对抗。
+用户需求: 每个功能不少于5波次,每波次不少于10个subagents(v2实际=12),多角度多维红蓝对抗。
 
 本工具为任意功能节点生成完整的agent风暴prompt包:
-  Wave 1 攻击波(红队): 10个不同角度的攻击者,找一切问题
-  Wave 2 辩护波(蓝队): 10个不同角度的辩护者,找攻击中的误报
-  Wave 3 仲裁波(评审): 10个不同维度的评审,综合红蓝对抗结果
-  Wave 4 修复波(工匠): 10个不同专长的修复者,各管一个维度
-  Wave 5 守卫波(终审): 10个不同立场的终审官,最终放行/打回
+  Wave 1 攻击波(红队): 12个不同角度的攻击者,找一切问题(v2含时代事实/感官锚点)
+  Wave 2 辩护波(蓝队): 12个不同角度的辩护者,找攻击中的误报(v2含时代/感官辩护)
+  Wave 3 仲裁波(评审): 12个不同维度的评审,综合红蓝对抗结果(v2含连读衔接/声纹)
+  Wave 4 修复波(工匠): 12个不同专长的修复者,各管一个维度(v2含时代锚定/钩力)
+  Wave 5 守卫波(终审): 12个不同立场的终审官,最终放行/打回(v2含迭代终验/台账对账)
 
 用法:
   python3 tools/agent_storm.py <功能类型> <目标路径> [--book 书根] [--wave N]
@@ -102,6 +102,13 @@ WAVES = {
     5: ("守卫波(终审·放行/打回)", WAVE5_GUARDS),
 }
 
+# 20260919用户令: 角色表升级v2(12×5=60agent+checklist)——storm_roles存在则强制采用
+try:
+    from storm_roles import WAVES as _WAVES_V2, STORM_ROLE_VERSION
+    WAVES = _WAVES_V2
+except ImportError:
+    STORM_ROLE_VERSION = "v1-legacy-50"
+
 def gen_wave_prompt(wave_n, agents, target, book, func_type):
     lines = [f"# Agent Storm Wave {wave_n}: {WAVES[wave_n][0]}", ""]
     lines.append(f"功能: {func_type} | 目标: {target} | 书根: {book}")
@@ -114,6 +121,11 @@ def gen_wave_prompt(wave_n, agents, target, book, func_type):
         lines.append("```")
         lines.append(f"{a['mission']}")
         lines.append("")
+        if a.get("checklist"):
+            lines.append("【检查清单】(凭单执行,禁凭记忆)")
+            for ci, c in enumerate(a["checklist"], 1):
+                lines.append(f"  {ci}) {c}")
+            lines.append("")
         lines.append(f"【操作】只读: {target}")
         if wave_n == 4:
             lines.append("【归并】你是处方师不是改稿人:输出带原文引句的修改处方(位置+改法+预期效果),禁直接改稿——执行者汇总裁决后单点实施(十人并发改同一章=互相覆盖,红队20260919工效批)")
@@ -164,7 +176,7 @@ def main():
 
     if not wave_filter:
         total = sum(len(a) for _, a in WAVES.values())
-        print(f"\n── 总计: 5波 × 10 agents = {total}个subagent ──")
+        print(f"\n── 总计: 5波 × 12 agents = {total}个subagent ──")
         print(f"── 执行顺序: Wave1(攻击) → Wave2(辩护) → Wave3(仲裁) → Wave4(修复) → Wave5(守卫) ──")
         print(f"── 每波完成后汇总结果,再进下一波(波间有依赖) ──")
     return 0
