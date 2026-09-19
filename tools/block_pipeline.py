@@ -113,9 +113,13 @@ def cmd_check_block(book, draft):
     for m in re.finditer(r'【场(\d)[^】]*】([\s\S]*?)(?=【场\d|$)', body):
         sc, txt = m.group(1), m.group(2)
         dash = txt.count('——')
-        sim = len(re.findall(r'像[^。，!?\n]{1,10}一样|像一|仿佛|如同', txt))
+        import check as _CK
+        _t2 = _CK.re.sub(r'神像|图像|摄像|录像|影像|画像|想象', '', txt)
+        sim = sum(len(_CK.re.findall(pt, _t2)) for pt in _CK.SIMILE_PATTERNS)
+        body = len(_CK.re.findall(r'手抖|手一抖', txt))
         if dash > 3: problems.append(f'场{sc} 破折号{dash}处(>3)——切出为章必FAIL')
-        if sim > 3: problems.append(f'场{sc} 明喻{sim}处(>3)——切出为章必FAIL')
+        if sim > 3: problems.append(f'场{sc} 明喻{sim}处(>3,check.py真源口径)——切出为章必FAIL')
+        if body >= 3: problems.append(f'场{sc} 手抖类×{body}(≥3)——切出为章必FAIL')
     print(f"═══ 块级卫生: {draft.name} ({cjk}字,{len(paras)}段) ═══")
     for x in problems: print(f"  [FAIL] {x}")
     for x in warns: print(f"  [WARN] {x}")
