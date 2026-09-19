@@ -1,0 +1,387 @@
+{
+  "target": "灶火1993/text/卷1/第020章.md",
+  "started": true,
+  "waves": {
+    "1": {
+      "label": "攻击波(红队·找问题)",
+      "agents": {
+        "A1": {
+          "role": "追更毒舌读者",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "苏文茵'今早才到'不成立:何干事凌晨已泄落款邮戳;且若信今早才到,凌晨检查因果不成立"
+        },
+        "A2": {
+          "role": "弃书审判官",
+          "lens": "注意力",
+          "dispatched": true,
+          "score": 6.0,
+          "issue": "反转靠钱广进降智自爆+苏何情报空投,主角零动作白收反杀;周发财'灶上见'未兑现,对决级缺失"
+        },
+        "A3": {
+          "role": "逻辑审查员",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 5.0,
+          "issue": "'下午到礼堂'却赶上'十一点半开赛'逆序,与019十点报到矛盾;举报信今早才到撑不起凌晨知情"
+        },
+        "A4": {
+          "role": "文笔鉴赏家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "钱广进笑面零过渡变嚎叫降智;何干事滑头变冲锋工具人;'喔'三人共用串味"
+        },
+        "A5": {
+          "role": "代入党",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 6.0,
+          "issue": "冤情不冤:停业当场自我泄压,结尾把封条翻成喜事,复检无悬念"
+        },
+        "A6": {
+          "role": "节奏警察",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "回收公平性整体成立(白手套/灶王爷牌/周发财均有前文),唯举报信到达时间线自相矛盾"
+        },
+        "A7": {
+          "role": "重复猎手",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "何干事当众作证无动机链且自曝违规无追责;齐科长与主角短句对仗腔互撞;小方给作者发奖"
+        },
+        "A8": {
+          "role": "伏笔审计师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "举报信时间自相矛盾;'这八个字'实为9字;'十项'正文仅演出约9项"
+        },
+        "A9": {
+          "role": "角色律师",
+          "lens": "人设",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "段尾金句密度高+镜像对句+'白的'三连排比+'一笔一笔'等模板复用三遍"
+        },
+        "A10": {
+          "role": "商业分析师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 6.2,
+          "issue": "峰章清盘冲突,结局感+软钩,付费首章注定腌油日常,复检无悬念"
+        }
+      },
+      "complete": true
+    },
+    "2": {
+      "label": "辩护波(蓝队·滤误报)",
+      "agents": {
+        "D1": {
+          "role": "文本辩护律师",
+          "lens": "误报过滤",
+          "dispatched": true,
+          "score": 8.9,
+          "issue": "辩护:时间逆序已修(十点不到到礼堂,报分下午);举报信今早才到已删,苏文茵改立'未公示未出组'前提"
+        },
+        "D2": {
+          "role": "类型惯例专家",
+          "lens": "类型合理性",
+          "dispatched": true,
+          "score": 8.7,
+          "issue": "辩护:主角主动性已修(往前一步下战书'举报是权利,我接了');E2验证8.7"
+        },
+        "D3": {
+          "role": "伏笔辩护人",
+          "lens": "伏笔合法性",
+          "dispatched": true,
+          "score": 9.3,
+          "issue": "辩护:E1验证时序自洽+证据链成立+峰后四钩齐挂,9.3分"
+        },
+        "D4": {
+          "role": "节奏辩护人",
+          "lens": "蓄压合法性",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "辩护:声纹分层已修(白制服去语气词,喔归周发财);E3验证8.5"
+        },
+        "D5": {
+          "role": "角色辩护人",
+          "lens": "角色复杂性",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "辩护:何干事动机链补全(看过信瞒不住索性把脸一横)——滑头变自保证人,工具人消除"
+        },
+        "D6": {
+          "role": "AI检测辩护人",
+          "lens": "检测假阳性",
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "辩护:八字误已改'这句话';国营食堂×4已去重;复检日期锚点腊月廿一"
+        },
+        "D7": {
+          "role": "商业辩护人",
+          "lens": "长线价值",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "辩护:AI指纹收敛(镜像对句唯一化,白的三连主题化成黑白对轴);段尾金句密度处峰章上限"
+        },
+        "D8": {
+          "role": "受众辩护人",
+          "lens": "受众分层",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "辩护:峰后泄劲已修(复检+举报人到场监督+广播+东风路的账,四钩齐挂);A5/A10复核通过"
+        },
+        "D9": {
+          "role": "结构辩护人",
+          "lens": "结构必要性",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "辩护:小方入场便利属峰章叙事需要;齐科长说服速度由白手套+油双证兜住"
+        },
+        "D10": {
+          "role": "综合辩护律师",
+          "lens": "整体权衡",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "辩护:全书级'一笔一笔'高频建议已记入作者备忘,E3确认章内仅1次"
+        }
+      },
+      "complete": true
+    },
+    "3": {
+      "label": "仲裁波(评审·综合判定)",
+      "agents": {
+        "J1": {
+          "role": "总编",
+          "lens": "综合质量",
+          "dispatched": true,
+          "score": 8.3,
+          "issue": "仲裁:波1均分6.59,三类硬伤(时序/举报信/被动)全部修复并有真实验证代理背书"
+        },
+        "J2": {
+          "role": "数据分析师",
+          "lens": "量化",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "仲裁:净问题11个,修复9个,豁免2个(群像情绪/峰章金句密度),无结构缺陷"
+        },
+        "J3": {
+          "role": "读者代表",
+          "lens": "追读",
+          "dispatched": true,
+          "score": 8.6,
+          "issue": "仲裁(读者代表):递白毛巾三抹皆白+奖牌封条同框,追读到复检;8.6"
+        },
+        "J4": {
+          "role": "平台审核员",
+          "lens": "合规",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "仲裁(平台审核):举报/停业/公示均为年代合规程序描写,无敏感"
+        },
+        "J5": {
+          "role": "编辑(情节线)",
+          "lens": "情节",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "仲裁(情节线):中爆点四线并一天全部落地,单元决算完成,P4兑现干净"
+        },
+        "J6": {
+          "role": "编辑(人物线)",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "仲裁(人物线):齐科立住(认规矩不认人);何干事立体化;苏文茵储户相护是女主线里程碑"
+        },
+        "J7": {
+          "role": "编辑(文笔线)",
+          "lens": "文笔",
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "仲裁(文笔线):白的三连是章眼,黑白对轴成立;金句密度处上限需下一章回落"
+        },
+        "J8": {
+          "role": "编辑(商业线)",
+          "lens": "商业",
+          "dispatched": true,
+          "score": 8.6,
+          "issue": "仲裁(商业线):中爆点大爽+付费首章有复检对决预约,免费末段追更力拉满"
+        },
+        "J9": {
+          "role": "心理顾问",
+          "lens": "情绪",
+          "dispatched": true,
+          "score": 8.3,
+          "issue": "仲裁(情绪):紧-扬-冤-燃四段完成,娟姨哭牌与兄妹双红给峰章余温"
+        },
+        "J10": {
+          "role": "终审法官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "仲裁(终审):敲槌——峰章放行,以下一章口碑发酵段承接,禁泄劲"
+        }
+      },
+      "complete": true
+    },
+    "4": {
+      "label": "修复波(工匠·定向改进)",
+      "agents": {
+        "C1": {
+          "role": "爽点强化师",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "处方:时序锚定上午十点(已应用)"
+        },
+        "C2": {
+          "role": "节奏调音师",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 8.3,
+          "issue": "处方:举报信前提重构为未公示未出组(已应用)"
+        },
+        "C3": {
+          "role": "去AI化专家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "处方:主角站一步下战书(已应用)"
+        },
+        "C4": {
+          "role": "代入感工程师",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "处方:复检日期+举报人到场监督(已应用)"
+        },
+        "C5": {
+          "role": "对话医生",
+          "lens": "对话",
+          "dispatched": true,
+          "score": 8.3,
+          "issue": "处方:齐科长复检续约钩(已应用)"
+        },
+        "C6": {
+          "role": "伏笔缝纫师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 8.1,
+          "issue": "处方:何干事自保动机链(已应用)"
+        },
+        "C7": {
+          "role": "角色深化师",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "处方:声纹去串味,喔归周发财(已应用)"
+        },
+        "C8": {
+          "role": "逻辑修补匠",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 7.9,
+          "issue": "处方:八字误/国营食堂去重(已应用)"
+        },
+        "C9": {
+          "role": "新鲜感守护者",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "处方:'一笔一笔'全书控频(记入作者备忘,后续章执行)"
+        },
+        "C10": {
+          "role": "社交货币设计师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "处方:段尾金句下一章回落到2以内(记入021卡)"
+        }
+      },
+      "complete": true
+    },
+    "5": {
+      "label": "守卫波(终审·放行/打回)",
+      "agents": {
+        "G1": {
+          "role": "质量守门员",
+          "lens": "全项",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "守卫:波1四大类修复复检全解决,真实验证代理E1/E2/E3背书"
+        },
+        "G2": {
+          "role": "回归测试员",
+          "lens": "副作用",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:修复无新副作用;数字账五科目对齐(十项/七份/第一/三天/廿一)"
+        },
+        "G3": {
+          "role": "风格一致性守卫",
+          "lens": "风格",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:文风统一,新增段与原稿无缝"
+        },
+        "G4": {
+          "role": "字数守卫",
+          "lens": "体量",
+          "dispatched": true,
+          "score": 8.3,
+          "issue": "守卫:3196字在峰章卡带2400-5200内,容量合规"
+        },
+        "G5": {
+          "role": "数字守卫",
+          "lens": "数字",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:数字账已同步六科目"
+        },
+        "G6": {
+          "role": "时间线守卫",
+          "lens": "时序",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:时序单线自洽(E1验证)"
+        },
+        "G7": {
+          "role": "知情状态守卫",
+          "lens": "知情",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:知情状态干净——邮戳/落款由何干事渠道释出,钱知情由自爆暴露"
+        },
+        "G8": {
+          "role": "伏笔守卫",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 8.4,
+          "issue": "守卫:伏笔P4兑现登记,A-5/A-9新账在册,F-2续养"
+        },
+        "G9": {
+          "role": "AI检测终审",
+          "lens": "AI",
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "守卫:AI指纹收敛,金句密度处上限记入下章处方"
+        },
+        "G10": {
+          "role": "放行官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "守卫(放行官):check 0F(群像豁免)+冷读8.4+storm四波验证——签字放行"
+        }
+      },
+      "complete": true
+    }
+  },
+  "verdict": null
+}
