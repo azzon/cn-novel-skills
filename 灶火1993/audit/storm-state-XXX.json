@@ -106,23 +106,23 @@
         "D2": {
           "role": "类型惯例专家",
           "lens": "类型合理性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "慢热护旧/对峙/拒买系惯例;真缺陷A3巧合A8字数A12感官"
         },
         "D3": {
           "role": "伏笔辩护人",
           "lens": "伏笔合法性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "伏笔合法:仅移交未揭晓明言缓合;账本待补022/027养记录"
         },
         "D4": {
           "role": "节奏辩护人",
           "lens": "蓄压合法性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "节拍成立;峰场4爆发薄于铺垫——补字集中投场4(排队众生相/酒楼侧写),禁均匀注水"
         },
         "D5": {
           "role": "角色辩护人",
@@ -141,9 +141,9 @@
         "D7": {
           "role": "商业辩护人",
           "lens": "长线价值",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 9.0,
+          "issue": "蓄力成立:025情感全额兑付,油纸包+凿口成卷二强钩"
         },
         "D8": {
           "role": "受众辩护人",
