@@ -279,89 +279,89 @@
         "C1": {
           "role": "爽点强化师",
           "lens": "爽感",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "场4泼锅不顺拍+左手返工+主角添煤一秒,已落文"
         },
         "C2": {
           "role": "节奏调音师",
           "lens": "节奏",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "节拍沿D4分布,峰场扩后张弛成立"
         },
         "C3": {
           "role": "去AI化专家",
           "lens": "AI检测",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "三处解账旁白已删,末段排比改写实"
         },
         "C4": {
           "role": "代入感工程师",
           "lens": "代入感",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "场1/场6感官已补(桐油/绳垢/夜风)"
         },
         "C5": {
           "role": "对话医生",
           "lens": "对话",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "场5已改告别式试探(我知道你要拒开场,删算账腔)"
         },
         "C6": {
           "role": "伏笔缝纫师",
           "lens": "伏笔",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "油纸包充能合法,切分后须回填022/027养账"
         },
         "C7": {
           "role": "角色深化师",
           "lens": "人物",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "处方三张全部落文:阿彪拜师刀/娟姨一冬肠粉/钱广进绕摊估价"
         },
         "C8": {
           "role": "逻辑修补匠",
           "lens": "逻辑",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "调岗归属/垫布三十年已修"
         },
         "C9": {
           "role": "新鲜感守护者",
           "lens": "新鲜度",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "群像换血(铁路工人/菜篮大婶/退包间熟客)已落"
         },
         "C10": {
           "role": "社交货币设计师",
           "lens": "付费",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "025排队+泼锅返工=截图场面;027油纸包钩"
         },
         "C11": {
           "role": "时代锚定师",
           "lens": "1993修正",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "时代锚(十万/安置费/斩骨刀工钱)合规"
         },
         "C12": {
           "role": "钩力工程师",
           "lens": "章末钩",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "切点钩型轮换待切分时校验"
         }
       },
-      "complete": false
+      "complete": true
     },
     "5": {
       "label": "守卫波(终审·放行/打回)",
