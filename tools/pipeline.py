@@ -709,9 +709,28 @@ def cmd_status():
         if maxn % 20 == 0:
             print('[REMIND] 第' + str(maxn) + '章为20的倍数——连续性守卫到期')
         print(f"下一动作: pipeline.py next {nxt}")
+    # 磨刀六批: 债务面板
+    try:
+        _bl = BOOK / "ledgers" / "storm-backlog.md"
+        if _bl.exists():
+            _nd = sum(1 for l in _bl.read_text(encoding="utf-8").splitlines() if l.strip().startswith("- "))
+            print(f"storm债务: {_nd}章(ledgers/storm-backlog.md)")
+        _md = BOOK / "audit" / "指标债务清单.md"
+        if _md.exists():
+            _nm = sum(1 for l in _md.read_text(encoding="utf-8").splitlines() if l.strip().startswith("- 第"))
+            print(f"指标债务: {_nm}章(audit/指标债务清单.md)")
+        _wf = LEDGERS / "waivers.md"
+        if _wf.exists():
+            _nw = sum(1 for l in _wf.read_text(encoding="utf-8").splitlines() if l.strip().startswith("- ch"))
+            if _nw >= 10:
+                print(f"waiver存量: {_nw}条——高频豁免应复审升级为门参数")
+    except Exception:
+        pass
+
     return 0
 
 # ---------------- next ----------------
+
 def cmd_next(args):
     stub_chapter_alert()
     # 脏章检测(20260917用户铁令): done后正文被改但未重跑done=脏章,禁止推进

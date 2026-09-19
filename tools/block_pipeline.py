@@ -20,7 +20,7 @@
   storm-stamp <书根> <起> <止> <块state.json>    块storm放行结果登记到各章state(done gate可用)
   status <书根>                                  块清单
 """
-import sys, json, re, pathlib
+import sys, json, re, pathlib, collections
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BLOCK_MAX_CH = 8          # 硬上限: 超过=审计深度不足+退稿爆炸半径过大
@@ -106,6 +106,11 @@ def cmd_check_block(book, draft):
     print(f"═══ 块级卫生: {draft.name} ({cjk}字,{len(paras)}段) ═══")
     for x in problems: print(f"  [FAIL] {x}")
     for x in warns: print(f"  [WARN] {x}")
+    # 段首签名(磨刀六批): 同一首词连开≥3段=句式签名(全书指纹"陈灶生把"17章的块级防线)
+    heads = collections.Counter(p[:4] for p in paras if len(_cjk(p)) >= 6)
+    sig = [(h, c) for h, c in heads.items() if c >= 3]
+    for h, c in sig:
+        warns.append(f"段首签名「{h}」×{c}——同起手连用,轮换起手(人名/动作/器物/他)")
     if cuts:
         print(f"  切点候选(张力峰,duanzhang): {' | '.join(c[:18] for c in cuts[:5])}")
     if not problems and not warns:

@@ -161,15 +161,15 @@ phases:
       - id: storm_chapter_best
         name: "最佳章风暴(评分最高章: 确认'好'是真的好)"
         type: script
-        script: "python3 tools/agent_storm.py chapter <最佳章路径(由quality_scores.json最高分章读出,无上游step则本phase先跑scores统计)>"
+        script: "python3 tools/storm_orchestrate.py init <最佳章路径> && record --file && repair --file && aggregate(角色表v2,60agent;净问题repair到放行)"
       - id: storm_chapter_worst
         name: "最差章风暴(评分最低章: 找出所有问题)"
         type: script
-        script: "python3 tools/agent_storm.py chapter <最差章路径(同上取最低分章)>"
+        script: "python3 tools/storm_orchestrate.py init <最差章路径> && record --file && repair --file && aggregate(最差章必走全波修复迭代)"
       - id: storm_system
         name: "系统自身风暴(攻击系统规则/PREFIX/卡骨架的漏洞)"
         type: script
-        script: "python3 tools/agent_storm.py system --book ${BOOK:-.} tools/check.py"
+        script: "python3 tools/storm_orchestrate.py selftest && python3 tools/book_fingerprint.py ${BOOK:-.}(系统级: 引擎自测+全书指纹复测)"
         condition: "每卷末或重大系统变更"
 
   phase_3_redteam:
