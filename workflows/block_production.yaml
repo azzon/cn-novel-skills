@@ -1,0 +1,74 @@
+# 章块生产流水线(20260919用户令三批: 块审块切,解"单元剧断裂感")
+# 双粒度: 生成=场景粒度(禁单次生成整块); 审计/切分=块粒度(默认4-6章,硬上限8章/2.2万字)
+# 适用: 卷内连续叙事弧(如022-027谭伯线)。峰章(逢10/20)仍可单章走原流水,但鼓励并入块。
+
+workflow: block_production
+version: "20260919"
+scope: 卷内叙事弧(多章连写)
+
+steps:
+  - id: block_start
+    name: "立块(块卡骨架: 主题句/场景簇/张力曲线/切点候选)"
+    type: script
+    script: "python3 tools/block_pipeline.py start <书根> <起章> <止章> --title <块名>"
+
+  - id: block_scene_cards
+    name: "逐场场景卡(3-5场/块,scene-card技能;卡内标注所属块与场序)"
+    type: agent
+    skill: write/scene-card
+
+  - id: block_scene_drafts
+    name: "逐场生成(连续写作,共享bundle;每场单独生成禁一次性生成整块——LLM长文单pass质量衰减)"
+    type: agent
+    skill: write/scene-draft
+
+  - id: block_assemble
+    name: "拼块稿(按场序拼入text/块/块-第XXX-XXX章.md)"
+    type: script
+    script: "手工拼入(拼章走chapter-assemble技能卫生规则)"
+
+  - id: block_check
+    name: "块级卫生门(跨场原样重复/段长方差/对白比/切点候选)"
+    type: script
+    script: "python3 tools/block_pipeline.py check-block <书根> <块稿文件>"
+
+  - id: block_coldread
+    name: "块级连读冷读(arc-review技能: 干净代理以追读读者身份连读整块,找弃书点/拖沓段/高潮成色)"
+    type: agent
+    skill: audit/arc-review
+
+  - id: block_storm
+    name: "块级全波storm v2(60agent,含J11连读审读官/J12声纹裁判;对象=块稿全文)"
+    type: script
+    script: "python3 tools/storm_orchestrate.py init <块稿> && record --file && repair --file(净问题<6.5须verify>=7.0) && aggregate(须放行)"
+
+  - id: block_revise_loop
+    name: "块级修订迭代(按块storm处方逐条修;每轮repair登记+重aggregate直到放行;>3轮升级整块重写)"
+    type: agent
+    skill: revise
+
+  - id: block_split
+    name: "断章切分(duanzhang技能: 在张力峰值处切割成章;切点=章末钩,钩型轮换校验)"
+    type: agent
+    skill: write/duanzhang
+
+  - id: chapter_retrofit
+    name: "逐章回填(每章: 场景卡回填数字表/章末钩落账/八账盖章/时刻卡)"
+    type: agent
+    skill: ops/ledger-update
+
+  - id: block_storm_stamp
+    name: "块storm盖章到各章(把块级放行state登记为各章storm state,done的storm门认可)"
+    type: script
+    script: "python3 tools/block_pipeline.py storm-stamp <书根> <起章> <止章> <块state.json>"
+
+  - id: chapter_done_loop
+    name: "逐章验收(每章: check→逐章冷读(验切点衔接)→done;任何章FAIL=修该章+重跑check)"
+    type: script
+    script: "python3 tools/pipeline.py done <N> --book <书根> (逐章)"
+
+gates:
+  - "块字数≤2.2万/章数≤8(超限拆块)"
+  - "块级storm v2放行前禁切分(先审后切——审的是连贯全文,切的是呈现单位)"
+  - "切点处钩型不得与相邻章同型(轮换校验)"
+  - "逐章done仍走全部门(check/卡文对账/冷读出处/八账);storm由块级盖章溯源"

@@ -1,3 +1,5 @@
+- 20260919 用户令三批(块审块切): 双粒度架构回应"先写2万字再切8-10章"——生成保持场景粒度(禁单次生成整块,防LLM长文质量衰减),审计/切分升到块粒度(4-6章,硬上限8章/2.2万字);新增 tools/block_pipeline.py(start立块/check-block跨场卫生+张力峰切点候选/storm-stamp块审计盖章到各章/status) + workflows/block_production.yaml全流程(立块→逐场生成→块check→块冷读→块storm→修订迭代→duanzhang断章→逐章回填→逐章done) + 已立首块022-027谭伯保卫战;2万字/5-10万字单次生成方案被否并留档理由
+
 - 20260919 用户令二批(全波审计强制化): storm角色表v2(10→12角色/波,60agent,新增时代事实/感官锚点/连读衔接/声纹裁判/迭代终验/台账对账六角色+全角色checklist清单入prompt) + storm_orchestrate新增repair(净问题修复迭代,verify>=7.0才闭环)/backlog(全书债务清册)/selftest(5断言引擎自测) + gate侧角色覆盖硬门(v1旧审计一律作废) + pipeline done非关键章降级口子拔除(每章必跑全波,债务拦done) + workflow/skill_protocol/AGENTS.md同步
 
 # CHANGELOG(决策记录——每红队批次一条,主题可检索)
