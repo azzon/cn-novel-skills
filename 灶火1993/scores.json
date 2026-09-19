@@ -1,7 +1,7 @@
 {
   "_comment": "派生缓存:python3 tools/pipeline.py scores重算;手稿是唯一权威;禁止手写",
-  "generated_at": "2026-09-19T09:30:52",
-  "head_commit": "946076d",
+  "generated_at": "2026-09-19T09:42:06",
+  "head_commit": "6bd1350",
   "chapters": {
     "1": {
       "path": "灶火1993/text/卷1/第001章.md",
@@ -271,6 +271,22 @@
       "hook_level_from_card": null,
       "card_budget": null,
       "cold_read": "冷读-第016章.md",
+      "drift_flags": []
+    },
+    "17": {
+      "path": "灶火1993/text/卷1/第017章.md",
+      "committed": false,
+      "cjk": 2451,
+      "dia_char_pct": 62.5,
+      "psych_per_k": 3.67,
+      "hook_signals": 1,
+      "dup18": 0,
+      "check_status": "PASS",
+      "check_fails": 0,
+      "gate_version": 9,
+      "hook_level_from_card": null,
+      "card_budget": null,
+      "cold_read": "冷读-第017章.md",
       "drift_flags": []
     }
   }
