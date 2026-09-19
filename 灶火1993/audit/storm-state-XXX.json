@@ -99,9 +99,9 @@
         "D1": {
           "role": "文本辩护律师",
           "lens": "误报过滤",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "撤诉9条(引文反证),维持A3/A8/A12;A3修复未落文实锤"
         },
         "D2": {
           "role": "类型惯例专家",
@@ -127,16 +127,16 @@
         "D5": {
           "role": "角色辩护人",
           "lens": "角色复杂性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "角色指控不成立:谭倔合圣经规矩,钱败象020已伏"
         },
         "D6": {
           "role": "AI检测辩护人",
           "lens": "检测假阳性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "净指纹4处非母题(已删2),余7处系账理功能喻"
         },
         "D7": {
           "role": "商业辩护人",
@@ -162,9 +162,9 @@
         "D10": {
           "role": "综合辩护律师",
           "lens": "整体权衡",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 6.2,
+          "issue": "净问题5条:体量3783仅及预算1/4为最重;A3/A12修复未落文=台账失真"
         },
         "D11": {
           "role": "时代辩护人",
