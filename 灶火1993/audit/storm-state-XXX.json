@@ -148,16 +148,16 @@
         "D8": {
           "role": "受众辩护人",
           "lens": "受众分层",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "旁白反复替读者解账,议论像写给编辑(处方:解账入人物口)"
         },
         "D9": {
           "role": "结构辩护人",
           "lens": "结构必要性",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "垫布十年/三十年矛盾(已修统一三十年)"
         },
         "D10": {
           "role": "综合辩护律师",
@@ -189,9 +189,9 @@
         "J1": {
           "role": "总编",
           "lens": "综合质量",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "修改后放行:体量至1.4万集中场4(已扩一轮)/伏笔账分记/群像换血"
         },
         "J2": {
           "role": "数据分析师",
@@ -203,9 +203,9 @@
         "J3": {
           "role": "读者代表",
           "lens": "追读",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.2,
+          "issue": "想追,两半方子钩足;走神:三拨捧场略流水赢得太顺(处方:场4加一拍不顺)"
         },
         "J4": {
           "role": "平台审核员",
@@ -259,16 +259,16 @@
         "J11": {
           "role": "连读审读官",
           "lens": "衔接",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 9.0,
+          "issue": "钩承接无缝;场5调岗误归钱广进(已修归酒楼)"
         },
         "J12": {
           "role": "声纹裁判",
           "lens": "对白辨声",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.7,
+          "issue": "周钱同走算账商腔靠语气词分;钱仅一场(处方:钱加一个商人专属动作)"
         }
       },
       "complete": false
