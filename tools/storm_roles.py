@@ -9,6 +9,13 @@ v1→v2变化(每波10→12,共60 agent):
 
 每角色字段: id/role/lens/mission/checklist(2-5条)
 STORM_ROLE_VERSION = "v2-20260919-60"
+
+# 实派批调度协议(对抗十批W10-#4,禁等效手写记录):
+#   1) 波间栅栏串行: W2待W1指控注入,W3待W2,…,W5待W4处方
+#   2) 波内小批: 每批3-4个Agent并行,批前status对账,断点续派只补score=None
+#   3) 限流退避: 429/超时按1-2-4分钟指数退避,连3败批规模减半
+#   4) 每批jsonl经 record --file 原子落账留证,record幂等可重放
+#   5) verdict锁定后禁补录;repair解锁须重跑aggregate
 """
 
 STORM_ROLE_VERSION = "v2-20260919-60"

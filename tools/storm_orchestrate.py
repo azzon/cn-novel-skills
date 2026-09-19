@@ -327,6 +327,8 @@ def cmd_aggregate(target):
     
     # 保存verdict
     state["verdict"] = verdict
+    import hashlib as _hf
+    state["state_fingerprint"] = _hf.sha1(("|".join(f"{a}:{v.get('score')}" for w in state["waves"].values() for a, v in w["agents"].items()) + str(verdict)).encode()).hexdigest()[:12]
     state["verdict_score"] = round(avg, 1)
     state["verdict_locked"] = True  # 缺陷12: aggregate后锁定(防record改分不重算)
     state["verdict_reasons"] = reasons
@@ -375,6 +377,16 @@ def cmd_gate(target):
         _missing = [i for i in ids if i not in _have]
         if _missing:
             return False, f"storm角色覆盖不足: Wave{wn}缺{','.join(_missing)}——重新init+补派全波"
+    _blk = state.get("block") or {}
+    if _blk.get("章hash"):
+        import hashlib as _hb, pathlib as _pb, re as _rb
+        _tp = state.get("target")
+        if _tp and _pb.Path(_tp).exists():
+            if _hb.sha1(_pb.Path(_tp).read_bytes()).hexdigest()[:12] != _blk["章hash"]:
+                return False, "块storm盖章已失效(章文在盖章后被修改)——重切分或重审该章"
+            _m = _rb.search(r"第(\d+)章", _pb.Path(_tp).stem)
+            if _m and not (_blk["起"] <= int(_m.group(1)) <= _blk["止"]):
+                return False, "章号越出块区间——盗章盖章"
     if state["verdict"] != "放行":
         reasons = "; ".join(state.get("verdict_reasons", []))
         return False, f"storm判定={state['verdict']}({reasons})"
@@ -434,7 +446,9 @@ def cmd_backlog(book):
     print(f"═══ Storm债务清册(角色表{STORM_ROLE_VERSION}) ═══")
     print(f"  已达标: {len(ok)}章  债务: {len(debt)}章")
     for d in debt:
-        print(f"  ❌ {d.name}")
+        m2 = re.search(r"第(\d+)章", d.stem)
+        p3 = "P0峰章" if m2 and int(m2.group(1)) % 10 == 0 else ("P1近产" if m2 and int(m2.group(1)) >= 16 else "P2存量")
+        print(f"  ❌ {d.name} [{p3}]")
     if debt:
         out = book / "ledgers" / "storm-backlog.md"
         out.write_text("# Storm债务清册(v2全波60agent标准)\n\n每章必须全波审计+修复迭代到放行。\n\n- " +

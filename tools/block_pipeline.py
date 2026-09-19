@@ -62,6 +62,12 @@ def cmd_start(book, a, b, title=""):
 - **Forbid**: （本块禁发生;违者重写）
 """, encoding="utf-8")
     dp.parent.mkdir(parents=True, exist_ok=True)
+    _acc = book / "ledgers" / "块账"
+    _acc.mkdir(parents=True, exist_ok=True)
+    (_acc / ("blk-%03d-%03d.md" % (a, b))).write_text(
+        "# 块账 %03d-%03d(切分前逐场登记,切分后回填八账;漏项=done拦截)\n\n"
+        "| 场 | 预属章 | 数字/钱面 | 伏笔(埋/养/收) | 人物位移 | 时间 |\n|---|---|---|---|---|---|\n" % (a, b),
+        encoding="utf-8")
     dp.write_text(f"# 块稿 第{a:03d}-{b:03d}章（{title or '（填）'}）\n\n<!-- 逐场生成后按场拼入;每场以【场N·场景卡名】分隔 -->\n", encoding="utf-8")
     print(f"✅ 立块: 第{a:03d}-{b:03d}章({n}章,预算{budget}±{n*200}字)")
     print(f"   块卡: {bp}\n   块稿: {dp}")
@@ -140,7 +146,11 @@ def cmd_storm_stamp(book, a, b, block_state):
         sp.parent.mkdir(parents=True, exist_ok=True)
         data = dict(data)
         data["target"] = str(ch)
-        data["block"] = {"起": a, "止": b, "块state": str(bs), "溯源": "块级60agent审计覆盖本章全文"}
+        import hashlib as _h, datetime as _dt
+        data["block"] = {"起": a, "止": b, "块state": str(bs), "溯源": "块级60agent审计覆盖本章全文",
+                         "块稿hash": _h.sha1(pathlib.Path(data["target"]).read_bytes()).hexdigest()[:12] if pathlib.Path(data["target"]).exists() else None,
+                         "章hash": _h.sha1(ch.read_bytes()).hexdigest()[:12],
+                         "stamp_at": _dt.datetime.now().isoformat(timespec="seconds")}
         data["verdict_locked"] = True
         sp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         ok += 1
