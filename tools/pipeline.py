@@ -761,7 +761,7 @@ def cmd_next(args):
             _f = _dm.get(int(_k))
             if _f and _f.exists():
                 _cur = _hl.sha1(_f.read_bytes()).hexdigest()
-                if _cur != _v.strip():
+                if _cur[:len(_v.strip())] != _v.strip():   # 对抗十批W10-P0: 写侧存12位读侧比40位=恒误报死锁
                     print(f"[脏章] 第{int(_k):03d}章正文在done后被修改——请重跑: pipeline.py done {_k}")
                     return 1
     cm = chapter_map()
