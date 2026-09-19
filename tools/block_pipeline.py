@@ -107,7 +107,7 @@ def cmd_check_block(book, draft):
     for x in problems: print(f"  [FAIL] {x}")
     for x in warns: print(f"  [WARN] {x}")
     # 段首签名(磨刀六批): 同一首词连开≥3段=句式签名(全书指纹"陈灶生把"17章的块级防线)
-    heads = collections.Counter(p[:4] for p in paras if len(_cjk(p)) >= 6)
+    heads = collections.Counter(p[:4] for p in paras if len(re.findall(r"[\u4e00-\u9fff]", p)) >= 6)
     sig = [(h, c) for h, c in heads.items() if c >= 3]
     for h, c in sig:
         warns.append(f"段首签名「{h}」×{c}——同起手连用,轮换起手(人名/动作/器物/他)")
