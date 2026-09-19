@@ -1,0 +1,390 @@
+{
+  "target": "灶火1993/text/卷1/第015章.md",
+  "started": true,
+  "waves": {
+    "1": {
+      "label": "攻击波(红队·找问题)",
+      "agents": {
+        "A1": {
+          "role": "追更毒舌读者",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "收货管够但打脸靠女主代打,主角被动;末行第二天取照与开头矛盾"
+        },
+        "A2": {
+          "role": "弃书审判官",
+          "lens": "注意力",
+          "dispatched": true,
+          "score": 6.0,
+          "issue": "前半砌墙后半一秒拆墙,全章无真失败;取照结尾逻辑重复"
+        },
+        "A3": {
+          "role": "逻辑审查员",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "周一已当场领照,末行又第二天取照,时间线断裂;名额上个月订光与报名下月十五矛盾"
+        },
+        "A4": {
+          "role": "文笔鉴赏家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "苏文茵警句堆叠,段尾解说腔重,结尾取照时间线自相矛盾"
+        },
+        "A5": {
+          "role": "代入党",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "憋闷被格言旁白提前消解,解围靠苏文茵代打,主角失主动"
+        },
+        "A6": {
+          "role": "节奏警察",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "碰壁冲突被一条款零成本化解,联名凑签无摩擦,结尾三重收束拖沓"
+        },
+        "A7": {
+          "role": "重复猎手",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "名额满了官腔4连发+贵人亮证秒破俗套,多句原样重出"
+        },
+        "A8": {
+          "role": "伏笔审计师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "末行第二天取照与开头执照已领矛盾,假钩子;小干事瞒条款可回收"
+        },
+        "A9": {
+          "role": "角色律师",
+          "lens": "人设",
+          "dispatched": true,
+          "score": 7.8,
+          "issue": "阿彪纯口号义气答非所问无独立面目;老李九年与娟姨十年前带队史实相抵"
+        },
+        "A10": {
+          "role": "商业分析师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 6.5,
+          "issue": "末行取照重复开头且零悬念,免费中点追更钩断档;破墙靠苏文茵主角被动"
+        }
+      },
+      "complete": true
+    },
+    "2": {
+      "label": "辩护波(蓝队·滤误报)",
+      "agents": {
+        "D1": {
+          "role": "文本辩护律师",
+          "lens": "误报过滤",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "辩护:收货不足已修——主角自己去问报备流程被推,再由苏文茵解围,主动性恢复"
+        },
+        "D2": {
+          "role": "类型惯例专家",
+          "lens": "类型合理性",
+          "dispatched": true,
+          "score": 6.8,
+          "issue": "辩护:太顺已修——加了主角亲自申诉被推的失败拍;取照矛盾结尾已改管理所问流程"
+        },
+        "D3": {
+          "role": "伏笔辩护人",
+          "lens": "伏笔合法性",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:取照矛盾已删,结尾改为联名单+明日两件事;名额订光与报名截止改为并行不悖(名额是上季度评的)"
+        },
+        "D4": {
+          "role": "节奏辩护人",
+          "lens": "蓄压合法性",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:警句堆叠已删一处(祖父老话保留一处呼应);解说腔已重写为动作"
+        },
+        "D5": {
+          "role": "角色辩护人",
+          "lens": "角色复杂性",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:格言旁白已删(砖是制度泥是人情保留一处,其余改动作);憋闷恢复在场"
+        },
+        "D6": {
+          "role": "AI检测辩护人",
+          "lens": "检测假阳性",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "辩护:联名凑签加了娟姨老花镜念名单/新摊贩疑虑等摩擦拍;结尾三重收束已删一重"
+        },
+        "D7": {
+          "role": "商业辩护人",
+          "lens": "长线价值",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "辩护:名额满了官腔×4是有意设计(制度复读机),但已删至2处减少疲劳"
+        },
+        "D8": {
+          "role": "受众辩护人",
+          "lens": "受众分层",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "辩护:小干事瞒条款已转为可回收把柄(特殊报备条款);末行假钩已删"
+        },
+        "D9": {
+          "role": "结构辩护人",
+          "lens": "结构必要性",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "辩护:阿彪义气口号保留但加了送肉细节;老李九年与娟姨十年前系两件事不冲突"
+        },
+        "D10": {
+          "role": "综合辩护律师",
+          "lens": "整体权衡",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "辩护:追更钩已改为联名单+明日双事,免费中点拉力恢复"
+        }
+      },
+      "complete": true
+    },
+    "3": {
+      "label": "仲裁波(评审·综合判定)",
+      "agents": {
+        "J1": {
+          "role": "总编",
+          "lens": "综合质量",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁:波1均分6.65;三类硬伤(矛盾/重复/代打)成立并已修;风格取舍部分保留"
+        },
+        "J2": {
+          "role": "数据分析师",
+          "lens": "量化",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁:净问题6个全部可修;修复后账目自洽,无结构缺陷"
+        },
+        "J3": {
+          "role": "读者代表",
+          "lens": "追读",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁(读者代表):联名手印+明日两件事,我翻页;但本章整体是过场,爽点弱"
+        },
+        "J4": {
+          "role": "平台审核员",
+          "lens": "合规",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "仲裁(平台审核):无敏感点;政务流程描写平实合规"
+        },
+        "J5": {
+          "role": "编辑(情节线)",
+          "lens": "情节",
+          "dispatched": true,
+          "score": 7.1,
+          "issue": "仲裁(情节线):办证三关过二,推进扎实;过场感是蓄压章属性"
+        },
+        "J6": {
+          "role": "编辑(人物线)",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁(人物线):小干事有了脸(推开材料/打哈欠);苏文茵规矩观深化;阿彪仍偏薄"
+        },
+        "J7": {
+          "role": "编辑(文笔线)",
+          "lens": "文笔",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "仲裁(文笔线):公家腔/市井腔对比是本章文笔亮点;警句已控制"
+        },
+        "J8": {
+          "role": "编辑(商业线)",
+          "lens": "商业",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "仲裁(商业线):三证过二+评比报名双线,免费期追更动力保持"
+        },
+        "J9": {
+          "role": "心理顾问",
+          "lens": "情绪",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁(情绪):憋闷-化开-落定曲线完整;苏文茵段温度适中"
+        },
+        "J10": {
+          "role": "终审法官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "仲裁(终审):敲槌——修复后放行;011章章卡需按新流程补跑"
+        }
+      },
+      "complete": true
+    },
+    "4": {
+      "label": "修复波(工匠·定向改进)",
+      "agents": {
+        "C1": {
+          "role": "爽点强化师",
+          "lens": "爽感",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "处方:主角加申诉拍再引苏文茵,恢复主动(已应用)"
+        },
+        "C2": {
+          "role": "节奏调音师",
+          "lens": "节奏",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:取照矛盾结尾删除,改联名单+明日路线(已应用)"
+        },
+        "C3": {
+          "role": "去AI化专家",
+          "lens": "AI检测",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:管理所段补材料对话(已应用)"
+        },
+        "C4": {
+          "role": "代入感工程师",
+          "lens": "代入感",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "处方:警句堆叠减一(已应用)"
+        },
+        "C5": {
+          "role": "对话医生",
+          "lens": "对话",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "处方:格言旁白保留一处(已应用)"
+        },
+        "C6": {
+          "role": "伏笔缝纫师",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "处方:结尾三重收束删一重(已应用)"
+        },
+        "C7": {
+          "role": "角色深化师",
+          "lens": "人物",
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "处方:名额满了官腔减频(已应用)"
+        },
+        "C8": {
+          "role": "逻辑修补匠",
+          "lens": "逻辑",
+          "dispatched": true,
+          "score": 7.3,
+          "issue": "处方:银元标枪句删除(已应用)"
+        },
+        "C9": {
+          "role": "新鲜感守护者",
+          "lens": "新鲜度",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:娟姨/老李台词差异化(已应用)"
+        },
+        "C10": {
+          "role": "社交货币设计师",
+          "lens": "付费",
+          "dispatched": true,
+          "score": 7.2,
+          "issue": "处方:末段强钩恢复(已应用)"
+        }
+      },
+      "complete": true
+    },
+    "5": {
+      "label": "守卫波(终审·放行/打回)",
+      "agents": {
+        "G1": {
+          "role": "质量守门员",
+          "lens": "全项",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:四大类修复复检全解决"
+        },
+        "G2": {
+          "role": "回归测试员",
+          "lens": "副作用",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "守卫:修复无新副作用;数字账已同步"
+        },
+        "G3": {
+          "role": "风格一致性守卫",
+          "lens": "风格",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "守卫:文风统一,重写段与原稿无缝"
+        },
+        "G4": {
+          "role": "字数守卫",
+          "lens": "体量",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "守卫:2316字在卡带2400下缘附近,可接受"
+        },
+        "G5": {
+          "role": "数字守卫",
+          "lens": "数字",
+          "dispatched": true,
+          "score": 7.6,
+          "issue": "守卫:数字账三科目对齐正文"
+        },
+        "G6": {
+          "role": "时间线守卫",
+          "lens": "时序",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "守卫:时序单线无逆序"
+        },
+        "G7": {
+          "role": "知情状态守卫",
+          "lens": "知情",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "守卫:知情状态干净——油纸包/半张方未泄"
+        },
+        "G8": {
+          "role": "伏笔守卫",
+          "lens": "伏笔",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "守卫:联名条款伏笔在账,无未登记新伏笔"
+        },
+        "G9": {
+          "role": "AI检测终审",
+          "lens": "AI",
+          "dispatched": true,
+          "score": 7.4,
+          "issue": "守卫:AI指纹复扫——重复句清零,警句合规"
+        },
+        "G10": {
+          "role": "放行官",
+          "lens": "终审",
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "守卫(放行官):check 0F+冷读7.4会翻+账实对齐——签字放行"
+        }
+      },
+      "complete": true
+    }
+  },
+  "verdict": "放行",
+  "verdict_score": 7.2,
+  "verdict_locked": true,
+  "verdict_reasons": []
+}
