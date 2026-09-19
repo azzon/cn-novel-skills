@@ -383,58 +383,58 @@
         "G3": {
           "role": "风格一致性守卫",
           "lens": "风格",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "文风统一;场2/4西文引号已修"
         },
         "G4": {
           "role": "字数守卫",
           "lens": "体量",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 4.5,
+          "issue": "场均千字六章无一≥1800——切分前须扩至≥10800(硬底)"
         },
         "G5": {
           "role": "数字守卫",
           "lens": "数字",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "四数自洽;归属口径已统一"
         },
         "G6": {
           "role": "时间线守卫",
           "lens": "时序",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.5,
+          "issue": "十九至廿八单线;场1日期锚在(腊月十九)"
         },
         "G7": {
           "role": "知情状态守卫",
           "lens": "知情",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 8.0,
+          "issue": "知情边界PASS;钥匙空钩已重定义(取木匣)"
         },
         "G8": {
           "role": "伏笔守卫",
           "lens": "伏笔",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.0,
+          "issue": "5/7对齐→7/7(D-1养022/A-15补登/块账三项修)"
         },
         "G9": {
           "role": "AI检测终审",
           "lens": "AI",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "两低危;026三笔账留主角人设域;对仗句已复核"
         },
         "G10": {
           "role": "放行官",
           "lens": "终审",
-          "dispatched": false,
-          "score": null,
-          "issue": null
+          "dispatched": true,
+          "score": 7.5,
+          "issue": "条件放行→四项台账修正已落,余体量一项(G4)"
         },
         "G11": {
           "role": "迭代终验官",
@@ -451,7 +451,7 @@
           "issue": "块账缺+伏笔止021(已建块账七钩回填)"
         }
       },
-      "complete": false
+      "complete": true
     }
   },
   "repairs": [
