@@ -1873,6 +1873,18 @@ def main():
     print(f"未知命令: {cmd}\n" + __doc__)
     return 2
 
-if __name__ == "__main__":
+if __name__ == "__main__":    # 磨刀九批(A5-3收口): 冷读机器行入scores_history——钩强度趋势面板数据源接通
+    if cr is not None:
+        try:
+            _crt3 = cr.read_text(encoding="utf-8", errors="ignore")
+            _mcm = re.search(r"\[COLDREAD-METRICS\][^\n]*", _crt3)
+            if _mcm:
+                _shf = BOOK / "ledgers" / "scores_history.jsonl"
+                _shf.parent.mkdir(parents=True, exist_ok=True)
+                with open(_shf, "a", encoding="utf-8") as _sf:
+                    _sf.write(json.dumps({"ch": n, "date": datetime.date.today().isoformat(), "metrics_line": _mcm.group(0)}, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+
     sys.exit(main())
     ""
