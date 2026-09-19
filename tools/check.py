@@ -1034,7 +1034,30 @@ def check(fp: pathlib.Path, gate_ver=None):
     # 45) 记忆碎片注入(代入感引擎,红队20260918): 每千字≥1条感官记忆闪回
     #     启发式: 含气味/声音/触觉/视觉记忆词的段落,且不挂当前任务词
     _mem_pat = re.compile(r"想起.{0,10}(味|声|光|触|温度|气味|声音|画面)|记得.{0,10}(味|声|触)|小时候.{0,20}(味|声|热|冷)|那年.{0,15}(味|声|雪|雨|热)|上辈子.{0,10}(味|声)|熟悉的.{0,8}(味|声|触)")
-    _mem_n = len(_mem_pat.findall(body))
+    # 磨刀五批(20260919): 门致模板化修复——21章实测"忽然想起"被门奖励成16章签名句。
+    # 多形态认可: 闪回可以用对话引出/器物触发/身体反应呈现,不必都写"想起";
+    # 房间纹反作弊: 命中audit/book-tics.txt签名词组的记忆句不计入(堵"复写同一句过门")
+    _mem_pat2 = re.compile(r"(祖父|师父|母亲|谭伯|老李)曾?(说|提|念)过[^。]{0,18}(味|声|热|冷|香|规矩|手艺)|那一[年天晚]他?还(小|在)[^。]{0,12}(味|声|热|冷)|一[闻听摸看]到[^。]{2,10}就想起|记得清清楚楚")
+    _mem_n = len(_mem_pat.findall(body)) + len(_mem_pat2.findall(body))
+    try:
+        _tics_f = BOOK.parent / "audit" / "book-tics.txt" if False else None
+    except Exception:
+        _tics_f = None
+    # 从被检文件向上回溯书根(支持 灶火1993/text/卷1/第NNN章.md 等布局)
+    _tics_path = None
+    try:
+        _cur = pathlib.Path(p).resolve().parent
+        for _ in range(4):
+            _cand = _cur / "audit" / "book-tics.txt"
+            if _cand.exists(): _tics_path = _cand; break
+            _cur = _cur.parent
+    except Exception:
+        pass
+    if _tics_path:
+        _tics = [l.strip() for l in _tics_path.read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("[")]
+        if _tics:
+            _hit_tic = sum(1 for m in _mem_pat.findall(body) if any(t in "".join(m) for t in _tics))
+            _mem_n = max(0, _mem_n - _hit_tic)
     metrics["mem_fragments"] = _mem_n
     _mem_per_k = _mem_n * 1000 / max(cjk_len(body), 1)
     metrics["mem_per_k"] = round(_mem_per_k, 2)
@@ -1054,6 +1077,25 @@ def check(fp: pathlib.Path, gate_ver=None):
     metrics["ultrashort_paras"] = len(_ultrashort)
     if n > 1200 and len(_ultrashort) < 2:
         warns.append(f"超短段{len(_ultrashort)}个(<2=AI指纹匀速感)——每章至少2个独立成段的超短句(≤5字,如'有了。''就是它。')")
+
+    # 80) 排比三连/同头超短段连发(磨刀五批20260919: 全书指纹报告实测镜像句癖"白的。白的。还是白的。")
+    _tri_comma = re.findall(r"([\u4e00-\u9fff]{2,5})，\1，", body)
+    _run = 0; _tri_para = False
+    for _p in paras:
+        _L = cjk_len(_p)
+        if 0 < _L <= 6:
+            _run += 1
+            if _run >= 3: _tri_para = True; break
+        else: _run = 0
+    metrics["triple_repeat"] = len(_tri_comma) + (1 if _tri_para else 0)
+    if _tri_comma or _tri_para:
+        warns.append(f"排比三连/同头超短段连发({'，'.join(_tri_comma[:1]) or '超短段×3'})——镜像句癖,跨章复用=全书签名")
+
+    # 81) 章末金句连收(末两段连续警句=说教感,A9实测峰章11句金句/4000字)
+    if len(paras) >= 2:
+        _aph = re.compile(r"(不是[^。]{1,14}(是|而是)|，才是|就得|就会|才值钱|就得等|睡得着觉|醒着$|不得羞)")
+        if _aph.search(paras[-1]) and _aph.search(paras[-2]):
+            warns.append("章末金句连收(末两段连续警句)——说教感,末段收在动作/物件/对话")
 
     # 44) 旁白判词刻度(冷读3期: 收束腔逐章加重)——启发式:段尾抽象总结句式,只计数进METRICS
     aphor_pat = re.compile(

@@ -878,6 +878,12 @@ def cmd_bundle(args):
 
 
     add("1固定指令前缀", 1200, PREFIX)   # 红队20260918: 三引擎注入后650截断=指令丢失,提至1200
+    # 磨刀五批: 全书房间纹禁复用清单(book_fingerprint产出)——生成前知悉签名句式,每章至多1次
+    _tics_f = BOOK / "audit" / "book-tics.txt"
+    if _tics_f.exists():
+        _tics = [l.strip() for l in _tics_f.read_text(encoding="utf-8").splitlines() if l.strip()][:20]
+        if _tics:
+            add("1b全书签名禁复用", 400, "【反AI签名】以下词组已在全书多章出现,本章至多出现1次,优先用同义新表达: " + "、".join(_tics))
     add("2场景卡(全文)", 1600, read_text(card))  # 大审计-20: 收口卡700被裁
     card_text = read_text(card)
     # 3 声纹行(仅出场者): 声纹表为markdown表格,解析行首单元格人名,命中卡面/人物状态账才带
