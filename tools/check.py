@@ -412,10 +412,14 @@ def check(fp: pathlib.Path, gate_ver=None):
                 issues.append(f"时代错位词「{w}」(古代背景不得出现现代词汇)")
                 break
         else:
-            for w in MODERN_SOFT:
-                if w in body:
-                    warns.append(f"疑似时代错位词「{w}」(晚清民国可合法,按本书年代自检)")
-                    break
+            # 20260919磨刀批: 书内年代锚定豁免——正文自含1990s锚(年份/个体户/粮票/国营/万元户)时,
+            # 电话/照片/公园等民国延续词为合法,不再空转WARN(21章实测此WARN 100%靠waivers销账)
+            _era_anchored = re.search(r"(19[0-9]{2}年|个体户|粮票|国营|万元户|供销社|信用社)", body)
+            if not _era_anchored:
+                for w in MODERN_SOFT:
+                    if w in body:
+                        warns.append(f"疑似时代错位词「{w}」(晚清民国可合法,按本书年代自检)")
+                        break
 
     # 22) 角色语音同质化检测 + 23) 声纹禁词(从死代码中恢复)
     speaker_sents = {}
@@ -682,7 +686,7 @@ def check(fp: pathlib.Path, gate_ver=None):
         pass  # 闲笔检查已在上方
 
     # 53) 无冲突检测(大审计-28根因; 审计-32: 旧词表含"但是/问题/急"高频词+any()恒真=死检查,改强词计数)
-    _conflict_words = ["不行","反对","不同意","拒绝","不要","不能","失败","坏了","出事","办不成","没成","驳回","拦住","堵回","翻脸","谈崩","闹翻","卡住","凑不出","拿不出","交不起","还不上"]
+    _conflict_words = ["不行","反对","不同意","拒绝","不要","不能","失败","坏了","出事","办不成","没成","驳回","拦住","堵回","翻脸","谈崩","闹翻","卡住","凑不出","拿不出","交不起","还不上","挡驾","顶回","挑刺","堵门","回绝","作梗","刁难","使绊","落空","攥出褶","没落","对簿","失态"]
     _conflict_cnt = sum(body.count(w) for w in _conflict_words)
     metrics["conflict_hits"] = _conflict_cnt
     if n >= 1500 and _conflict_cnt == 0:

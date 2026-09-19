@@ -796,6 +796,10 @@ def cmd_bundle(args):
     missing = []
     if card is None:
         missing.append(f"场景卡 text/卡/*第{n:03d}章*(先走scene-card)")
+    elif "生活层" in card:
+        _sh_line = [l for l in card.splitlines() if l.startswith("- **生活层**")]
+        if _sh_line and ("（填）" in _sh_line[0] or _sh_line[0].rstrip().endswith("**生活层**:")):
+            print(f"  [EARLY-WARN] 卡「生活层」未实填——工艺挂载落点,正文前必填(pre-commit会拦,先报省一轮返工)")
     # ── 开写门(20260917用户战略纠偏:"构思没做到位就急于开写") ──
     # 第001章bundle=全书开写时刻,强制核构思域五件套;缺=拒开写(ideate域final_gate机器化)
     if n == 1:
@@ -1218,7 +1222,7 @@ def cmd_done(args):
     # 20260917用户铁令: 冷读不设软门——每章必冷读,缺失一律FAIL(原非硬门=软WARN可跳=漏洞)
     hard_cold = True
     if cr is None:
-        msg = "无冷读记录(story/audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
+        msg = "无冷读记录(audit/冷读-第{:03d}章.md)——运行reader-proxy后落盘".format(n)
         (problems if hard_cold else warns).append(msg + ("[硬门]" if hard_cold else "[软门]"))
         # 红队20260917修: 原hash校验误置于cr=None分支必崩(AttributeError),移至else(cr存在)分支
     else:
@@ -1493,6 +1497,46 @@ def cmd_done(args):
     if missing:
         _msg = f"八账未盖章: {missing}——ledger-update补记(禁无章号记账)"
         (warns if (revise or post) else problems).append(_msg)
+    # 7.6 账本卫生lint(磨刀批20260919: 21章审计发现钩分布重复行/演进层重复节/时间线未提取/时刻卡越界——全是追加式写账无去重的系统性伤)
+    try:
+        _hyg = []
+        _pat_n = re.compile(rf"第0?0*{n}章")
+        _hookf = LEDGERS / "钩分布.md"
+        if _hookf.exists():
+            _lines = [l for l in _hookf.read_text(encoding="utf-8").splitlines() if _pat_n.search(l)]
+            if len(_lines) > 1:
+                _hyg.append(f"钩分布第{n:03d}章有{len(_lines)}行(重复盖章)——去重,一事一行")
+        _tw = LEDGERS / "类型轮换.md"
+        if _tw.exists():
+            _tl = [l for l in _tw.read_text(encoding="utf-8").splitlines() if _pat_n.search(l)]
+            if len(_tl) > 3:
+                _hyg.append(f"类型轮换第{n:03d}章有{len(_tl)}行(>3,重复盖章)——去重")
+        _bible = BOOK / "人物圣经.md"
+        if _bible.exists():
+            _sec = len(re.findall(rf"^## 演进层\(第0?0*{n}章后\)", _bible.read_text(encoding="utf-8"), re.M))
+            if _sec > 1:
+                _hyg.append(f"人物圣经演进层(第{n:03d}章后)重复{_sec}节——合并")
+        _tlf = LEDGERS / "时间线.md"
+        if _tlf.exists():
+            if any(("未提取" in l or "待补" in l) for l in _tlf.read_text(encoding="utf-8").splitlines() if _pat_n.search(l)):
+                _hyg.append(f"时间线第{n:03d}章'未提取/待补'——时间线是续写注入物,禁占位")
+        _mom = LEDGERS / "当前时刻卡.md"
+        if _mom.exists():
+            _mt = re.search(r"更新至[:：]\s*(\d+)", _mom.read_text(encoding="utf-8"))
+            if _mt and int(_mt.group(1)) != n:
+                _hyg.append(f"当前时刻卡'更新至{_mt.group(1)}'≠本章{n}——续写注入物过期")
+        if _hyg:
+            (warns if (revise or post) else problems).extend(_hyg)
+    except Exception as _e:
+        warns.append(f"账本卫生lint异常(非阻塞): {_e}")
+
+    # 7.7 冷读金丝雀到期(anchor_canary: 每满10次硬门冷读须混入1次劣锚金丝雀,防LLM裁判失真)
+    _pro = LEDGERS / "冷读出处.md"
+    if _pro.exists():
+        _n_cr = sum(1 for l in _pro.read_text(encoding="utf-8").splitlines() if l.startswith("- 第"))
+        if _n_cr >= 10 and _n_cr % 10 == 0 and "金丝雀" not in _pro.read_text(encoding="utf-8"):
+            warns.append(f"冷读已达{_n_cr}次且无金丝雀记录——按anchor_canary.py规程混入1次劣锚校准(当前21章实测已逾期)")
+
     # 7.5 盖章格式schema(红队流水线: "- 第N章 空话"式token盖章可骗;ledger_schema按账最小schema验)
     try:
         from ledger_schema import chapter_stamps_ok
@@ -1615,6 +1659,36 @@ def scores_update(n, p, met, committed):
     ch["drift_flags"] = flags
     _atomic_write(SCORES, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
 
+def cmd_metric_debt(args):
+    """指标债清册(磨刀批20260919): 门阈值升级后,存量章低于当前线的自动列债——批量润色的工单,不是改稿指令"""
+    import subprocess as _sp, json as _json, re as _re
+    cm = chapter_map()
+    debt = {}
+    for n in sorted(cm):
+        out = _sp.run([sys.executable, str(ROOT/"tools/check.py"), "--metrics", str(cm[n])],
+                      capture_output=True, text=True).stdout
+        mt = _re.search(r"METRICS (\{.*\})", out)
+        if not mt: continue
+        m = _json.loads(mt.group(1))
+        bad = []
+        if m["sense_per_k"] < 3.0: bad.append(f"感官{m['sense_per_k']}")
+        if m["mem_per_k"] < 0.5: bad.append(f"记忆{m['mem_per_k']}")
+        if m["social_beats"] < 2: bad.append(f"社交拍{m['social_beats']}")
+        if m["psych_per_k"] < 2.0: bad.append(f"心理{m['psych_per_k']}")
+        if bad: debt[n] = bad
+    print(f"═══ 指标债清册(阈值: 感官3.0/记忆0.5/社交2/心理2.0) ═══")
+    for n, bad in debt.items():
+        print(f"  第{n:03d}章: {', '.join(bad)}")
+    if not debt:
+        print("  无债务")
+    else:
+        out = BOOK / "audit" / "指标债务清单.md"
+        out.write_text("# 指标债务清单(磨刀批自动生成)\n\n批量润色工单: line-polish轴3(感官)/记忆闪回/社交货币拍定向补强。\n\n- " +
+                       "\n- ".join(f"第{n:03d}章: {', '.join(bad)}" for n, bad in debt.items()) + "\n", encoding="utf-8")
+        print(f"  落盘: {out}")
+    return 0
+
+
 def cmd_scores(args):
     # 交叉验证(W新批): 机器分与冷读分20章滑窗背离>2=某套失真,写divergence红旗
     try:
@@ -1725,6 +1799,8 @@ def main():
         return cmd_check(rest)
     if cmd == "done":
         return cmd_done(rest)
+    if cmd == "metric-debt":
+        return cmd_metric_debt(args)
     if cmd == "scores":
         return cmd_scores(rest)
     print(f"未知命令: {cmd}\n" + __doc__)

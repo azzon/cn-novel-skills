@@ -22,7 +22,7 @@ from card_check import extract_vals   # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-PLACEHOLDER = re.compile(r"待记|TODO|占位|待补|空话")
+PLACEHOLDER = re.compile(r"待记|TODO|占位|待补|空话|未提取|待记入")
 
 
 def _lines_with(ledger_path, n):
@@ -69,8 +69,8 @@ def chapter_stamps_ok(book, n):
     for plain in ("梗", "线弦", "口碑账"):
         rule(plain, lambda rs: [r for r in rs if _clean_len(r) < 8 or PLACEHOLDER.search(r)][:1])
     rule("类型轮换", lambda rs: [r for r in rs
-                                  if not re.match(rf"第0?0*{n}章\s*\S{{1,6}}[·・—-]\S{{1,8}}$", r)
-                                  or PLACEHOLDER.search(r)][:1])   # 账本历史格式"类型·词"
+                                  if not re.match(rf"第0?0*{n}章\s*\S{{1,6}}[·・—-]\S{{1,8}}(（[^）]{{1,14}}）)?$", r)
+                                  or PLACEHOLDER.search(r)][:1])   # 账本历史格式"类型·词"(磨刀批: 容忍（说明）后缀)
     return good, bad
 
 
